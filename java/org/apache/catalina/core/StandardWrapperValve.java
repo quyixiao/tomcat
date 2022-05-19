@@ -89,6 +89,15 @@ final class StandardWrapperValve
      *
      * @exception IOException if an input/output error occurred
      * @exception ServletException if a servlet error occurred
+     * StandardWrapperValve 是 StandardWrapper 实例上的基本阀门，该阀门做两件 事情:
+     *  1.提交 Servlet 的所有相关过滤器
+     *  2.调用发送者的 service 方法要实现这些内容，下面是 StandardWrapperValve 在他的 invoke 方法要实现的:
+     *  3.调用 StandardWrapper 的 allocate 的方法来获得一个 servlet 实例
+     *  4.调用它的 private createFilterChain 方法获得过滤链
+     *  5.调用过滤器链的 doFilter 方法。包括调用 servlet 的 service 方法
+     *  6.释放过滤器链
+     *  7.调用包装器的 deallocate 方法
+     *  8.如果 Servlet 无法使用了，调用包装器的 unload 方法
      */
     @Override
     public final void invoke(Request request, Response response)
@@ -182,6 +191,9 @@ final class StandardWrapperValve
         ApplicationFilterFactory factory =
             ApplicationFilterFactory.getInstance();
 
+        // 最重要的方法是 createFilterChain 方法并调用过滤器链的 doFilter 方法。方 法 createFilterChain 创建了一个
+        // ApplicationFilterChain 实例，并将所有的 过滤器添加到上面。ApplicationFilterChain 类将在下面的小节中介绍。
+        // 要完 全的理解这个类，还需要理解 FilterDef 和 ApplicationFilterConfig 类。这些 内容将在下面介绍
         ApplicationFilterChain filterChain =
             factory.createFilterChain(request, wrapper, servlet);
 

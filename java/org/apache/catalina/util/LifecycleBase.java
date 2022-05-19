@@ -114,6 +114,8 @@ public abstract class LifecycleBase implements Lifecycle {
 
     /**
      * {@inheritDoc}
+     * 创建一个 StandardContext 实例之后，必须调用它的 start 方法，这样它就能为 受到的 HTTP 请求服务了。
+     * 一个 StandardContext 对象可能启动失败，这时候属 性 available 被设置为 false，属性 available 表示了 StandardContext 对象的 可用性。
      */
     @Override
     public final synchronized void start() throws LifecycleException {

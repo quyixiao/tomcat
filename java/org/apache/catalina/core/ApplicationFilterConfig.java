@@ -54,6 +54,7 @@ import org.apache.tomcat.util.res.StringManager;
  * is first started.
  *
  * @author Craig R. McClanahan
+ * 实现了 javax.servlet.FilterConfig 接口。ApplicationFilterConfig 负责管理 web 应用程序启动的时候创建的过滤器实例。
  */
 public final class ApplicationFilterConfig implements FilterConfig, Serializable {
 
@@ -93,6 +94,8 @@ public final class ApplicationFilterConfig implements FilterConfig, Serializable
      * @throws SecurityException
      * @throws NoSuchMethodException
      * @throws IllegalArgumentException
+     * 传递一个 org.apache.catalina.Context 对象和 ApplicationFilterConfig 对象 给 ApplicationFilterConfig 的构造来创建一个
+     * ApplicationFilterConfig 实例:
      */
     ApplicationFilterConfig(Context context, FilterDef filterDef)
             throws ClassCastException, ClassNotFoundException, IllegalAccessException,
@@ -250,6 +253,8 @@ public final class ApplicationFilterConfig implements FilterConfig, Serializable
      * @throws SecurityException
      * @throws NoSuchMethodException
      * @throws IllegalArgumentException
+     * Context 对象表示一个一个 web 应用而 FilterDef 表示一个过滤器定义。 ApplicationFilterConfig 的 getFilter 方法可以返回一个
+     * javax.servlet.Filter 方法，该方法加载过滤器类并初始化它。
      */
     Filter getFilter() throws ClassCastException, ClassNotFoundException, IllegalAccessException,
             InstantiationException, ServletException, InvocationTargetException, NamingException,

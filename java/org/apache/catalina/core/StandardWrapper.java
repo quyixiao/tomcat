@@ -76,6 +76,36 @@ import org.apache.tomcat.util.modeler.Util;
  *
  * @author Craig R. McClanahan
  * @author Remy Maucherat
+ * 一共有四种容器： engine(引擎)，host(主机)，context (上下文)和wrapper(包装器)，在前面的章节里也介绍了如何建立自己的context 和wrapper
+ * 一个上下文一般包括一个或多个包装器，每一个包装器表示一个servlet，本章将会看到 Catalina 中Wrapper接口的标准实现，首先介绍一个HTTP
+ * 请求会唤醒的一系列方法，接下来介绍了javax.servlet.SingleThreadModel接口，最后介绍了StandardWrapper 和StandardWrapperValue类。
+ * 本章的应用程序说明了如何用StandardWrapper 实例来表示servlet
+ *
+ * 方法调用序列 Sequence of Methods Invocation
+ * 对于每一个连接，连接器都会调用关联容器的invoke方法，接下来容器调用它的所有子容器的invoke方法，例如 ，如果一个连接器跟一个StandardContext
+ * 实例相dubu，那么连接器会调用StandardContext 实例的invoke方法，该方法会调用所有它的子容器的invoke方法，说明一个连接器收到了一个HTTP
+ * 请求的时候会做一系列的事情 。
+ *
+ * 一个StandardWrapper 对象的主要职责是：加载它表示servlet 并分配它的一个实例，该StandardWrapper 不会调用servlet的service方法，这个任务
+ * 留给StandardWrapperValue对象，在StandardWrapper 实例的基本阀门管道 ，StandardWrapperValue 对象通过调用StandardWrapper的allocate
+ * 方法获得Servlet 实例，在获得Service实例之后 ，StandardWrapperValue 调用servlet 的service方法 。
+ *
+ * 在servlet第一次被请求的时候，StandardWrapper 加载servlet类，它是动态加载servlet ，所以需要知道servlet 类的完全限定名称，通过StandardWrapper
+ * 类的setServletClass方法将servlet 的类名传递给StandardWrapper ，另外使用setName 方法也可以传递servlet名 。考虑到StandardWrapper
+ * 负责在StandardWrapperValue请求的时候分配一个servlet实例， 它必须考虑到一个servlet 是否实现了SingleThreadModel 接口，如果一个servlet
+ * 没有实现SingleThreadModel 接口，StandardWapper 加载该servlet 一次，对于以后的请求返回相同的实例即可 ， StandardWapper 假设 servlet
+ * 的service 方法现场安全的，所以并没有创建servlet 的多个实例，如果需要的话，由程序员自己解决资源同步问题。
+ *
+ * 对于 STM servlet 情况有所不同了，StandardWrapper 必须保证不能同时有两个线程提交STM servlet 的service 方法，如果StandardWapper
+ * 维持一个STM servlet 实现，下面是它如何调用servlet 的service 方法 。
+ *
+ *
+ *
+ * Allocating the Servlet
+ *  在本节开始的时候介绍了StandardWrapperValue 的invoke方法调用了包装器的allocate 方法来获得一个请求的servlet 的实例，因此Standard
+ *  Wrapper 类必须实现该接口，该方法的签名如下 ：
+ *
+ *
  */
 @SuppressWarnings("deprecation") // SingleThreadModel
 public class StandardWrapper extends ContainerBase
@@ -95,6 +125,9 @@ public class StandardWrapper extends ContainerBase
     public StandardWrapper() {
 
         super();
+        // 【注意】StandardWrapper 类的构造函数将一个StandardWrapperValue 作为它的基本阀门
+        // 本章关注的是一个servlet 被调用的时候发生的细节，因此我们需要自习看StandardWrapper 和StandardWrapperValue 类，在学习它们
+        // 之前，我们需要首先关注下，javax.servlet.SignleThreaadModel ，理解该接口对于理解一个包装器是如何工作的非常重要 。
         swValve=new StandardWrapperValve();
         pipeline.setBasic(swValve);  //
         // 广播
@@ -128,6 +161,8 @@ public class StandardWrapper extends ContainerBase
 
     /**
      * The facade associated with this wrapper.
+     * 下面几行是 StandardWrapperFacade 的构造函数，它获得一个 StandardWrapper 类型的参数。
+     * 当一个 StandardWrapperFacade 对象创建的时候，构造函数将该 StandardWrapper 负值给 config 变量
      */
     protected StandardWrapperFacade facade =
         new StandardWrapperFacade(this);
@@ -173,6 +208,7 @@ public class StandardWrapper extends ContainerBase
     /**
      * The initialization parameters for this servlet, keyed by
      * parameter name.
+     * 在 StandardWrapper 中，初始化参数被存放在一个名为 parameters 的 HashMap 中
      */
     protected HashMap<String, String> parameters = new HashMap<String, String>();
 
@@ -482,6 +518,7 @@ public class StandardWrapper extends ContainerBase
      * Set the parent Container of this Wrapper, but only if it is a Context.
      *
      * @param container Proposed parent Container
+     * 一个包装器的父容器只能是一个上下文容器。如果传递的参数不是一个上下文容 器，它的 setParent 方法会抛出 java.lang.IllegalArgumentException。
      */
     @Override
     public void setParent(Container container) {
@@ -729,6 +766,8 @@ public class StandardWrapper extends ContainerBase
      * of the Container hierarchy.
      *
      * @param child Child container to be added
+     *              一个包装器表示一个独立 Servlet 的容器。这样，包装器就不能再有子容器，因 此不可以调用它的 addChild 方法，如果调用了
+     *              会得到一个 java.langIllegalStateException。这里是 StandardWrapper 对 addChild 方法 的实现
      */
     @Override
     public void addChild(Container child) {
@@ -744,6 +783,7 @@ public class StandardWrapper extends ContainerBase
      *
      * @param name Name of this initialization parameter to add
      * @param value Value of this initialization parameter to add
+     *              可以调用 StandardWrapper 类的 addInitParameter 方法来填充 parameters。传 递参数的名字和值。
      */
     @Override
     public void addInitParameter(String name, String value) {
@@ -829,6 +869,32 @@ public class StandardWrapper extends ContainerBase
      * 分配一个已经初始化好的Servlet实例。
      * 如果Servlet没有实现SingleThreadModel接口，已经被初始化好的实例可以被立即返回
      * 如果Servlet实现了SingleThreadModel接口，Wrapper的实现要确保某一实例不会重复分配，除非调用了deallocate方法回收了该实例
+     *
+     *
+     *
+     *
+     * 注意 allocate 方法返回的是一个请求的servlet的一个实例。
+     * 由于要支持STM servlet ，这使得该方法更加复杂一点，实际上，该方法有两部分组成，一部分负责非STM servlet 的工作，另一部分负责STM servlet
+     * 第一部分的结构如下 ：
+     *
+     *  布尔变量singleThreadModel 负责标志一个servlet 是否是STM servlet ，它的初始值是false , loadServlet 方法会检测加载的servlet
+     *  是否是STM ，如果是则将它的值设置为true , loadServlet 方法在下面会介绍到。
+     *
+     *  现在来看一下第一部分和第二部分。方法allocate 检查该实例是否为null , 如果是调用loadServlet 方法来加载servlet ，然后增加contAllocated整形并返回该实例。
+     *  如果StandardWrapper 表示一个STM servlet ，方法allocate 尝试返回池中的一个实例，变量 instancePool 是一个java.util.Stack类型的STM servlet 实例池。
+     *  private Stack instancePool = null;
+     *  该变量在loadServlet 方法的内部初始化，该部分在接口的小节中进行讨论，方法allocate 负责分配STM Servlet实例，前提是实例的数目不超过
+     *  最大数目，该数目由maxInstances 整形定义 ，默认值是20
+     *  上面的代码使用了一个while循环等待直到nInstances的数目少于或等待countAllocated (应该是多余或等于把)，在循环里，allocate方法检查nInstance
+     *  的值，如果低于maxInstances的值，调用loadServlet 的值等于或大于 maxInstances 的值，它调用实例池堆栈的wait方法，知道一个实例被返回 。
+     *
+     *  StandardWrapper 实现了Wrapper 接口的load方法，load方法调用loadServlet 方法来加载一个servlet类，并调用该servlet的init方法，传递
+     *  一个javax.servlet.ServiceConfig 实例，这里就是loadServlet是如何工作的， 方法loadServlet 首先检查StandardWrapper 是否表示
+     *  一个STM servlet ，如果不是并且该实例不是null ,即之前已经加载过， 直接返回该实例。
+     *
+     *
+     *
+     *
      */
     @Override
     public Servlet allocate() throws ServletException {
@@ -1127,6 +1193,14 @@ public class StandardWrapper extends ContainerBase
      * at least one initialized instance.  This can be used, for example, to
      * load servlets that are marked in the deployment descriptor to be loaded
      * at server startup time.
+     *    方法loadServlet负责加载servlet类，类名应该被分配给servletClass 变量，该方法被该值分配给一个String 类型的变量 actualClass
+     *
+     *  但是，由于Catalina 也是一个JSP容器，在请求的JSP页面的时候，loadServlet 必须也能工作，如果是jsp页面，则得到相应的Servlet类。
+     *  如果JSP 页面的servlet 名字找不到，就用servletClass 变量的值，但是，如果访劁珠值没有使用StandardWrapper 类中的setServletClass方法
+     *  设置会产生异常，剩余部分不会被执行。
+     *  现在servlet的名字已经获得了，接下来，是loadServlet 方法获得加载器，如果找不到加载器，则产生异常并停止执行。
+     *
+     *
      */
     public synchronized Servlet loadServlet() throws ServletException {
 
@@ -1156,6 +1230,7 @@ public class StandardWrapper extends ContainerBase
 
             InstanceManager instanceManager = ((StandardContext)getParent()).getInstanceManager();
             try {
+                // 有了类加载器和腰加载的 Servlet 名字，就可以使用 loadServlet 方法来加载类 了。
                 servlet = (Servlet) instanceManager.newInstance(servletClass);
             } catch (ClassCastException e) {
                 unavailable(null);
@@ -1188,7 +1263,11 @@ public class StandardWrapper extends ContainerBase
             }
 
             // Special handling for ContainerServlet instances
+            // 如果通过了安全性检查，接下来检查该 Servlet 是否是一个 ContainerServlet。 ContainerServlet 是实现了 org.apache.catalina.ContainerServlet
+            // 接口的 Servlet，它可以访问 Catalina 的内部函数。如果该 Servlet 是 ContainerServlet，loadServlet 方法调用 ContainerServlet 的 setWrapper
+            // 方法，传递该 StandardWrapper 实例。
             if ((servlet instanceof ContainerServlet) &&
+                    // isContainerProvidedServlet 方法返回 true 值。classLoader 会获得另一个 ClassLoader 的实例，这样就可以访问 Catalina 的内部了。
                     (isContainerProvidedServlet(servletClass) ||
                             ((Context) getParent()).getPrivileged() )) {
                 ((ContainerServlet) servlet).setWrapper(this);
@@ -1242,6 +1321,7 @@ public class StandardWrapper extends ContainerBase
 
         // Call the initialization method of this servlet
         try {
+            // 接下来 loadServlet 方法触发 BEFORE_INIT_EVENT 事件，并调用发送者的 init 方法。
             instanceSupport.fireInstanceEvent(InstanceEvent.BEFORE_INIT_EVENT,
                                               servlet);
 
@@ -1261,6 +1341,9 @@ public class StandardWrapper extends ContainerBase
                     }
                 }
             } else {
+                //因此，当 StandardWrapper 对象调用 Servlet 实例的 init 方法的时候，它传递 的是一个 StandardWrapperFacade 对象。
+                // 在 Servlet 内部调用 ServletConfig 的 getServletName, getInitParameter, 和 getInitParameterNames 方法只需
+                // 要调用它们在 StandardWrapper 的实现就行。
                 servlet.init(facade);
             }
 
@@ -1563,10 +1646,11 @@ public class StandardWrapper extends ContainerBase
      * if any; otherwise return <code>null</code>.
      *
      * @param name Name of the initialization parameter to retrieve
+     *             该方法返回指定参数的值，该方法的签名如下:
      */
     @Override
     public String getInitParameter(String name) {
-
+        // 方法 findInitParameter 的参数为参数名，并调用 parameters HashMap 的 get 方法
         return (findInitParameter(name));
 
     }
@@ -1575,12 +1659,14 @@ public class StandardWrapper extends ContainerBase
     /**
      * Return the set of initialization parameter names defined for this
      * servlet.  If none are defined, an empty Enumeration is returned.
+     * Enumerator 实现了 java.util.Enumeration 接口，是 org.apache.catalina.util 包的一部分。
      */
     @Override
     public Enumeration<String> getInitParameterNames() {
 
         try {
             parametersLock.readLock().lock();
+            // 该方法返回所有初始化参数名字的枚举(Enumeration)
             return Collections.enumeration(parameters.keySet());
         } finally {
             parametersLock.readLock().unlock();
@@ -1588,9 +1674,15 @@ public class StandardWrapper extends ContainerBase
 
     }
 
-
     /**
      * Return the servlet context with which this servlet is associated.
+     * 一个 StandardWrapper 实例必须是一个 StandardContext 容器的子容器。也就是 说，StandardWrapper 的父容器时 StandardContext。
+     * 可以使用 StandardContext 对象的 getServletContext 来获得 ServletContext 对象。这里是 StandardWrapper 中方法
+     * getServletContext 的实现
+     *
+     * 注意 ：现在你知道不能单独部署一个包装器来表示Servlet ，包装器必须从属于一个上下文容器，这样才能使用ServletConfig对象使用
+     * getServletContext方法获得一个ServletContext实例。
+     *
      */
     @Override
     public ServletContext getServletContext() {
@@ -1607,6 +1699,8 @@ public class StandardWrapper extends ContainerBase
 
     /**
      * Return the name of this servlet.
+     * 它简单的调用 StandardWrapper 的父类 ContainerBase 类的 getName 方法
+     * 可以使用 setName 方法来设置 name 的值。回忆是如何调用 StandardWrapper 实 例的 setName 方法来传递 Servlet 的 name 的。
      */
     @Override
     public String getServletName() {

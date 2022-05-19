@@ -30,6 +30,17 @@ import org.apache.catalina.deploy.LoginConfig;
  * provides some sort of authentication service.
  *
  * @author Craig R. McClanahan
+ * org.apache.catalina.Authenticator 接口用来表示一个验证器，该方法的接口并没有方法，只是一个组件的标识器，这样就能使用instanceof
+ * 来检查一个组件是否为验证器。
+ * Catalina 提供了Authenticator接口的基本实现。org.apache.catalina.authenticator.AuthenticatorBase类，除了实现Authenticator接口外。
+ * AuthenticatorBase还继承了org.apache.catalina.values.ValueBase类，这就是说authenticatorBase也是一个阀门，可以在org.apache.catalina.authenticator
+ * 包中找到该接口的几个类。BasicAuthenticator用于基本的验证，FormAuthenticator用于基本的静音验证，DigestAuthentication用于摘要（digest）验证。
+ * SSLauthenticator用于SSL验证，NonLoginAuthenticator用于Tomcat 没有指定验证元素的时候，NonLoginAuthenticator类表示只是检查安全限制的
+ * 验证器，但是不进行用户验证。
+ * org.apache.catalina.authenticator
+ * 一个验证器的主要工作就是验证用户，因此，AuthenticatorBase 类的invoke方法调用了抽象方法authenticate ，这个方法的具体实现由子类来完成 。
+ * 在BasicAuthenticator中，它authenticate使用基本验证器来验证用户 。
+ *
  */
 public interface Authenticator {
 

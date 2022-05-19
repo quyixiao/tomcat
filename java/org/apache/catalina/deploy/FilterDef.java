@@ -33,6 +33,9 @@ import org.apache.tomcat.util.res.StringManager;
  * in a <code>&lt;filter&gt;</code> element in the deployment descriptor.
  *
  * @author Craig R. McClanahan
+ * org.apache.catalina.deploy.FilterDef 表示一个过滤器定义，就像是在部署 文件中定义一个过滤器元素那样
+ * FilterDef 类中的每一个属性都代表一个可以在过滤器中出现的子元素。该类包 括一个 Map 类型的变量表示一个包含所有初始参数的 Map。
+ * 方法 addInitParameer 添加一个 name/value 对到该 Map。
  */
 public class FilterDef implements Serializable {
 

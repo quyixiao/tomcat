@@ -142,6 +142,10 @@ import org.apache.tomcat.util.scan.StandardJarScanner;
  *
  * @author Craig R. McClanahan
  * @author Remy Maucherat
+ * 在前面的章节中已经看到，一个上下文容器(Context)代表一个 web 应用，每 一个上下文包括多个包装器(Wrapper)，每个包装器代表一个 Servlet。
+ * 但是， 上下文还需要其它的一些组件如加载器和管理器。本章要介绍 Catalina 中 Context 接口的标准实现，org.apache.catalina.core.StandardContext 类。
+ * 我们首先介绍 StandardContext 对象的初始化和配置，然后讨论跟其相关的类 StandardContextMapper(Tomcat 4)和 ContextConfig 类。
+ * 接下来看，当容器 接受到 HTTP 请求的时候方法调用顺序。然后，在讨论该类几点重要特性，最后 一节讨论 Tomcat5 中的 backgroundProcess 方法。
  */
 public class StandardContext extends ContainerBase
         implements Context, NotificationEmitter {

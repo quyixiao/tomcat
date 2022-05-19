@@ -30,6 +30,20 @@ import org.apache.catalina.util.RequestUtil;
  * deployment descriptor.
  *
  * @author Craig R. McClanahan
+ * 一个login configuration 包括一个域名 ，用org.apache.catalina.deploy.LoginConfig 类表示 ， LoginConfig 的实例封装了域名和验证要
+ * 用到的方法，可以使用LoginConfig实例的getRealmName方法来获得域名 ， 可以使用getAuthName方法来验证用户 一个验证（authentication）的名字必须是
+ * 下面的之一，BASIC ，DIGEST，FROM ，o 或者 CLIENT-CERT ，如果用到的是基于表单（form）的验证，该LoginConfig对象还包括登录或者错误的页面
+ * 像对应的URL。
+ * Tomcat 一个部署启动的时候，先读取web.xml ，如果web.xml包括一个login-config元素，Tomcat 创建一个LoginConfig对象并相应的设置它的属性。
+ * 验证阀门调用LoginConfig的getRealmName方法并将域名发送给浏览器显示登录表单，如果getRealName名字返回的值为null,则发送给浏览器服务器的名字 。
+ * 和端口名 。
+ *
+ * 安装Authenticator阀门
+ * 在部署文件中，只能出现一个login-config 元素，login-config 元素包括了auth-method 元素用于定义验证方法，也就是说一个上下文容器只能有一个
+ * LoginConfig 对象来使用authentication 的实现类  。
+ * AuthenticatorBase的子类在上下文中被作为验证阀门，这个依赖于部署文件中的auth-method 元素的值，表10.1 为auth-method 元素的值，可以用于
+ * 确定验证器。
+ *
  */
 public class LoginConfig implements Serializable {
 

@@ -40,6 +40,15 @@ package javax.servlet;
  */
 @SuppressWarnings("dep-ann")
 // Spec API does not use @Deprecated
+// 一个servlet 可以实现javax.servlet.SingleThreadModel 接口，实现此接口的一个servlet 通俗称为SingleThreadModel (STM)的程序组件 。
+// 根据Servlet规范，实现此接口的目的是保证servlet 一次只能有一个请求，Servlet 2.4 规范的第SRV.14.2.24 节 (Servlet 2.3 的有
+// SingleThreadModel 接口上的类似说明 )
+// 如果一个servlet实现了此接口，将保证不会有两个线程同使用servlet 的service方法，servlet 容器可以保证同步进入一个servlet 的一个实例。
+// Servlet实例的处理每个新请求，该接口并不能避免同步而产生的问题，如访问静态类变量或该servlet 以外的类或变量 。
+// 很多的程序员并没有仔细阅读它，只是认为实现了SingleThreadModel 就能保证它们的servlet 是线程安全的，显然并非如此，重新阅读上面的引文
+// 一个servlet 实现SignleThreadModel 之后确保能保证它的service 方法不会被两个线程同时使用，为了提高servlet 容器的性能，可以创建STM
+// servlet 多个实例。
+//
 public interface SingleThreadModel {
     // No methods
 }

@@ -29,6 +29,9 @@ import javax.servlet.ServletContext;
  * Facade for the <b>StandardWrapper</b> object.
  *
  * @author Remy Maucherat
+ * StandardWrapper 调用它价值的 Servlet 的 init 方法。该方法需要一个 javax.servlet.ServletConfig 的参数，而 StandardWrapper
+ * 类自己就实现了 ServletConfig 接口。所以，理论上 StandardWrapper 可以将它自己作为参数传 递给 init 方法。但是 StandardWrapper
+ * 需要对 Servlet 隐藏他的大多数 public 方法。为了实现这一点，StandardWraper 将它自己包装的一个 StandardWrapperFacade 实例中
  */
 public final class StandardWrapperFacade
     implements ServletConfig {
@@ -73,6 +76,7 @@ public final class StandardWrapperFacade
 
 
     @Override
+    // Gauge 方法调用 StandardWrapper 类的 getServletContext 方法，但是它返回一 个 ServletContext 的外观对象，而不是 ServletContext 对象自己。
     public ServletContext getServletContext() {
         if (context == null) {
             context = config.getServletContext();

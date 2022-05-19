@@ -71,6 +71,19 @@ final class StandardContextValve extends ValveBase {
      *
      * @exception IOException if an input/output error occurred
      * @exception ServletException if a servlet error occurred
+     * 连接器创建请求和响应对象
+     * 连接器调用StandardContext的invoke方法
+     * StandardContext 的invoke方法必须调用该上下文容器的流水线的invoke方法，所以StandardContext 的流水线调用StandardContextValue
+     * 的invoke方法 。
+     * StandardContextValue 的invoke方法得到合适的包装器来对请求进行服务并调用包装器的invoke方法 。
+     * StandardWrapper 是包装器的标准实现，StandardWrapper对象的invoke方法调用流水线的invoke方法 。
+     * StandardWrapper 流水线的基本阀门时StandardWrapperValue，因此StandardWrapperValue 的invoke方法会被调用，StandardWrapperValue
+     * 的invoke方法会调用包装器的allocate方法获得一个servlet 的实例 。
+     * 当一个servlet需要被加载的时候，方法allocate调用load方法来加载一个servlet
+     * 方法load会调用servlet 的init方法
+     *
+     * 注意 ：StandardContext 类的构造函数设置StandardContextValue 实例为它的基本阀门
+     *
      */
     @Override
     public final void invoke(Request request, Response response)

@@ -114,6 +114,9 @@ public class GenericPrincipal implements Principal {
      * @param loginContext  - If provided, this will be used to log out the user
      *        at the appropriate time
      * @param gssCredential - If provided, the user's delegated credentials
+     *  GenericPrincipal 必须拥有一个用户名和密码，此外还可以选择性的传递一列角色，可以使用hashRoleeee方法来检查一个principal是否有一个特定的
+     *   的角色，传递的参数为角色的字符串表示形式，这里是Tomcat 中的hasRole方法 。
+     *
      */
     public GenericPrincipal(String name, String password, List<String> roles,
             Principal userPrincipal, LoginContext loginContext,

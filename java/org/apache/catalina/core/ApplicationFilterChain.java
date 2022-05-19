@@ -51,6 +51,8 @@ import org.apache.tomcat.util.res.StringManager;
  * method itself.
  *
  * @author Craig R. McClanahan
+ * ApplicationFilterChain 类是实现了 javax.servlet.FilterChain 接口。StandardWrapperValve 类中的 invoke 方法 创建一个该类的实例
+ * 并且调用它的 doFilter 方法。ApplicationFilterChain 类 的 doFilter 的调用该链中第一个过滤器的 doFilter 方法。Filter 接口中 doFilter 方法的签名如下:
  */
 final class ApplicationFilterChain implements FilterChain, CometFilterChain {
 
@@ -174,6 +176,8 @@ final class ApplicationFilterChain implements FilterChain, CometFilterChain {
      *
      * @exception IOException if an input/output error occurs
      * @exception ServletException if a servlet exception occurs
+     * ApplicationFilterChain 的 doFilter 方法，并将它自己作为第三个参数传递给 它。
+     * 在他的 doFilter 方法中，一个过滤器可以调用另一个过滤器链的 doFilter 来唤 醒另一个过来出去。这里是一个过滤器的 doFilter 实现的例子
      */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response)
@@ -239,6 +243,8 @@ final class ApplicationFilterChain implements FilterChain, CometFilterChain {
 
                 } else {
                     // 执行filter的逻辑
+                    // 如你看到的，在 doFilter 方法最好一行，它调用过滤链的 doFilter 方法。如果 该过滤器是过滤链的最后一个过滤器，
+                    // 它叫调用请求的 Servlet 的 service 方法。 如果过滤器没有调用 chain.doFilter，下一个过滤器就不会被调用。
                     filter.doFilter(request, response, this);
                 }
 
