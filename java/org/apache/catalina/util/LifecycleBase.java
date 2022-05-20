@@ -116,6 +116,47 @@ public abstract class LifecycleBase implements Lifecycle {
      * {@inheritDoc}
      * 创建一个 StandardContext 实例之后，必须调用它的 start 方法，这样它就能为 受到的 HTTP 请求服务了。
      * 一个 StandardContext 对象可能启动失败，这时候属 性 available 被设置为 false，属性 available 表示了 StandardContext 对象的 可用性。
+     *
+     * 如果 start 方法启动成功，StandardContext 对象需要配置它的属性。在一个 Tomcat 部署中，StandardContext 的配置过程做了以下事情:
+     * 准备读取和解 析%CATALINA_HOME%/conf 目录下面的 web.xml，部署所有应用程序，确保 StandardContext 实例可以处理应用级别的 web.xml。
+     * 另外，配置需要添加一个 验证器阀门和证书阀门(authenticator valve and a certificate valve)
+     *
+     *
+     * StandardContext 的属性之一是它属性 configured,用来表示该 StandardContext 是否已经配置了。StandardContext 使用一个事件监听器来作
+     * 为它的配置器。当 StandardContext 实例的 start 方法被调用的时候，首先触发 一个生命周期事件。该事件唤醒一个监听器来配置该 StandardContext 实例。
+     * 配置成功后，该监听器将 configured 属性设置为 true。否则，StandardContext 对象拒绝启动，这样就不能对 HTTP 请求进行服务了。
+     *
+     *
+     * 现在你应该已经明白了配置过程对于 StandardContext 的重要性，接下来看更多 StandardContext 类的细节，首先是它的构造函数。
+     *
+     *
+     *
+     * StandardContext 实例。如果配置成功，生命周期监听器会将 configured 属性设置为 true。最后 start 方法，将 available 属性设置为
+     * true 或者 false。如 果是 true 的话表示该 StandardContext 属性配置完毕并且所有相关子容器和组件已经成功启动，这样就能对 HTTP
+     * 请求进行服务了，如果是 false 则表示出现了错误。
+     *
+     * StandardContext 类将 configured 的值初始化为 false，如果生命周期监听器的 配置过程成功，则将该值设置为 true。
+     * 在 start 方法的最后，它检查 StandardContext 对象的 configured 属性，如果该值为 true，则启动该 StandardContext 成，
+     * 否则调用 stop 方法停止所有已经启动的组件。
+     *
+     *
+     * 下面是该方法做的事情 。
+     * 触发BEFORE_START事件 。
+     * 设置availability属性为false
+     * 设置configured 属性为false
+     * 设置源（resources ）
+     * 设置加载器
+     * 设置管理器
+     * 初始化属性map
+     * 启动跟该上下文相关的组件
+     * 启动子容器（包装器）
+     * 启动流水线
+     * 启动管理器
+     *
+     * 触发START 事件，监听器（ContextConfig）会进行一系列的配置操作，配置成功后，将StandardContext 实例的configured属性设置为true
+     * 检查configured属性的值，如果为true:调用postWelcomPages方法，加载子包装器，调用stop方法 。
+     * 触发AFTER_START事件 。
+     *
      */
     @Override
     public final synchronized void start() throws LifecycleException {

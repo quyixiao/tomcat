@@ -1616,13 +1616,20 @@ public abstract class ContainerBase extends LifecycleMBeanBase
         // 默认情况下只有Engine的backgroundProcessorDelay大于0，为10，
         // 也就是说，虽然每个容器在启动的时候都会走到当前方法，但是只有Engine能继续往下面去执行
         // 但是其他容器是可以配置backgroundProcessorDelay属性的，只要配置了大于0，那么这个容器也会单独开启一个backgroundProcessor线程
+        // 一个上下文容器需要其它组件如加载器和管理器的支持。这些组件通常需要一个 单独的线程来处理后台过程(background processing)。
 
+        // 例如，加载器通过一 个线程检查类文件和 JAR 文件的时间戳来支持自动重载。管理器需要一个线程来 检查它管理的 Session 对象过期时间。
+        // 在 Tomcat4 中，这些组件都有自己的线程。
+        //为了节省资源，Tomcat 使用了一种不同的方式来处理。所有的后台过程都分享 同一个线程。如果一个组件或者是容器需要定期的来执行操作，
+        // 它需要做的是将 这些代码写入到 backgroundProcess 方法即可。
+        //共享线程有 ContainerBase 对象创建，ContainerBase 在他的 start 方法中调用 threadStard 方法。
         if (backgroundProcessorDelay <= 0)
             return;
 
         threadDone = false;
         String threadName = "ContainerBackgroundProcessor[" + toString() + "]";
         // ContainerBackgroundProcessor线程每隔一段时间会调用容器内的backgroundProcess方法，并且会调用子容器的backgroundProcess方法
+        // 方法 threadStart 传递一个 ContainerBackgroundProcessor 对象创建一个新线 程。ContainerBackgroundProcessor 实现了 java.lang.Runnable 接口
         thread = new Thread(new ContainerBackgroundProcessor(), threadName);
         thread.setDaemon(true);
         thread.start();
@@ -1658,6 +1665,11 @@ public abstract class ContainerBase extends LifecycleMBeanBase
     /**
      * Private thread class to invoke the backgroundProcess method
      * of this container and its children after a fixed delay.
+     *
+     * ContainerBackgroundProcessor 是 ContainerBase 的内部类，在他的 run 方法 里，有一个 while 循环定期的调用它的 processChildren 方法。
+     * processChildren 调用 backgroundProcess 来处理它的每个孩子的 processChildren 方法。要实现 backgroundProcess 方法，
+     * 以 ContainerBase 的子类可以有一个线程来周期性的 执行任务，例如检查时间戳或者 Session 对象的终结时间。Listing12.4 展示了
+     * Tomcat5 中 StandardContext 的 backgroundProcess 方法的实现。
      */
     protected class ContainerBackgroundProcessor implements Runnable {
 

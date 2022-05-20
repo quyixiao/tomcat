@@ -146,6 +146,15 @@ import org.apache.tomcat.util.scan.StandardJarScanner;
  * 但是， 上下文还需要其它的一些组件如加载器和管理器。本章要介绍 Catalina 中 Context 接口的标准实现，org.apache.catalina.core.StandardContext 类。
  * 我们首先介绍 StandardContext 对象的初始化和配置，然后讨论跟其相关的类 StandardContextMapper(Tomcat 4)和 ContextConfig 类。
  * 接下来看，当容器 接受到 HTTP 请求的时候方法调用顺序。然后，在讨论该类几点重要特性，最后 一节讨论 Tomcat5 中的 backgroundProcess 方法。
+ *
+ * StandardContext 配置。
+ *
+ * 创建一个StandardContext实例之后，必须调用它的Start方法， 这样它就能为受到HTTP 请求的服务了，一个StandardContext对象可能启动失败，
+ * 这时候属于available被设置为false , 属性available表示StandarcContext 对象的可用性。
+ *
+ *
+ *
+ *
  */
 public class StandardContext extends ContainerBase
         implements Context, NotificationEmitter {
@@ -535,6 +544,8 @@ public class StandardContext extends ContainerBase
 
     /**
      * The reloadable flag for this web application.
+     * StandardContext 定义了 reloadable 属性来标识是否支持应用程序的重加载。 当允许重加载的时候，当 web.xml 或者 WEB-INF/classes
+     * 目录下的文件被改变的 时候会重加载。
      */
     private boolean reloadable = false;
 

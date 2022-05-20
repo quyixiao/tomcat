@@ -76,6 +76,10 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author Craig R. McClanahan
  * @author Remy Maucherat
+ *
+ *
+ * StandardContext 中 Loader 接口的标准实现 WebappLoader 类，有一个单独线程 来检查 WEB-INF 目录下面所有类和 JAR 文件的时间戳。
+ * 你需要做的是启动该线程， 将 WebappLoader关联到StandardContext，使用setContainer方法即可。下面是 Tomcat4 中 WebappLoader 的实现:
  */
 
 public class WebappLoader extends LifecycleMBeanBase
@@ -249,6 +253,7 @@ public class WebappLoader extends LifecycleMBeanBase
         support.firePropertyChange("container", oldContainer, this.container);
 
         // Register with the new Container (if any)
+        // 注意最后一个 if 语句块中，如果容器是一个上下文容器，调用 setReloadable 方法，也就是说 WebappLoader 的 reloadable 属性跟 StandardContext 的 reloadable 属性相同。
         if ((this.container != null) && (this.container instanceof Context)) {
             setReloadable( ((Context) this.container).getReloadable() );
             ((Context) this.container).addPropertyChangeListener(this);

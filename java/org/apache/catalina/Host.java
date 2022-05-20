@@ -41,6 +41,25 @@ import java.util.regex.Pattern;
  * of Context (representing an individual servlet context).
  *
  * @author Craig R. McClanahan
+ *
+ * 本章要讨论两个主机（host） 和引擎（Engine） ，如果需要在一个Tomcat 部署中部署多个上下文 ，需要使用一个主机，理论上，当只有一个上下文
+ * 容器时候不需要主机， 正如org.apache.catalina.Context接口中描述的那样，上下文容器的父容器是主机 ，但是可能有一些其他的实现，没有必要
+ * 的时候可以忽略 。
+ * 但是实践中，一个Tomcat部署往往需要一个主机 ，至于为什么，你在本章后面的 Why You Cannot Live without a Host 一节中看到。
+ *
+ *引擎表示整个 Catalina 的 Servlet 引擎。如果使用的话，它位于容器等级的最 高层。可以添加到引擎上的容器包括 org.apache.catalina.Host
+ * 或者 org.apache.catalina.Context。在一个 Tomcat 部署中，默认的容器是引擎。在 该部署中，引擎只有一个主机，默认主机。
+ *
+ *
+ *
+ * 本章讨论了跟 Host 和 Engine 接口接口相关的类。首先介绍了 Host 相关的 StandardHost、StandardHostMapper(Tomcat4)以及
+ * StandardHostValve 类。 接下来是，用一个示例来说明了主机作为顶层容器的情况。引擎是本章讨论的第 二个主题。接下来是本章的第二个应用程序，
+ * 说明了如何将引擎作为顶层容器使用。
+ *
+ * 主机是用 org.apache.catalina.Host 接口表示的。本接口继承了 Container 接 口
+ *
+ *
+ *
  */
 public interface Host extends Container {
 

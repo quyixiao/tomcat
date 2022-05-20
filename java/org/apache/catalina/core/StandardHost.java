@@ -48,6 +48,11 @@ import org.apache.tomcat.util.ExceptionUtils;
  *
  * @author Craig R. McClanahan
  * @author Remy Maucherat
+ * org.apache.catalina.core.StandardHost 类是对 Host 接口的标准实现。该继 承了 org.apache.catalina.core.ContainerBase
+ * 类并实现了 Host 接口和 Deployer 接口。Deployer 接口将在第 17 章讨论。
+ *
+ * 跟 StandardContext 和 StandardWrapper 类相似，StandardHost 类的构造函数 在它的流水线中添加一个基本阀门。
+ *
  */
 public class StandardHost extends ContainerBase implements Host {
 
@@ -800,6 +805,10 @@ public class StandardHost extends ContainerBase implements Host {
      *
      * @exception LifecycleException if this component detects a fatal error
      *  that prevents this component from being used
+     *
+     *
+     *
+     *
      */
     @Override
     protected synchronized void startInternal() throws LifecycleException {
