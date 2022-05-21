@@ -49,6 +49,11 @@ import org.apache.juli.logging.LogFactory;
  * You can set the jvmRoute direct or with the System.property <b>jvmRoute</b>.
  *
  * @author Craig R. McClanahan
+ * 类 org.apache.catalina.core.StandardEngine 是 Engine 接口的标准实现，跟 StandardContext 和 StandardHost 相比，
+ * StandardEngine 类相对较小。初始化 的时候，StandardEngine 类需要添加一个基本阀门
+ *
+ * 在 Container 容器的顶层，StandardEngine 可以有子容器，它的子容器必须是 主机(host)。如果你尝试给它添加一个非主机容器，
+ * 会产生异常。这里是 StandardEngine 类的 addChile 方法。
  */
 public class StandardEngine extends ContainerBase implements Engine {
 
@@ -235,6 +240,8 @@ public class StandardEngine extends ContainerBase implements Engine {
      * of Host.
      *
      * @param child Child container to be added
+     *              在 Container 容器的顶层，StandardEngine 可以有子容器，它的子容器必须是 主机(host)。如果你尝试给它添加一个
+     *              非主机容器，会产生异常。这里是 StandardEngine 类的 addChile 方法。
      */
     @Override
     public void addChild(Container child) {
@@ -263,7 +270,10 @@ public class StandardEngine extends ContainerBase implements Engine {
      * Disallow any attempt to set a parent for this Container, since an
      * Engine is supposed to be at the top of the Container hierarchy.
      *
+     *
      * @param container Proposed parent Container
+     *
+     * 由于位于容器的顶层，所以引擎不能有父容器，当你尝试给引擎设置父容器的时 候会产生异常，下面是 StandardEngine 类的 setParent 方法
      */
     @Override
     public void setParent(Container container) {

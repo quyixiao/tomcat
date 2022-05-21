@@ -51,6 +51,7 @@ import org.apache.tomcat.util.security.PrivilegedSetTccl;
  *
  * @author Craig R. McClanahan
  * @author Remy Maucherat
+ * org.apache.catalina.core.StandardHostValve 类是 StandardHost 的基本阀门 类型。当有 HTTP 请求的时候会调用它的 invoke 方法:
  */
 final class StandardHostValve extends ValveBase {
 
@@ -121,6 +122,8 @@ final class StandardHostValve extends ValveBase {
      *
      * @exception IOException if an input/output error occurred
      * @exception ServletException if a servlet error occurred
+     *  在得到上下对象的时候需要一个往返过程，map 方法介绍两个参数，该方法是在 ContainerBase 中的。然后 ContainerBase 类又在它的子对象中查找合
+     * 适的映射器并调用它的 map 方法。
      */
     @Override
     public final void invoke(Request request, Response response)

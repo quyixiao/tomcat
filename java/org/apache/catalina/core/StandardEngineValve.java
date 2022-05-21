@@ -40,6 +40,9 @@ import org.apache.tomcat.util.res.StringManager;
  * when processing HTTP requests.
  *
  * @author Craig R. McClanahan
+ * org.apache.catalina.core.StandardEngineValve 是 StandardEngine 的基本阀 门
+ * 在验证了请求对象和响应对象之后，invoke 方法获得一个 Host 实例来处理请求。 它得到主机的方法是调用引擎的 map 方法。
+ * 一旦获得了一个主机，它的 invoke 方法将会被调用。
  */
 final class StandardEngineValve
     extends ValveBase {

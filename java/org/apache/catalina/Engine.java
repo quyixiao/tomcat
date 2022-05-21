@@ -41,6 +41,8 @@ package org.apache.catalina;
  * should throw <code>IllegalArgumentException</code>.
  *
  * @author Craig R. McClanahan
+ * org.apache.catalina.Engine 接口用来表示一个引擎。引擎表示整个 Catalina 的 Servlet 引擎。当你想要支持多个虚拟主机的时候，需要一个引擎，实际上， Tomcat 部署正是使用了引擎。
+ * 可以给引擎设置默认主机或者默认上下文。注意引擎也可以跟服务相关联 (service)
  */
 public interface Engine extends Container {
 

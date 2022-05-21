@@ -1818,6 +1818,8 @@ public class ContextConfig implements LifecycleListener {
                     }
                 }
                 else {
+                    //一个 Tomcat 部署必须有一个主机如果该上下文使用 ContextConfig 来配置。原 因如下:
+                    //ContextConfig 需要应用文件 web.xml 的位置，它在它的 applicationConfig 方 法中尝试打开该文件，下面是该方法的片段:
                     stream = servletContext.getResourceAsStream
                         (Constants.ApplicationWebXml);
                     try {

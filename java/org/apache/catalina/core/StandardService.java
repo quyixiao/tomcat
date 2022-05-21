@@ -46,6 +46,15 @@ import org.apache.tomcat.util.res.StringManager;
  * not required.
  *
  * @author Craig R. McClanahan
+ * org.apache.catalina.core.StandardService 类是 Service 接口的标准实现。 StandardService 类的 initialize 方法初始化所有的添加
+ * 到该服务的连接器。 该类还实现了 org.apache.catalina.Lifecycle 接口，所以调用它的 start 方法 能启动所有的连接器和容器。
+ *
+ *
+ * 一个 StandardService 实例包括两种组件:一个容器和多个连接器。多个连接器 可以使得 Tomcat 能服务于多个协议。一个协议用处处理 HTTP 请求，
+ * 另一个用于 处理 HTTPS 请求。
+ *
+ * StandardService 类用 container 变量来持有容器实例，用 connectors 数组来 持有所有的连接器
+ *
  */
 
 public class StandardService extends LifecycleMBeanBase implements Service {
@@ -226,6 +235,12 @@ public class StandardService extends LifecycleMBeanBase implements Service {
      * with this Service's Container.
      *
      * @param connector The Connector to be added
+     * 要与服务相关联的容器传递给该每个连接器，这样来建立容器和每个连接器的关 系。
+     * 要给一个服务添加连接器，可以使用 addConnector 方法。要删除一个连接器， 可以使用 removeConnector 方法。
+     *                  Lifecycle 方法是从 Lifecycle 接口继承而来。Initialize 方法调用每个连接器 的 initialize 方法
+     *
+     * 这个应用程序展示了如何使用服务器和服务，特别是它说明了如何使用 StandardServer 类的启动和停止机制。本程序由三个类组成，
+     *                  SimpleContextConfig 跟第 13 章中的相同，另外两个类一个是 Bootstrap 启动 程序，另一个是 Stopper 类用来停止它。
      */
     @Override
     public void addConnector(Connector connector) {

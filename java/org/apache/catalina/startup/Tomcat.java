@@ -618,7 +618,8 @@ public class Tomcat {
 
         server = new StandardServer();
         server.setPort( -1 );
-
+        // 它创建了一个连接器、两个包装 器、一个上下文、一个主机以及一个引擎。然后将包装器添加到上下文，将上下文添加到主机，主机添加到引擎。
+        // 它并没有将连接器和引擎相关联，而是创建了 一个一个服务对象，设置它的名字，创建一个服务器对象，并给该服务器添加服务。
         service = new StandardService();
         service.setName("Tomcat");
         server.addService( service );
