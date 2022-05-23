@@ -1219,8 +1219,8 @@ public class Digester extends DefaultHandler2 {
             throws SAXException {
         boolean debug = log.isDebugEnabled();
 
-        if (saxLog.isDebugEnabled()) {
-            saxLog.debug("startElement(" + namespaceURI + "," + localName + "," + qName + ")");
+        if(debug){
+            saxLog.info("startElement(" + namespaceURI + "," + localName + "," + qName + ")");
         }
 
         // Parse system properties
@@ -2054,6 +2054,7 @@ public class Digester extends DefaultHandler2 {
      * @param pattern Element matching pattern
      * @param clazz Java class to be created
      * @see ObjectCreateRule
+     * 如果想让 Digester 给特定的规则创建对象，可以调用它的 addObjectCreate 方 法。该方法有四个实现，其中两个最常用方法的签名如下:
      */
     public void addObjectCreate(String pattern, Class<?> clazz) {
 
@@ -2200,6 +2201,7 @@ public class Digester extends DefaultHandler2 {
      * @param attributeNames names of attributes with custom mappings
      * @param propertyNames property names these attributes map to
      * @see SetPropertiesRule
+     * 另一个重要的方法是 addSetProperties，Digester 对象可以通过它设置对象属 性。该方法的一个实现的签名如下:
      */
     public void addSetProperties(
                                 String pattern,
