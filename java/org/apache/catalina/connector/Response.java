@@ -61,6 +61,17 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author Remy Maucherat
  * @author Craig R. McClanahan
+ * 客户端从请求到响应的处理过程中会存在一个响应对象与请求对象相对应，它包含了HTTP协议响应相关的参数，例如响应状态码，内容类型，内容长度，响应编码以及
+ * 响应头部等，Response 对象的结构，Reponse 的头部类型与Request的头部类型一样，都为MimeHeaders ,另外多了一个动作钩子ActionHook ，它的处理过程提供了
+ * 钩子机制，还有一个输出缓冲的OutputBuffer 。
+ *
+ * 服务器接收到HTTP 请求后，按照HTTP 协议规范组织成响应报文，包括响应行，响应头和响应体，处理过程需要一个对象封装这些相关的参数值，这个对象就是
+ * Response ，它用于封装响应相关的参数，而且Response 也使用了门面模式 。
+ *
+ * 一个请求达到服务器后，经过处理后， 将发送如下的响应报文到客户端，包括响应报文协议及版本，状态码及其描述，响应头部，响应体等，处理过程通过
+ * 一个响应对象的Response来保存这些参数值，而响应体会直接通过流输出到客户端，例如下面的这段响应报文，在处理过程中响应行及响应头相关的属性值将
+ * 存入Response对象中，响应体则不保存于Response中，而是直接写入到输出缓冲装置中。
+ *
  */
 public class Response implements HttpServletResponse {
 

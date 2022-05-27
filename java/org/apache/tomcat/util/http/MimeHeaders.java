@@ -89,6 +89,12 @@ import org.apache.tomcat.util.res.StringManager;
  * @author James Todd [gonzo@eng.sun.com]
  * @author Costin Manolache
  * @author kevin seguin
+ * 请求头部 -MimeHeaders
+ * HTTP 协议的请求头部像一个键值对，例如Content-Length:123 , 前面为键，后面为值，读取值表示文本的长度为123，对于若干个头部，在请求对象中把它们封装
+ * 成MimeHeaders对象，MimeHeaders 对象里面包含了一个链表结构，用于存放头部名和头部值，如图6.22 所示，每个MimeHeaderField 对象指向其
+ * 前驱节点对象，同时也指向其后继节点对象，采用这种双向链表结构有利于快速搜索，以MimeHeaderField作为单位，它表示一个头部，其中包含的name value 分别用于保存头部的
+ * 键值对。
+ *
  */
 public class MimeHeaders {
     /** Initial size - should be == average number of headers per request

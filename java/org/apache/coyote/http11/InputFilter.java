@@ -27,6 +27,8 @@ import org.apache.tomcat.util.buf.ByteChunk;
  * Input filter interface.
  *
  * @author Remy Maucherat
+ * 输入过滤器接口InputFilter ，继承InputBuffer 类，额外提供setBuffer 方法以设置前一个缓冲 。
+ *
  */
 public interface InputFilter extends InputBuffer {
 
@@ -35,6 +37,7 @@ public interface InputFilter extends InputBuffer {
      * Read bytes.
      *
      * @return Number of bytes read.
+     * 输入缓冲接口，InputBuffer 提供读取操作
      */
     @Override
     public int doRead(ByteChunk chunk, Request unused)

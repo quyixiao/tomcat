@@ -30,6 +30,8 @@ import org.apache.tomcat.util.res.StringManager;
  * Identity input filter.
  *
  * @author Remy Maucherat
+ * 过滤器在HTTP 包含content-length 头部并且指定长度大于0时使用，它将根据指定的长度从底层读取响应长度的字节数组，当读取足够多的数据后，
+ *将直接返回-1，避免再次执行底层操作。
  */
 public class IdentityInputFilter implements InputFilter {
 

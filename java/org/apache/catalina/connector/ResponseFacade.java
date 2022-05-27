@@ -39,6 +39,10 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author Remy Maucherat
  * @author Jean-Francois Arcand
+ * 与Request 类似，Response也使用了门面模式实现敏感数据隔离，如图 6.27 所示 ，ServletResponse及其子类HttpServletResponse
+ * 都属于Servlet规范定义的标准接口，用于暴露给Web 开发者调用,ResponseFacade 是一个门面类，它实现所有的HttpServletResponse
+ * 标准接口并使用连接器Response 具体实现，Response 是最底层的响应对象 。
+ *
  */
 @SuppressWarnings("deprecation")
 public class ResponseFacade

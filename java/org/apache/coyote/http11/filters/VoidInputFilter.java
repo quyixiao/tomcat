@@ -30,6 +30,8 @@ import org.apache.tomcat.util.buf.ByteChunk;
  * HEAD, or a similar request.
  *
  * @author Remy Maucherat
+ * 过滤器用于拦截读取底层数据的操作，当HTTP不包含content-length头部时，说明没有请求体，没有必要执行读取套接字的底层操作，所以用这个过滤器
+ * 拦截
  */
 public class VoidInputFilter implements InputFilter {
 

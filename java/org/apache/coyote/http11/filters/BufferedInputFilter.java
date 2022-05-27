@@ -28,6 +28,7 @@ import org.apache.tomcat.util.buf.ByteChunk;
 /**
  * Input filter responsible for reading and buffering the request body, so that
  * it does not interfere with client SSL handshake messages.
+ * 过滤器负责读取语法体并将其缓存起来，后面读取请求体时直接从此缓冲区读取
  */
 public class BufferedInputFilter implements InputFilter {
 

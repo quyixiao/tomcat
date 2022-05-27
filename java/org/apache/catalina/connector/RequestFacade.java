@@ -52,6 +52,12 @@ import org.apache.tomcat.util.res.StringManager;
  * @author Craig R. McClanahan
  * @author Remy Maucherat
  * @author Jean-Francois Arcand
+ * RequestFacade 就是一个门面，它将实现所有的HttpServletRequest 接口定义的方法，具体的实现依赖于Connector组件的Request
+ * ，Connector 组件的Request 主要提供了Tomcat 内核使用，考虑到安全问题，并不可把所有的数据暴露给Web开发人员，所以使用一个请求门面对象
+ * Connector 组件的Request 需要依赖于coyote包的Request，该Request 封装的是最底层的数据，即套接字通信的所有字节数组，Connector 组件
+ * 的Request 是对coyote 包中的Request 的进行一定加工处理后的对象 。
+ *
+ *
  */
 @SuppressWarnings("deprecation")
 public class RequestFacade implements HttpServletRequest {

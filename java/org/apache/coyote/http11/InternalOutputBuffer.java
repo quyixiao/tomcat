@@ -32,6 +32,12 @@ import org.apache.tomcat.util.net.SocketWrapper;
  * Output buffer.
  *
  * @author <a href="mailto:remm@apache.org">Remy Maucherat</a>
+ * 套接字输出缓冲装置
+ * 套接字输出缓冲装置就是向客户端提供响应输出的组件，它与套接字输出缓冲装置具有类似的结构，包含OutputStream ， OutputStreamOutputBuffer
+ * OutputFilter 和ByteChunk 等元素，其中OutputStream 是套接字输出通道，通过其将字节写入到操作系统底层，通过其将字节写入到操作系统底层。
+ * OutputStreamOutputBuffer 提供字节流输出的通道，与OutputFilter 组合实现过滤uuqjs，OutputFilter即是过滤器组件，这些组件的结构和作用与
+ * 前面套接字输出缓冲装置着不多，唯一需要额外说明的就是ByteChunk 组件，它为输出添加了一层缓冲，图6.20 为InternalOutputBuffer 的结构图。
+ *
  */
 public class InternalOutputBuffer extends AbstractOutputBuffer<Socket>
     implements ByteChunk.ByteOutputChannel {
@@ -75,6 +81,10 @@ public class InternalOutputBuffer extends AbstractOutputBuffer<Socket>
 
     /**
      * Socket buffer (extra buffering to reduce number of packets sent).
+     *
+     * 用于标识输出是否使用缓冲（这个缓冲是指Tomcat级别的缓冲，不涉及操作系统缓冲），如果useSocketBuffer 为true ，则把输出流写入到
+     * ByteChunk 里面，再由ByteChunk 机制写入操作系统底层，如果useSocketBuffer为false ,则不经过ByteChunk 直接通过OutputStream
+     * 写入到操作系统底层。
      */
     private boolean useSocketBuffer = false;
 

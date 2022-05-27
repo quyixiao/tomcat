@@ -573,6 +573,12 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
     /**
      * This class is an input buffer which will read its data from an input
      * stream.
+     * 头面提到，套接字缓冲装置InputStreamInputBuffer，用于向操作系统的底层读取来自客户端的消息并提供缓冲机制，把报文以字节数组的形式存放 到
+     * buf中，同时它提供了HTTP 协议的请求行和请求头冲毁的解析方法，当它们都解析完成后，buf 数组中指针指向的位置就是请求体的起始位置，Web
+     * 容器后期可能需要处理HTTP报文的请求休，所以必须提供一个获取的通道，这个通道就是请求休读取InputStreamInputBuffer ，它其实是套接字
+     * 缓冲数组buf 的已读指针是否已经达到尾部，如果达到尾部，则重新读取操作系统的底层字节，最终读取到目标缓冲区desBuf上
+     * InputStreamInputBuffer 包含在套接字缓冲装置中，通过它可以将请求体读取到目标缓冲defBuf 上。
+     *
      */
     protected class InputStreamInputBuffer
         implements InputBuffer {

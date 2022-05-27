@@ -111,6 +111,12 @@ import org.ietf.jgss.GSSException;
  *
  * @author Remy Maucherat
  * @author Craig R. McClanahan
+ * 为了方便后续处理，同时根据面向对象的勰相，我们把每个请求相关的属性及协议字段等抽象成一个对象 Request
+ *  图Request 对象的结构，，其中包含HTTP 请求行相关的字段值，例如请求方法，请求路径，协议版本，同时也包含所有的HTTP 请求头部，如User-Agent
+ *  Content-Type ，Content-Length 等，这些头部被封装成MimeHeaders 对象，当然也包含了我们常用的Cookies ，它在请求对象中被封装成MimeHeaders对象
+ *  当然，也包含了我们常用的Cookies ，它在请求对象中被封装成Cookies对象，除此之外，它还包含了一些非HTTP协议属性，如服务器端口，服务器名称 ， 远程 地址
+ *  远程端口等，请求对象中的属性值不但可供Tomcat 内核处理过程中使用，而且这些属性需要提供维生Web 应用开发使用，本节将深入介绍请求对象的Request 。
+ *  
  */
 public class Request implements HttpServletRequest {
 

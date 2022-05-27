@@ -38,6 +38,8 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author Remy Maucherat
  * @author Filip Hanik
+ *  过滤器专心用于处理分块传输，分块传递是一种数据传输机制，当没有指定content-length 时可以通过分块传输完成通信 。
+ *
  */
 public class ChunkedInputFilter implements InputFilter {
 
