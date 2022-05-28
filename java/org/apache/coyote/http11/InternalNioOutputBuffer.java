@@ -38,6 +38,11 @@ import org.apache.tomcat.util.net.SocketWrapper;
  *
  * @author <a href="mailto:remm@apache.org">Remy Maucherat</a>
  * @author Filip Hanik
+ * 非阻塞套接字输出缓冲装置，InternalNioOutputBuffer
+ * 非阻塞套接字输出缓冲装置是提供NIO模式输出数据到客户端的组件，整体结构如图6.44 所示，它包含了NioChannel组件，SocketOutputBuffer
+ * 组件和OutputFilter组件，其中NioChannel 组件是非阻塞的套接字输出通道，通过它以非阻塞的模式将字节写入操作系统底层，SocketOutputBuffer
+ * 组件提供了字节流输出通道，与OutputFilter 组件组合实现过滤效果 。
+ *
  */
 public class InternalNioOutputBuffer extends AbstractOutputBuffer<NioChannel> {
 

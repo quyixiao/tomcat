@@ -38,6 +38,24 @@ import org.apache.tomcat.util.net.SocketWrapper;
  *
  * @author <a href="mailto:remm@apache.org">Remy Maucherat</a>
  * @author Filip Hanik
+ * 在消息传递过程中，为了提高消息从一端到另外一端的效率，一般会引入缓冲区，对于写入缓冲区只有在强制刷新或缓冲区被填满后才会真正原执行写入
+ * 操作，Tomcat 在BIO 模式中使用了套接字输入缓冲装置来接收客户端的数据，它会提供一种缓冲模式从套接字中读取字节流并解析HTTP 协议的请求行和请求头
+ * ，最后填充好的请求对象Request 。
+ *
+ * 在NIO模式下，Tomcat 同样存在一个类似的缓冲装置用来处理HTTP 协议报文，它     就是非阻塞套接字输入缓冲装置，它与阻塞套接字输入缓冲装置之间不同
+ * 在于读取套接字的数据时的方式，阻塞方式会一直阻塞，直到数据返回，而非阻塞则是尝试读取，有没有数据返回，所以它们的基本原理机制都是相同的。
+ * 而唯一的差异就在于此，如果对缓冲装置的工作不太清楚。
+ *
+ * 有了填充方法，接下来，需要一个解析报文的操作过程，当Poller 轮询检测到有可读事件后，开始处理相应的NioChannel,非阻塞套接字输入缓冲装置
+ * InternalNioInputBuffer将开始读取NioChannel 里面的数据，然后开始尝试解析HTTP 请求行，解析过程中，如果数据不足，则用fill方法尝试读取数据 。
+ * 此时，如果读取不到数据，则直接返回，结束此次处理，当Poller 再次检测到该通道的可读事件后，非阻塞套接字输入缓冲装置再从NioChannel 里面读取数据 。
+ * 拼接着上一次结束的位置继续处理，但如果用fill方法尝试读取数据成功，则不必等到Poller第二次轮询，往下继续尝试解析HTTP 请求头部，由于 这个
+ * 过程中同样可能数据不足，因此，同样也会使用fill方法尝试读取数据，如果读取不到数据，也会直接结束，并需要等到Poller第二次检查到该通道时，
+ * 才能继续往下执行，最后完成整个HTTP 请求报文的解析 。
+ *
+ *
+ *
+ *
  */
 public class InternalNioInputBuffer extends AbstractInputBuffer<NioChannel> {
 

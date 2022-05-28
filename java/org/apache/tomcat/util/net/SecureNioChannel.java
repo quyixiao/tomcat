@@ -35,6 +35,13 @@ import org.apache.juli.logging.LogFactory;
 
 /**
  * Implementation of a secure socket channel
+ * 当通信涉及安全性时，需要使用SSL 加密非阻塞通道，常见的HTTPS 使用的就是此通道，SSL 加密通道的实现需要依赖于JSSE ,而JSSE 的主要责任是将
+ * 数据进行加密打包或拆包解密 ，如图 6.37 所示 ， SecureNioChannel 组件继承了非SSL 通道的NioChannel 的特性，即其中SocketChannel
+ * 和ApplicationBufferHeader 对象的作用都与NioChannel相同，另外还额外的包含了一些对象，两个ByteBuffer 对象分别用于存放网络接收到的未
+ * 经过解密的字节流和经过加密后待发送的字节流，而SSLEngine 引擎则加密解密工作，HandshakeStatus 则是SSL协议的握手阶段的状态 。
+ *
+ * SecureNioChannel 其实就是NioChannel上加了一层，使之拥有SSL协议通信的能力，而具体的实现则基于JSSE 。
+ *
  */
 public class SecureNioChannel extends NioChannel  {
 

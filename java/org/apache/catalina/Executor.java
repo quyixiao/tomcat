@@ -18,6 +18,13 @@ package org.apache.catalina;
 
 import java.util.concurrent.TimeUnit;
 
+
+
+
+// 任务执行器
+// 对于此组件这里不再做过多的介绍，NioEndPoint 组件内的任务执行器其实与JIoEndPoint 组件的任务执行器是同一个组件，两者用来处理请求任务。
+// 但是NioEndPoint 组件不一定包含任务执行器，历为在NioEndPoint 中有一个Poller池，除了轮询事件列表，它同样也可以遍历到事件对事件进行处理。
+// 而不必再交到其他线程中
 public interface Executor extends java.util.concurrent.Executor, Lifecycle {
 
     public String getName();

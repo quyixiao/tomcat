@@ -39,6 +39,24 @@ import org.apache.tomcat.util.net.SocketWrapper;
  *
  * @author Remy Maucherat
  * @author fhanik
+ * 所以 这里对长连接的实现Http11Processor中，它的处理逻辑的伪代码大致如下 ：
+ * while(true){
+ *     读取客户端的HTTP 请求报文
+ *     解析HTTP 报文
+ *     逻辑处理
+ *     响应客户端
+ *     判断是否break循环
+ *     判断是否要break循环的条件有以下几种
+ *     1. 超过服务器设置的最大允许长连接数
+ *     2. 超过服务器设置的一次连接最多的请求数
+ *     3. 超过长连接两次请求之间允许的最大超时
+ *     4. 客户端请求磁浮部告知需要关闭连接
+ *     5. 响应码包含400，408 ，411，413，414，500，503 ，501 等需要关闭的连接 。
+ *
+ *
+ *
+ *
+ * }
  */
 public class Http11Processor extends AbstractHttp11Processor<Socket> {
 

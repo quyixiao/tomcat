@@ -809,6 +809,26 @@ public class NioEndpoint extends AbstractEndpoint<NioChannel> {
     /**
      * The background thread that listens for incoming TCP/IP connections and
      * hands them off to an appropriate processor.
+     *
+     *
+     *
+     * Acceptor 的主要职责就是监听是否有客户端连接进来并接收连接，这里需要注意的是，accept 操作是阻塞的，为了使操作简洁方便，作为服务器
+     * 端通道的ServerSocketChannel 并未设置 为非阻塞，而设置为阻塞，如此一来，它将Acceptor 中阻塞直到有客户端连接可被接收，接收操作与原来
+     * 的BIO操作类似，只是返回的对象不同，原来返回的Socket对象，现在返回SocketChannel对象 。
+     *
+     * 如图6.34 所示，Acceptor接收 SocketChannel 对象后要把它的设置为非阻塞，这是因为后面的客户端所有的连接都采用非阻塞的模式处理，接着
+     * 设置套接字的一些属性，再封装成非阻塞通道对象，非阻塞通道可能是NioChannel 也可能是SecureNioChannel ，这取决于使用HTTP通信还是
+     * HTTPS 通信，最后将非阻塞通道对象注册到通道队列中并由Poller负责检测事件 。
+     *
+     * 在封装非阻塞通道对象使用了一项优化值得我们深入学习，如图 6.35 所示，NioChannel 属于频繁的生成与消除的对象，因为每个客户端连接都需要一个
+     * 通道与之相对应，频繁的生成和消除在性能上损耗上也不得不多加考虑，我们需要一种手段规避此处可能带来的性能问题，其思想就是：当某个客户端使用
+     * 完NioChannel对象后，不对其进行回收，而是将它缓存起来，当新客户端访问到来时，只须要替换其中SocketChannel对象即可，NioChannel 对象包含其
+     * 他属性只须做重置操作，如此一来就不必频繁生成与消除NioChannel对象，具体的做法就是使用一个队列，比如ConcurrentLinkedQueue < NIOChannel >
+     * 将关闭的通道对应的NioChannel 对象放到队列中，而封装的NioChannel 对象时优先从队列里面取出，取到该对象后，做相应的替换及重置操作，假如
+     * 队列中获取不到NioChannel对象，再通过实例化创建新的NioChannel 对象，这种优化方式很常见，在频繁的生成与消除对象的场景下。
+     *
+     *
+     *
      */
     protected class Acceptor extends AbstractEndpoint.Acceptor {
 
@@ -998,6 +1018,26 @@ public class NioEndpoint extends AbstractEndpoint<NioChannel> {
 
     /**
      * Poller class.
+     * NIO 模型需要同时对很多的连接器进行管理 ，管理的方式则不断的遍历事件列表，对相应的连接相应的事件做出处理，而遍历的工作正是交给
+     * Poller 负责，Poller负责的工作可以用图6.39简单的表示出来 ，在Java 层面上，它不断轮询事件列表，一旦发现相应的事件则封装成任务定义器
+     * SocketProcessor ，进而扔进线程池中执行任务，当然，由于 NioEndpoint 组件内有一个Poller 池，因此如果不存在线程池，任务将由
+     * Poller 直接执行。
+     *
+     * Poller内部依赖JDK 的Selector 对象进行轮询，Selector 会选择出待处理的事件，每轮询一次就选出就选出若干需要处理的通道，例如 从通道中
+     * 读取字节，将字节写入 Channel 等，在NIO 模式下，因为每次读取的数据是不确定的，对于 HTTP 协议来说，每次读取的数据可能既包含了请求行
+     * 也包含了请求头，也可能不包含请求头部，所以每次只能尝试去解析报文，若解析不成功则等待下次轮询读取更多的数据后再尝试解析，若解析报文成功
+     * 则做一些逻辑处理后对客户端响应，而这些报文的解析，逻辑处理，响应等都是在任务定义中定义的。
+     *
+     * 在NIO 模式下，对于 客户端连接的管理都是基于事件驱动的，上一节提到NioEndPoint 组件包含了Poller组件，Poller负责的工作就是检测事件并处理事件 。
+     * 但假如整个Tomcat的所有客户端连接都交给一个线程来处理，那么即使这个线程不是阻塞的，整个处理性能也无法达到最佳状态或者较佳状态，为了提升处理
+     * 性能，Tomcat 设计成由多个Poller 共同处理的所有客户端连接，所有的连接都均摊给了每个Poller 处理，而这些Poller便组成了Poller池。
+     *
+     * 整个结构如图6.40 所示 ，客户端连接由Acceptor 组件接收后按照一定的算法放到通道队列上，这里使用的是轮询调试算法，从1 个队列到N 个队列循环分配 。
+     * 假如这里有3个Poller ，则第1个连接分配给第1个Poller 对应的通道列表，第2个连接分配给第2个Poller 对应的通道列表，以此类推，到第4个
+     * 连接又分配到第1个Poller 对应的通道列表，这种算法基本保证了每个Poller 所对应的处理连接数均匀，每个Poller 各自轮询检测自己对应的事件列表
+     * 一旦发现需要处理的连接则对其进行处理，这时如果NioEndPoint组件包含任务执行器(Executor)则会将任务处理交维生它，但是假如没有Executor
+     * 组件，Poller则自己处理任务 。
+     *
      */
     public class Poller implements Runnable {
         // Poller是一个线程
@@ -1746,6 +1786,9 @@ public class NioEndpoint extends AbstractEndpoint<NioChannel> {
     /**
      * This class is the equivalent of the Worker, but will simply use in an
      * external Executor thread pool.
+     * 与JIoEndpoint 组件相似，将任务放到线程池中处理前需要定义好任务的执行逻辑，根据线程池的约定，它必须扩展Runnable接口，用如下的代码表示 。
+     *
+     *
      */
     protected class SocketProcessor implements Runnable {
 
@@ -1762,6 +1805,9 @@ public class NioEndpoint extends AbstractEndpoint<NioChannel> {
         }
 
         @Override
+        // 用NIO 方式读取套接字并进行处理，输出响应报文
+        // 连接数计数器减1，腾出通道
+        // 关闭套接字
         public void run() {
             // 获取当前channel上就绪的事件
             SelectionKey key = socket.getIOChannel().keyFor(
