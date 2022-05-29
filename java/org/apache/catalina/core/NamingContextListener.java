@@ -82,6 +82,11 @@ import org.apache.tomcat.util.res.StringManager;
  * with each context and server.
  *
  * @author Remy Maucherat
+ *
+ * 实际上，Tomcat 要完成命名目录接口需要另外一个NamingContextListener 监听器组件协同，这两个组件都属于Context 容器，当Web 应用初始化
+ * 时，此监听器会创建JNDI 的命名上下文及其资源绑定，以此完成Tomcat 对JNDI的支持。
+ *
+ *
  */
 public class NamingContextListener
     implements LifecycleListener, ContainerListener, PropertyChangeListener {

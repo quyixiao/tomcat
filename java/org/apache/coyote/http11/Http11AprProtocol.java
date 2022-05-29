@@ -39,6 +39,14 @@ import org.apache.tomcat.util.net.SocketWrapper;
  *
  * @author Remy Maucherat
  * @author Costin Manolache
+ * Http11AprProtocol 表示使用 APR 模式的HTTP协议通信，它包含了从套接字连接接收，处理请求，响应客户端的整个过程 ，APR 模式主要是指由
+ * Native 库完成套接字的各种操作，APR 库提供了sendfile，epoll ，和OpenSSL 等I/O高级功能，Linux 和Windows 操作系统都有各自所实现库
+ * ，Tomcat 中通过JNI 方式调用这些Native 库，Http11AprProtocol 组件主要包含AprEndPoint组件和Http11AprProcessor组件，启动时APrEndPoint
+ * 组件将启动某些端口的监听，一个连接到来后可能会直接被线程处理，也可能被放到一个待轮询的队列里面由Poller 负责检测，如果该连接被检测到已经
+ * 准备好，则将由线程池处理，处理过程中将通过协议解析器Http11AprProcessor 组件对HTTP 协议解析，通过适配器（Adapter）匹配到指定的容器
+ * 进行处理并响应客户端，HTTP APR 模式协议的整体结构如图6.45 所示 。
+ *
+ *
  */
 public class Http11AprProtocol extends AbstractHttp11Protocol<Long> {
 

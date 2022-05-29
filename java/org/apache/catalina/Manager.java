@@ -40,6 +40,8 @@ import java.io.IOException;
  * </ul>
  *
  * @author Craig R. McClanahan
+ * Context 容器的会话管理器用于管理对应的Web 容器的会话，维护会话的生成，更新和销毁，每个Context 都有自己的会话管理器，如果显示的
+ * 配置文件中配置会话管理器，则Context 容器会使用该会话管理器，否则，Tomcat 会分配默认的标识会话管理器（StandardManager）,同时
  */
 public interface Manager {
 

@@ -80,6 +80,22 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * StandardContext 中 Loader 接口的标准实现 WebappLoader 类，有一个单独线程 来检查 WEB-INF 目录下面所有类和 JAR 文件的时间戳。
  * 你需要做的是启动该线程， 将 WebappLoader关联到StandardContext，使用setContainer方法即可。下面是 Tomcat4 中 WebappLoader 的实现:
+ *
+ *
+ *
+ * 每个Web 应用都有各自的Class类和Jar包，一般来说，在Tomcat 启动时要准备好相应的类加载器，包括加载策略及Class 文件的查找，方便后面对
+ * Web 应用实例的Servlet对象时通过类加载器加载相关的类，因为每个Web应用不仅仅要达到资源的互相隔离，还要能支持生加载 ，所以这里需要为
+ * 每个Web 应用安排不同的类加载器对象加载，重加载时可直接将旧的类加载器对象丢弃而使用新的类加载器。
+ *
+ *
+ *
+ *  WebappLoader 的核心工作其实交给其他的内部WebAppClassLoader，它才是真正的完成类加载工作的加载器，它是一个自定义的类加载器，WebappClassLoader
+ *  继承了URLClassLoader只需要把/WEB-INF/lib 和WEB-INF/classes 目录下的类和Jar包以URL 的形式添加到URLClassLoader即可，后面就可以用该类加载器
+ *  对类进行加载 。
+ *
+ *
+ *
+ *
  */
 
 public class WebappLoader extends LifecycleMBeanBase

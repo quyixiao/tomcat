@@ -43,6 +43,17 @@ import javax.servlet.annotation.ServletSecurity.EmptyRoleSemantic;
  * this class is synchronized.
  *
  * @author Craig R. McClanahan
+ *
+ * 对于Web 安全认证方面，一般用法是需要在Web 部署描述文件中进行配置， 在web.xml 中涉及安全认证的元素有<security-constraint>
+ *     和<login-config>元素，通过它们可以实现对Context 容器中的资源访问约束，<security-constraint> 元素指定哪些URL 需要哪些角色
+ *     才能访问，而login-config 元素则指定使用哪些认证合建方式 。
+ *
+ *
+ * Tomcat 启动时将web.xml 这些元素转成Java 形态，即SecurityConstraint 和LoginConfig对象，它们都属于Context 容器的内部元素，
+ * 而它们的结构也非常简单，就是web.xml中的<security-constraint>  和<login-config> 元素的映射 。
+ *
+ *
+ *
  */
 public class SecurityConstraint implements Serializable {
 

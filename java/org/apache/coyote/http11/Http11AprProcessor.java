@@ -48,6 +48,10 @@ import org.apache.tomcat.util.net.SocketWrapper;
  * Processes HTTP requests.
  *
  * @author Remy Maucherat
+ * Http11 AprProcessor 提供了对HTTP 协议APR 模式的处理，包括对套接字的读写和过滤，对HTTP 协议的解析与封装成请求的对象，HTTP 协议的响应
+ * 对象的生成等操作，HTTP APR  处理的整体结构如图6.51 所示。
+ *
+ *
  */
 public class Http11AprProcessor extends AbstractHttp11Processor<Long> {
 

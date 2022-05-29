@@ -39,6 +39,16 @@ import org.apache.tomcat.util.net.SocketWrapper;
  * well as transfer decoding.
  *
  * @author <a href="mailto:remm@apache.org">Remy Maucherat</a>
+ *
+ * InternalAprInputBuffer 组件是Tomcat 在APR 模式中使用套接字输入缓冲装置，它会提供一种缓冲模式并通过APR 本地库读取套接字消息，
+ * 同时解析HTTP 协议的请求行和请求头部，默认情况下，APR 模式也Java 阻塞模式比较相似，它们在读取消息的过程中都是阻塞的，只有当接收到的数据
+ * 或超时才会返回 。
+ *
+ * 如果不熟悉输入缓冲装置的机制，可以参考 6.1.2 唯一不同的地方在于读取套接字的方式，APR 模式是通过APR 本地库获取的，即在Java 中使用JNI
+ * 调用完成套接字的报文的读取，APR套接字的输入缓冲装置的整体结构如图 6.52 所示，本地库的Socket 组件用于读取底层Socket 数据，SocketInputBuffer
+ * 组件则提供读取请求体的功能，还有若干InputFilter组件属于过滤器。
+ *
+ *
  */
 public class InternalAprInputBuffer extends AbstractInputBuffer<Long> {
 

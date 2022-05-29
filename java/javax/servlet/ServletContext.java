@@ -48,6 +48,45 @@ import javax.servlet.descriptor.JspConfigDescriptor;
  *
  * @see Servlet#getServletConfig
  * @see ServletConfig#getServletContext
+ * 在Servlet规范中规定了ServletContext接口，它提供了Web     应用所有的Servlet的视图，通过它可以对某个Web 应用的各种资源和功能进行访问 。
+ *
+ * ServletContext接口包含的主要常见方法如下 ：
+ *  1.addFilter ,往Servlet 上下文中添加Filter
+ *  2.addListerner , 住Servlet 上下文中添加Listener
+ *  3.addServlet ：往Servlet上下文中添加servlet
+ *  4.getAttribute : 从Servlet 上下文中添加servlet
+ *  5.setAttribute : 设置Servlet上下文中某属性的值
+ *  6.removeAttribute : 从Servlet上文中删除某属性的值
+ *  7.setInitParamter : 设置Web 应用配置的初始值 。
+ *  8.getInitParamter : 获取Web应用配置的初始化。
+ *  9.getResourceAsStream : 从Servlet上下文中获取某些资源流的值 。
+ *
+ *
+ * 对于Tomcat 容器，Context 容器才是其运行的真正的环境 ，为了满足Servlet 规范，它必须包含一个ServletContext 接口的实现。这个实现就是
+ * ApplicationContext,ApplicationContext 就是ServletContext的标准实现，用它来表示某个Web 应用运行环境 ，每个Tomcat 的Context 容器
+ * 都会包含一个ApplicationContext 。
+ *
+ * 对于 Tomcat 容器，Context容器才是其运行的真正的环境，为了满足Servlet 的规范，它必须包含一个ServletContext 接口的实现，这个实现就是
+ * 这个实现就是ApplicationContext ，ApplicationContext 是ServletContext的标准实现，用它表示某个Web 应用运行环境，每个Tomcat 的Context
+ * 容器都会包含一个ApplicationContext
+ *
+ * ApplicationContext对ServletContext 接口的所有方法都进行了实现，所以Web开发人员可以在Servlet 中通过getServletContext() 方法获得该
+ * 上下文，进而对上下文进行操作或获取上下文中各种资源，但实际上getServletContext() 获取到的并非ApplicationContext对象，而是一个ApplicationContext
+ * 的门面对象ApplicationContextFacade ，门面模式的作用就是提供一个类似代理的访问模式，把ApplicationContext 里面不该暴露的方法和属性
+ * 屏蔽掉，不让Web开发人员访问 。
+ *
+ * ApplicationContext提供了一个ApplicationContextFacade 门面对象，Web 开发人员编写的Servlet逻辑时只能获取到该门面对象，该门面对象
+ * 只提供了对ApplicationContext 可暴露的方法和属性的访问，而对于 一些运行重要的属性和内部方法则不能暴露给web 开发人员，以免影响整个
+ * Web应用的运行。
+ *
+ * ApplicationContext 是实现很大程度上依赖于Tomcat的Context 容器，它需要从Context 容器中获取各种资源，如Servlet 信息。
+ * Filter 信息等，而且像getResourceAsStream 方法其实也获取Context容器里面的某些资源然后返回流。
+ *
+ * 所以总的来说，ApplicationContext 就是为了满足Servlet标准的ServletContext接口而实现的一个类，它按Servlet的规范要求提供了各种实现方法 。
+ *
+ *
+ *
+ *
  */
 public interface ServletContext {
 

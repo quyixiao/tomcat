@@ -66,6 +66,14 @@ import org.apache.tomcat.util.security.PrivilegedSetTccl;
  *
  * @author Mladen Turk
  * @author Remy Maucherat
+ * AprEndpoint 组件是使用APR 模式I/O 的终端抽象，如图6.46 所示，AprEndPoint组件包含了很多子组件，其中包含LimitLatch （连接控制器）
+ * Acceptor(套接字接收器) SocketProcessor 和SocketWithOptionsProcessor 两种任务定义器，Poller(轮询器)以有Executor(任务执行器)
+ *
+ * LimitLatch 组件负责对连接数控制，Acceptor 组件负责接收套接字连接并将其放到 PollSet队列里面或直接创建任务放到线程池里面，但Acceptor
+ * 组件不能通过JDK 获取套接字连接，而是通过JNI 方式调用APR 库接收，SocketProcessor 组件和SocketWithOptionsProcessor 组件是任务定义器。
+ * Executor 组件是负责处理套接字的线程，Poller 组件负责轮询检测已经准备好的套接字连接 。
+ *
+ *
  */
 public class AprEndpoint extends AbstractEndpoint<Long> {
 

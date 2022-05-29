@@ -58,6 +58,24 @@ import org.apache.tomcat.util.res.StringManager;
  *       (disabled by default)</li>
  * </ul>
  * All of the extensions may be controlled via configuration.
+ *
+ * 从JarScanner的名字上已经知道它的作用，它一般包含在Context容器中，专门用于扫描Context的对应Web 应用的Jar 包，每个Web 应用初始化时
+ * 在TLD 文件和Web-fragment.xml文件处理时都需要对该Web 应用下的Jar 包进行扫描，因为JAR 包可能包含这些配置文件，Web 容器需要对它们进行处理
+ * 因为jar包可能包含这些配置文件，Web 容器需要对他们进行处理。
+ *
+ * Tomcat 中的JarScanner 的标准实现为StandardJarScanner ，它将对Web 应用的WEB-INF/lib目录的Jar 包进行扫描，它支持声明忽略某些Jar包
+ * 同时它还支持classpath 下的jar 包进行扫描，然而，如果classpath 下的jar 包与WEB-INF/lib 目录下的JAR包相同 。则会被忽略掉。
+ *
+ * JarScanner 在设计上采用了回调机制，每扫描到一个Jar包时都会调用回调对象进行处理，回调对象需要实现JarScannerCallBack 接口，此接口包含了
+ * scan(JarURLConnection urlConn) 和scan(File file) 两个方法，我们只需要将对Jar包处理的逻辑写入到这两个方法即可，JarScanner 在扫描
+ * 到每个Jar 包后都会调用一次此方法，执行对该Jar 包的逻辑处理。
+ *
+ * Jar 包扫描器为Context 容器的启动过程提供了方便的扫描Jar包的功能，它让开发过程中不必关注Web 应用Jar 包的搜索，而是专注于编写对Jar包
+ * 中的TLD 文件和web-fragment.xml 文件的处理逻辑 。
+ *
+ *
+ *
+ *
  */
 public class StandardJarScanner implements JarScanner {
 

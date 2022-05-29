@@ -45,6 +45,10 @@ import javax.servlet.UnavailableException;
  * <code>IllegalArgumentException</code>.
  *
  * @author Craig R. McClanahan
+ *
+ * 一般 来说，Context 容器包含若干个子容器，这些容器就叫Wrapper 容器，它属于Tomcat 中最小级别的容器，它不能再包含其他子容器，而且
+ * 它的父容器必须为Context 容器，每个Wrapper 其实就对应一个Servlet,Servlet 的各种定义在Tomcat中就Wrapper 的形式存在 ，Wrapper 属于
+ * 核心类，它的构造比较复杂 。
  */
 public interface Wrapper extends Container {
 

@@ -36,6 +36,10 @@ import org.apache.tomcat.util.res.StringManager;
  * from the HTTP rules).
  *
  * @author Remy Maucherat
+ * Context 容器包含了一个请求路由映射器（Mapper）组件，它属于局部路径映射器，它只能负责本Context 容器内的路由导航，即每个Web 应用
+ * 包含若干个Servlet ，而当对请求使用了请求分发器RequestDispatcher 以分发到不同的Servlet上处理时，就用了此映射器。
+ *
+ *
  */
 public final class Mapper {
 

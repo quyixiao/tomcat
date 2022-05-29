@@ -30,6 +30,26 @@ import org.apache.catalina.util.RequestUtil;
  * deployment descriptor.
  *
  * @author Craig R. McClanahan
+ * <error-page>
+ *     <error-code>404</error-code>
+ *     <location>/WEB-INF/404.html</location>
+ * </error-page>
+ * 或
+ * <error-page>
+ *     <excetion-type>java.lang.NullPointException</excetion-type>
+ *     <location>/WEB-INF/nullPointException.html</location>
+ * </error-page>
+ *
+ * 第一个配置表示，Web 容器处理过程中，当错误编码为404时，向客户端展示/WEB-INF/404.html 页面，第二个配置表示，处理过程中，当发生
+ * NullPointException 异常时，向客户端展示 /WEB-INF/nullPointException.html页面 。
+ *
+ * 在Web 应用启动过程中，会将web.xml中配置的error-page元素读取到Context 容器中，并以ErrorPage 对象的形式存在，ErrorPage 类包含三个
+ * 属性，errorCode ,ExceptionType 和location ，刚好对应web.xml 中的error-page元素 。
+ *
+ * 实际上Tomcat 对整个请求处理过程都在不同级别的管道中流转，而对错误页面的处理其实是在StandardHostValue 阀门中，它调用对应的Context
+ * 容器对请求处理后，根据请求对象的响应码，判断是否需要返回对应的错误页面，同时还根据处理过程中发生的异常寻找对应的错误页面，这样就实现了
+ * Servlet 规范中的错误页面的功能 。
+ *
  */
 public class ErrorPage implements Serializable {
 

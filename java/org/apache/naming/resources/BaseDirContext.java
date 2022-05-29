@@ -56,6 +56,18 @@ import org.apache.naming.StringManager;
  * Directory Context implementation helper class.
  *
  * @author Remy Maucherat
+ *
+ *  DirContext接口其实是属于JNDI 的标准接口，实现此接口即可实现目录对象相关的属性的操作，对于 Tomcat 具体来说，就是Context 容器需要支持
+ *  一种便捷的方式去访问整个Web 应用包含的文件，例如，通过一个字符串就能找到对应的文件资源，整个Web 应用就像一棵树，如图9.3 ，WebRoot
+ *  就是应用的根目录，它下面包含了很多的目录和文件，例如 ，css ，WEB-INF ,META-INF ,index.jsp 等，而WEB-INF又包含了web.xml ，classes
+ *  ,lib 这些文件目录和文件呈树状结构，所以通过"/META-INF/context.xml" 获取到的context.xml 的文件内容将是一个很便捷的方式 。
+ *
+ *  DirContext 接口要完成的事情就是通过某些字符串便捷的获取对应的内容，于是Context 容器需要依赖这个接口，为后面的处理提供了便捷的访问方式
+ *  而Web 应用项目有两种形式的包，一般我们是可能将Web 打包成.war 或者一个Web 目录，所以Context 容器要同时支持两中文件格式，不管哪种
+ *  格式，应该都可以通过路径的形式的字符串准确的获取相应的文件内容，这两种格式对应的DirContext 实现类为WARDirContext 和FileDirContext
+ *  ，与WARDirContext 处理不同的是，FileDirContext 需要对.war 包进行解压，然后才获取到对应的文件内容，而FileDirContext则可以直接获取文件内容 。
+ *
+ *
  */
 public abstract class BaseDirContext implements DirContext {
 

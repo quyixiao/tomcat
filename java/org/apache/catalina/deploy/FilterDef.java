@@ -36,6 +36,32 @@ import org.apache.tomcat.util.res.StringManager;
  * org.apache.catalina.deploy.FilterDef 表示一个过滤器定义，就像是在部署 文件中定义一个过滤器元素那样
  * FilterDef 类中的每一个属性都代表一个可以在过滤器中出现的子元素。该类包 括一个 Map 类型的变量表示一个包含所有初始参数的 Map。
  * 方法 addInitParameer 添加一个 name/value 对到该 Map。
+ *
+ * 过滤器提供了为某个Web 应用的所有请求和响应做统一的逻辑处理的功能，如图9.4 所示 。客户端发起请求后，服务器将请求转到对应的Web应用的web1上
+ * ，过滤器filter1 和filter2 对应的请求和响应进行处理后返回响应给客户端
+ * Servlet 规范中规定需要提供过滤器的功能，允许Web 容器对请求和响应做统一的处理，因为每个Context 容器对应一个Web应用，所以Tomcat
+ * 中的过滤器及其相关配置保存在Context 容器中最适合的，也就是说，每个Context 可能包含若干个过滤器，一个简单的典型的Filter配置如下 。
+ * <filter>
+ *     <filter-name>EcodingFilter</filter-name>
+ *     <filter-class> com.test.EncodeFilter</filter-class>
+ *     <init-param>
+ *         <param-name>EncodeCoding</param-name>
+ *         <param-value>UTF-8</param-value>
+ *     </init-param>
+ * </filter>
+ * <filter-mapping>
+ *     <filter-name>EcodingFilter</filter-name>
+ *     <url-pattern>*</url-pattern>
+ * </filter-mapping>
+ *
+ * 配置主要是配置过滤器的名称，过滤器的类，初始化参数以及过滤器的映射路径，下面介绍Context 容器如何实现过滤器的功能 。
+ *
+ * FilterDef
+ * FilterDef 用于描述过滤器的定义，它其实对应的是Web部署描述符配置的Filter 元素，如FilterDef对象包含FilterClass ，FilterName,paramters
+ * 等属性，它们的值对应的是web.xml文件 中的Filter元素的<filter-name>,<filter-class>,<init-param>子元素的值，Web 应用启动解析web.xml
+ * 时，将元素Filter 元素转换成FilterDef实例对象  。
+ *
+ *
  */
 public class FilterDef implements Serializable {
 

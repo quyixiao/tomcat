@@ -81,6 +81,44 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author Craig R. McClanahan
  * @author Remy Maucherat
+ *
+ * Host 作为虚拟主机容器用于放置Context 级别的容器，而Context 对应的就是Web 应用，实际上每个虚拟机主机可能会对应部署多个应用，每个应用都
+ * 有自己的属性，当Tomcat 启动时，必须把对应的Web 应用的属性设置到对应的Context中，根据Web 项目生成Context 并将Context 添加到Host
+ * 容器中，另外，当我们把这些Web 应用程序复制到指定的目录后，还有一个重要的步骤就是加载，把Web 项目加载到对应的Host 容器内。
+ *
+ * 在Tomcat 启动时，有两个阶段可以将Context 添加到Host中，第二种方式是用Digester框架解析server.xml 文件时将生成的Context添加到Host中
+ * 这种方式需要你先将Context节点配置到server.xml 的Host 节点下，这样的做的缺点就是不但把应用配置与Web 服务器耦合在一起，而且
+ * 对server.xml 配置的修改不会立即生效，除非重启TOmcat ，另外一种方式就是server.xml 加载解析完后再在特定的时刻寻找指定的Context配置文件 。
+ * 这时已经将应用的解耦出Web 服务器，配置文件可能为Web应用的/META-INF/contex.xml 文件，也可能是%CATALINA_HOME%config/[EngineName]/[HostName]/[WebName].xml
+ *
+ * 第一种方式在Server.xml 解析时会自动组织好Host 与Context 之间的关系，它不是本章的重点，我们的重点讨论第二种方式，由于 Tomcat 有完整的
+ * 一套生命周期管理，因此第二种方式次维生监听器去做很合适，相应的监听器只有在Tomcat 中才可以访问，当Tomcat启动时，它必须把所有的Web 项目都
+ * 加载到对应的Host 容器内，完成这些任务就是HostConfig监听器，HostConfig 实现了Lifesycle 接口，当Start_EVENT事件发生则会执行Web 应用部署加载
+ * 动作，Web 应用有三种部署类型，Descriptor 描述符，WAR 包及目录，所以部署时也要根据不同的类型做不同的处理。
+ *
+ *
+ * Dessriptor 描述符类型
+ *
+ * Descriptor 描述符的部署是通过对指定的部署文件解析后进行部署的，部署文件会按照一定规则放置，一般为%CATALINA_HOME%/config/[EngineName]/[HostName]/MyTomcat.xml
+ * 其中MyTomcat.xml中的MyTomcat 为Web 项目名，此时文件的内容大致为Context docBase="D:/MyTomcat" reloadable="true"/> 其中docBase指定了Web
+ * 应用的绝对路径，reloadable 为true 表示 /WEB-INF/classes/和/WEB-INF/lib改变时会自动重新加载，另外如果一个Host中包含多个Context则可以配置多个
+ * xml描述文件，如MyTomcat.xml, MyTomcat1.xml ,myTomcat2.xml
+ *
+ * 部署和加载工作相比较耗时，而且存在多个应用一起部署加载的情况，如果由Tomcat 主线程一个一个部署，可能会导致整体的启动时间过长，为了优化应用部署的
+ * 耗时问题，HostConfig 监听器引入了线程池进行多应用同时部署，使用Future 进行线程协调，如图8.2 所示，最上面的主线程，到达 1 时表示开始多个应用
+ * 进行部署，为每个应用分别创建一个任务并次给线程池执行，只有当所有的任务执行完毕，主线程才会继续往下执行。
+ *
+ * 部署任务主要做的事情如下 ：
+ * 1.通过Digester 框架解析指定的Context 配置文件，例如这里的MyTomcat.xml ，根据配置文件配置的属性，生成Context 对象 。
+ * 2.通过反射生成ContextConfig,并作为监听器添加进第1步生成的Context对象中。
+ * 3.设置Context 对象的其他属性，如Context配置文件路径，Name 属性，Path属性和版本属性。
+ * 4.Context 对象的docBase属性用于表示整个Web项目工程的路径，将Context 属性文件和路径和docBase放到重部署监听列表，即Tomcat 会有专门
+ * 的后台线程检查这些文件是否有改动，如果有改动，则要重新执行部署动作，部署指定的是重新组织Host 与Context 的关系并且加载Context .
+ * 5.调用Host的addChild方法将上面生成的Context添加到Host容器中，此时会触发Context 启动的动作相当的繁杂，这将在第9章中深入讨论。
+ * 6.将Context 对象的WatchedResource 添加到生加载监听列表中，Tomcat会有专门的后台线程检测这些文件是否改动，如果有改动，则会重新执行加载 。
+ * 加载指的是不会重新组织Host和 Context 的关系，而是根据更新后的Web 项目更改Context的内容 。
+ *
+ *
  */
 public class HostConfig
     implements LifecycleListener {
@@ -815,7 +853,18 @@ public class HostConfig
 
     /**
      * Deploy WAR files.
+     *
      */
+    // WAR 包类型的部署是直接读取%CATALINA_HOME%/webapps 目录下的所有war包形式打包的Web 项目，然后根据war 包的内容生成
+    // Tomcat内部需要的各种对象，同样，由于部署和加载的工作比较耗时，为了优化多个应用项目的部署时间，使用了线程池和Future机制。
+    // 部署WAR 包类型时，主要的任务如下 ：
+    // 尝试读取war 包里面的/META-INF/context.xml文件
+    // 通过Digester框架解析context.xml 文件，根据配置属性生成Context对象
+    // 通过反射生成ContextConfig ,并作为监听器添加到Context 对象中。
+    // 设置Context 对象的其他属性，如ContextName属性，Path 属性，DocBase属性和版本属性
+    // 调用Host的addChild方法将Context 对象添加到Host 中，此时会触发Context 启动，启动动作相当的繁杂。
+    // 将Context 对象中的WatchedResource 添加到重加载监听器列表中，Tomcat 会有专门的后台线程检测这些文件是否改动，如果有改动，则会重新
+    // 执行加载，加载指的是不会重新组织Host 与Context的关系，而是根据更新后的Web 项目更改Context 的内容 。
     protected void deployWARs(File appBase, String[] files) {
 
         if (files == null)
@@ -1183,6 +1232,16 @@ public class HostConfig
 
     /**
      * Deploy directories.
+     * 目录类型的部署是直接读取 % CATALINA_HOME%/webapps 目录下的所有目录形式的Web 项目，与前面的两种类型一样，使用线程池和Future优化部署耗时
+     * 部署目录类型时主要的任务如下：
+     * 1. 读取目录里的META-INF/context.xml文件
+     * 2. 通过Digester 框架解析context.xml 文件，根据配置属性生成 Context对象
+     * 3. 通过反射生成ContextConfig ，并作为监听器添加到Context 对象中。
+     * 4. 设置Context 对象的其他属性，如ContextName属性，Path属性，DocBase属性和版本属性
+     * 5. 调用Host的addChild 方法将Context 对象添加到Host中，此时会触发Context 启动，启动的动作相当的繁杂 。
+     * 6. 将Context 对象的WatchedResource 添加到重新加载监听列表中，Tomcat会有专心的后台线程检测这些文件是否改动，如果有改动，则会执行加载
+     * 加载指的是不会重新组织Host 与Context 的关系，而是根据更新后的Web 项目更改Context的内容 。
+     * 至此，完成目录类型的部署工作
      */
     protected void deployDirectories(File appBase, String[] files) {
 

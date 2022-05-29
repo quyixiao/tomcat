@@ -63,6 +63,18 @@ public class Socket {
      */
     public static final int APR_IPV6_V6ONLY      = 16384;
     /** Delay accepting of new connections until data is available.
+     * 第一种方式这所在以Acceptor 接收到套接字后将套接字直接放入到线程池处理，是因为Tomcat 在AprEndPoint 组件默认使用了TCP的TCP_DEFER_ACCEPT
+     * 参数来优化网络I/O , 在没有TCP_DEFER_ACCEPT 参数的情况下，如图 6.47 所示，TCP 三次握手成功后连接即被接收，此时离客户端真正发送数据可能还有
+     * 一段时间，这段时间将会导致阻塞，所以在没有TCP_DEFFER_ACCEPT 参数的情况下I/O 效率较低。
+     *
+     *
+     * 当使用TCP_DEFER_ACCEPT 参数优化后的情况又是怎样子的呢？ 如图6.48 所示，同样的三次握手，但在最后一次ACK 后连接并不会被接收，而是当
+     * 客户端数据发送到来时才会被接收，这样一来，连接只要被接收就肯定有数据了，在使用TCP_DEFER_ACCEPT 参数的情况下，I/O 效率得到提升，
+     * 所以有了这种优化方式，Acceptor 组件一旦接收到连接，就直接放进线程中进行处理了，但TCP_DEFER_ACCEPT 优化并不是所有的操作系统都
+     * 支持，而且JDK 也没有提供这个参数的优化接口，只能在支持操作系统中，通过APR 这种本地方式来优化，Java 通过JNI 调用这些本地库。
+     *
+     *
+     *
      */
     public static final int APR_TCP_DEFER_ACCEPT = 32768;
 

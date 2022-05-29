@@ -55,6 +55,15 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author Craig R. McClanahan
  * 实现了 javax.servlet.FilterConfig 接口。ApplicationFilterConfig 负责管理 web 应用程序启动的时候创建的过滤器实例。
+ *
+ * Servelt 规范提供了一个FilterConfig 接口访问Filter 的名称，初始化参数以及Servlet 上下文，ApplicationFilterConfig 是FilterConfig
+ * 接口的具体实现，它的实例具体依赖于Context容器，而当初始化每个Filter时，ApplicationFilterConfig 对象都会作为Filter的init方法的参数。
+ * 所以我们在自定义Filter时可以初始化方法中直接使用FilterConfig
+ *
+ * Context 容器的十字路口模块的主要对象就是包含了以上三个对象，FilterDef ,ContextFilterMaps ，和ApplicationFilterConfig ，而调用这些过滤器进行
+ * 过滤的工作则由Wrapper 容器中的管道负责 。
+ *
+ *
  */
 public final class ApplicationFilterConfig implements FilterConfig, Serializable {
 

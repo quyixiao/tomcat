@@ -153,6 +153,25 @@ import org.apache.tomcat.util.scan.StandardJarScanner;
  * 这时候属于available被设置为false , 属性available表示StandarcContext 对象的可用性。
  *
  *
+ * Tomcat 中有4个级别的容器，本章将对Context 容器及其包含的组件进行分析，一个Context 对应一个Web 应用程序，但是Web 项目的组成比较复杂，
+ * 它包含很多的组件，对于Web 容器，需要将Web 应用程序包含的组件转换成容器的组件 。
+ *
+ * 如图 9.1 所示，Context 容器包含若干Wrapper 组件，Realm组件，AccessLog组件，ErrorPage组件，Manager 组件，DirContext组件，安全认证组件
+ * JarScannner 组件，过滤器组件，NamingResource 组件，Mapper组件，Pipeline组件，WebappLoader组件，ApplicationContext 组件，
+ * InstanceManager组件，ServletContainerInitializer组件及Listeners(监听器)组件，下面将对每个组件进行深入分析 。
+ *
+ *
+ * 用于配置Context 容器的配置文件有很多，这些配置文件用于配置Context对象的某些属性，它们直接影响着创建Context 对象，在深入讨论Context 之前，
+ * 先介绍这些Context 相关的配置文件
+ * 1. Tomcat 的server.xml 配置文件中的<Context> 节点可用于配置Context ，它直接在Tomcat 解析server.xml
+ * 时就完成了Context 对象的创建，而不用交给HostConfig 监听器创建 。
+ * 2. Web 应用的/MeTA-INF/context.xml 文件可用于配置 Context ,此配置文件用于配置该Web 应用对应的Context 属性。
+ * 3. 可用%CATALIN_HOME%/config/[EngineName]/[HostName]/[WebName].xml 文件声明创建一个Context
+ * 4. Tomcat全局配置为conf/context.xml ，此文件配置的属性会设置到所有的Context 中，Tomcat 的
+ * 5. Tomcat 的Host 级别配置文件为/config/[EngineName]/[HostName]/context.xml.default 文件，它配置的属性会设置到某些Host 下面所有的Context 中
+ *
+ * StandardContext 使用一个继承了Loader接口的WebappLoader 作为Web 应用的类加载器，作为Tomcat的Web 应用的类加载器的实现，它能检测是否有Web
+ * 项目的Class 被更改，然后重新加载，每个Web 应用对应的一WebappLoader ，每个WebappLoader 互相隔离，各自包含的类互相不可见。
  *
  *
  */
@@ -4944,6 +4963,10 @@ public class StandardContext extends ContainerBase
 
     /**
      * A helper class to manage the filter mappings in a Context.
+     * ContextFilterMaps 用于保存过滤映射关系，它对应的Web 部署描述符配置filter-mapping元素，它其实就是一个Map 数据结构对象，
+     * 将web.xml 文件中的filter-mapping 的子元素filter-name 和url-pattern 对应的值保存起来，方便后面进行URL匹配 。
+     *
+     *
      */
     private static final class ContextFilterMaps {
         private final Object lock = new Object();

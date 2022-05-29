@@ -56,6 +56,10 @@ import org.apache.tomcat.util.ExceptionUtils;
  *
  * @author Craig R. McClanahan
  * @author Jean-Francois Arcand
+ *  Context 容器的会话管理器用于管理对应的Web 容器的会话，维护会话的生成，更新和销毁，每个Context 都有自己的会话管理器，如果显示的
+ *  配置文件中配置会话管理器，则Context 容器会使用该会话管理器，否则，Tomcat 会分配默认的标识会话管理器（StandardManager）,同时
+ *  如果在集群环境中会使用集群会话管理器，可能是DeltaManager 和BackupManager
+ *
  */
 public class StandardManager extends ManagerBase {
 

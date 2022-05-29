@@ -53,6 +53,37 @@ import org.apache.tomcat.util.ExceptionUtils;
  *
  * 跟 StandardContext 和 StandardWrapper 类相似，StandardHost 类的构造函数 在它的流水线中添加一个基本阀门。
  *
+ *
+ * 在整个Servlet 引擎中抽象出Host 容器用于表示虚拟主机，它根据URL 地址中的主机部分抽象，一个Servlet引擎可以包含若干个Host容器，而一个
+ * Host 容器可以包含若干个Context容器，在Tomcat 的Host标准实现StandardHost ，它从虚拟主机级别对请求和响应进行处理，下面是对StandardHost 内部结构进行剖析 。
+ *
+ * Host 容器包含了若干Context容器，AccessLog 维持，Pipeline 组件，Cluster组件，Realm 组件，HostConfig组件和Log 组件 。
+ *
+ * 每个Host 容器包含了若干个Web 应用（Context） ,对于Web 项目来说，其结构相对比较复杂，而且包含了很多机制，Tomcat 需要对它结构进行解析 。
+ * 同时还要具体的实现各种功能和机制，这些复杂的工作就交给了Context容器，Context 容器对应的实现了Web 应用包含的语义，实现了Servlet和JSP的规范。
+ *
+ * Host 容器里的AccessLog 组件负责客户端请求访问日志的记录，Host 容器的访问日志作用范围是该虚拟机主机的所有客户端的请求访问，不管访问哪个
+ * 应用都会被该日志组件记录。
+ *
+ *
+ * 不同级别的容器的管道完成的工作都不一样，每个管道要搭配阀门（Value） 才能工作，Host 容器的Pipeline 默认以StandardHostValue 作为基础
+ * 阀门，这个阀门的主要处理逻辑是先将当前线程上下文类加载器设置成Context容器的类加载器，让后面的Context容器处理时使用该类加载器，然后调用
+ * 子容器的Context的管道 。
+ *
+ * 如果有其他的逻辑需要在Host容器级别处理，可以往该管道添加包含逻辑的阀门，当Host 管道被调用时会执行该阀门的逻辑 。
+ *
+ * Host 集群，Cluster
+ *
+ * 这里的集群组件属于虚拟主机容器，它提供了Host 级别的集群会话及集群部署，关于集群的详细机制及Tomcat 中集群的实现 。
+ *
+ * Host 域 Realm
+ *
+ * Realm 对象其实就是一个存储了用户，密码及权限的数据对象，它的存储方式可能是内存，xml 文件或数据库等，它的作用主要配合Tomcat 实现资源的
+ * 谁模块
+ *
+ * Tomcat 中有很多级别的域（Realm） ，这里的域属于Host容器级别，它的作用范围是某个Host 容器内包含的所有Web应用，在配置文件 <Host> 节点
+ * 下配置域则在启动时对应的域会添加到Host  容器中。
+ *
  */
 public class StandardHost extends ContainerBase implements Host {
 
