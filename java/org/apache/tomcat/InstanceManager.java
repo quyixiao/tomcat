@@ -20,6 +20,21 @@ import java.lang.reflect.InvocationTargetException;
 
 import javax.naming.NamingException;
 
+
+/***
+ * Context 容器中包含了一个实例管理器，它主要的作用就是实现对Context 容器的中监听器，过滤器以及Servlet等实例管理，其中包括根据监听器
+ * Class对其进行实例化，对它们的Class 的注解进行解析并处理，对它们的Class 实例化的访问权限的限制，销毁前统一调用preDestory等方法 。
+ *
+ * 实例管理器的实现其实很简单，其中就是用一些反射机制实例化对象，但这里需要注意的地方是，InstanceManager 包含了两个类加载器。一个是属于
+ * Tomcat 容器内部类加载器，另外一个是Web 应用的类加载器，Tomcat 容器类加载器是Web 应用类加载器的父类加载器，且Tomcat 容器类加载器
+ * 在Tomcat整个生命周期中都存在，而Web 应用类加载器则不同，它可能在重启后则被丢弃，最终被GC 回收掉。
+ *
+ *
+ *
+ * 所以，由不同的类回城akkd的类也会有不同的生命周期，于是，实例管理器中的loadClass 方法中会有类似的如下判断 。
+ *
+ *
+ */
 public interface InstanceManager {
 
     Object newInstance(Class<?> clazz) throws IllegalAccessException, InvocationTargetException,

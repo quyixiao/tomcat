@@ -521,6 +521,8 @@ public class DefaultInstanceManager implements InstanceManager {
         return clazz;
     }
 
+    // 判断需要实例化Class 是否属于org.apache.catalina包下的类，如果属于，则使用Tomcat 容器类加载器加载， 这个类会在Tomcat 的整个生命
+    // 周期中存在内存中，否则会使用Web 类加载器加载
     protected Class<?> loadClass(String className, ClassLoader classLoader) throws ClassNotFoundException {
         // 如果是要加载org.apache.catalina这个包下的类，就只用containerClassLoader加载
         if (className.startsWith("org.apache.catalina")) {
