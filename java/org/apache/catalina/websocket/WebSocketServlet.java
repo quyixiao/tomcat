@@ -45,6 +45,53 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @deprecated  Replaced by the JSR356 WebSocket 1.1 implementation and will be
  *              removed in Tomcat 8.0.x.
+ * WebSocket协议属于Html5 标准，越来越多的浏览器已经原生的支持WebSocket ，它能让客户端和服务器端实现双向通信，在客户端和服务器端口
+ * 建立一条WebSocket  连接后，服务器端消息可直接发送到客户端，从而打破传统的请求响应模式，避免了无意义的请求，比如，传统的方式可能会使用
+ * AJAX 不断的请求服务器端，而WebSocket则可以直接发送数据到客户端且客户端不必请求，同时由于有了浏览器的原生支持，编写客户端的应用程序
+ * 变更加的便捷，且不必依赖于第三方插件，另外，WebSocket 协议要摒弃HTTP 协议烦琐的请求头部，而是以数据帧的方式进行传输，效率会更高。
+ *
+ * WebSocket协议通信的过程，首先，客户端会发送一个握手包告诉服务器它想升级成WebSocket ，不知道服务器是否同意 ， 这时，如果服务器支持
+ * WebSocket 协议，则会返回一个握手包告诉客户端没有问题，升级已经确认，然后就成功的建立起一条WebSocket 连接，连接支持双向通信，并且使用
+ * WebSocket 协议的数据帧格式发送消息。
+ *
+ * 握手过程需要说明 ，为了让WebSocket 协议能和现在的Http 协议的Web 架构互相兼容，WebSocket 协议的握手要基于HTTP协议，比如客户端会发送
+ * 如下 的HTTP 报文到服务器，请求升级为WebSocket 协议，其中包含了Upgrade:websocket 就是告诉客户端想升级协议
+ *
+ * GET ws://localhost:8080/hello HTTP/1.1
+ * Origin : http://localhost:8080
+ * Connection : Upgrade
+ * Sec-WebSocket-Key :uRovscZjNo1/umbTt5ukMw==
+ *      Upgrade :websocket
+ * Sec-WebSocket-Version: 13
+ *
+ * 此时，如果服务器端支持WebSocket 协议，则它会发送一个同意客户端升级协议的报文，具体的报文类似如下 ， 其中 Upgrade:websocket 就告诉客户端服务器
+ * 同意客户端的升级协议 。
+ *
+ * HTTP/1.1 101  WebSocket Protocol Handshake
+ * Date : Fri , 10 Feb 2016 17:38:18 GMT
+ * Connection : Upgrade
+ *      Upgrade : WebSocket
+ * Sec-WebSocket-Accept : rLHCkw/SKsO9GAH/ZSFhBATDKrU==
+ *
+ * 完成以上握手后，HTTP 协议连接就被打破，接下来，则开始使用WebSocket协议进行双方通信，这条连接还是原来的那条TCP/IP 连接，端口也还是
+ * 原来的80和443 。
+ *
+ * 这个Servlet 必须要继承WebSocketServlet ，接着创建一个继承MessageInBound 的WebSocketMessageInBound 类，该类中填充了onClose
+ * onOpen ，onBinaryMessage 和onTextMessage 等方法即可完成各个事件的逻辑，其中，onOpen 会在一个WebSocket 连接建立时调用，onClose
+ * 会在一个WebSocket 关闭时调用，onBinaryMessage 则在Binary 方式下接收到客户端数据时调用，onTextMessage 则在Text 方式下接收到客户端数据时
+ * 调用，上面一段代码实现了一个广播的效果 。
+ *
+ * 按上面的处理逻辑，Tomcat 对WebSocket 的集成就不会太难了，就是处理请求时，如果遇到WebSocket 协议请求时，则做特殊的处理，保持住链接并
+ * 在适当的时机调用WebSocketServlet 的MessageInBound 的onClose ,onOpen , onBinaryMessage和onTextMessage 等方法，因为WebSocket
+ * 一般建立在NIO模式下使用，所以看看以NIO 模式集成的WebSocket 协议 。
+ *
+ * 如图10.10所示 ，WebSocket的客户端连接被接收器接收后注册到NioChannel 队列中，Poller 组件不断的轮询是否有NioChannel 需要处理，如果有，则
+ * 经过处理管道后进入继承了WebSocketServlet 的Servlet 上，WebSocketServlet 的doGet 方法会处理WebSocket握手，告诉客户端同意升级协议，
+ * 往后，Poller 继续不断轮询相关的NioChannel ，一旦发现使用了WebSocket 协议通道，则会调用MessageInBound 的相关方法，完成不同事件的处理。
+ * 从而实现对WebSocket协议的支持。
+ *
+ *
+ *
  */
 @Deprecated
 public abstract class WebSocketServlet extends HttpServlet {

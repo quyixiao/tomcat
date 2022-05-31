@@ -100,6 +100,30 @@ import javax.servlet.ServletResponse;
  *     <url-pattern>/test</url-pattern>
  * </servlet-mapping>
  *
+ *
+ * 有时，Servlet 在生成响应报文前必须等待某些耗时的操作，比如，等待一个可用的JDBC 连接或等待一个远程的Web服务的响应，对于这种情况，servlet
+ * 规范中定义了异步处理方式，由于Servlet 中等待阻塞会导致Web 容器整体上的处理能力低下，因此对于比较耗时的操作，可以把它旋转到另外一个线程中进行
+ * 处理，此过程保留连接的请求和响应对象，在处理完之后，可以把处理的结果通知到客户端 。
+ *
+ * Servlet 在同步的情况下的处理过程 ，如图10.11 所示，Tomcat 的客户端请求由管道处理，最后通过Wrapper 容器管道 ，这时它会调用Servlet实例。
+ * 的service方法进行逻辑处理，处理完响应客户端，整个处理由Tomcat 的Executor线程池的线程处理，而线程池的最大线程数是有限制的，所以这个处理
+ * 过程越短，就能越快的将线程释放回线程池，但如果Servlet 中的处理逻辑耗时越长，就会导致长期的占用Tomcat 的线程池，影响Tomcat 的整体处理能力 。
+ *
+ * 为了解决上面的问题，引入了支持异步的Servlet，如图10.12所示，同样 ，当客户端请求到来时，首先通过管道，然后进入到Wrapper 容器的管道 ，
+ * 调用Servlet 实例的service 后，创建一个异步上下文将耗时的逻辑操作封装起来，交给用户自己定义的线程池，这里Tomcat 的处理线程就能马上
+ * 回到 Executor线程池，而不用等待耗时的操作完成才释放线程，从而提升了Tomcat的整体处理能力， 这里需要注意的是，由于后面做完耗时的操作后。
+ * 还需要对客户端响应，因此需要保持住Request 和Response对象，以输出响应报文到客户端 。
+ *
+ * 我们创建一个AsyncServlet ，它定义一个userExecutor线程池专门用于处理该Servlet 的所有请求中耗时的逻辑操作，这样就不会占用Tomcat
+ * 内部的Executor线程池的影响到对其他Servlet处理，这种思想有点像资源隔离，耗时的操作统一指定的线程池处理，而不会影响其他耗时少的请求处理。
+ *
+ * Servlet 的异步实现就很好理解了，startAysnc方法其实就创建了一个异步的上下文AsyncContext 对象，该对象封装了请求和响应对象，然后创建
+ * 一个任务用于处理耗时逻辑，后面通过AsyncContext 对象获得响应对象并对客户端响应，输出，完成后，要通过complete方法告诉Tomcat 内部已经处理
+ * 完，Tomcat 就会对象的响应对象进行回收和处理关闭链接 。
+ *
+ *
+ *
+ *
  */
 public abstract class HttpServlet extends GenericServlet {
 

@@ -29,6 +29,20 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author Filip Hanik
  * @author Remy Maucherat
+ *
+ *
+ *
+ *  而CometEvent 则表示Comet 相关的事件，它包含BEGIN ,READ ,END ,Error 四个事件，其含义分别如下 ：
+ *  begin : 表示请求开始，此时客户端连接已经被接收 。
+ *  read : 表示客户端连接已经建立，可以读取数据了，读取的过程不会阻塞 。
+ *  end : 表示请求结束，此时客户端连接将断开，
+ *  error : 表示发生的I/O 异常，一般会将结束此请求并且连接会断开 。
+ *
+ *  有了CometProcessor 接口后，Tomcat 内部就可以识别Comet 模式的Servlet 了，我们知道Tomcat对请求的处理管理模式的，所以Wrapper 容器的管道
+ *  中判断加载Servlet 是否继承了CometProcessor ，如果继承了，则说明是Comet 模式，并使用Comet方式处理，它的处理过程如图10.8所示 。
+ *  当一个客户端连接到来时，被接收器接收后注册到NioChannel队列中，Poller 组件不断的轮询是否为NioChannel 需要处理，如果有，则调用前面实例化。
+ *  的Comet模式的Servlet , 这里主要用到的是CometProcessor接口的event方法，Poller 会将对应的请求对象，响应事件和事件封装成CometEvent
+ *  对象并传入event方法中，此时即执行event访求的逻辑，完成对不同的事件的处理，从而实现了Comet 模式 。
  */
 public interface CometEvent {
 
