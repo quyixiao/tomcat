@@ -79,6 +79,24 @@ package org.apache.catalina;
  * attempted transition is not valid.
  *
  * @author Craig R. McClanahan
+ *
+ * Tomcat 的架构设计是清晰的，模块化的，它拥有很多的组件，假如在启动Tomcat 时一个个组件启动，这不仅麻烦而且容易遗漏组件，还会对后面的
+ * 动态组件扩展带来麻烦，对于这个问题，Tomcat的设计者们提供了一个解决方案，用Lifecycle 管理启动，停止，关闭。
+ *
+ * Tomcat 内部架构各个核心组件有包含与被包含的关系，假如 ，Servlet包含Service ，Service包含Container 和Connector ，往下再一层层
+ * 包含，Tomcat 就是以容器的方式来组织整个系统架构，就像数据结构的树，树的根节点没有父节点，其他节点有且仅有一个父节点，每个父节点有零个
+ * 或多个子节点，鉴于此，可以通过父容器启动它的子容器，这样只要启动根容器，即可把其他的容器都启动，达到统一，停止，关闭的效果 。
+ *
+ * 作为统一的接口，Lifecycle把所有的启动，停止，关闭，生命周期相关的方法组织在一起，就可以很方便的管理Tomcat 各个容器的生命周期，下面是Lifecycle接口详细的定义 。
+ *
+ * 从上面可以看出，Lifecycle其实就定义了一些状态常量和几个方法，这里主要看init ，start ，stop 三个方法，所需要的生命周期管理的容器都要实现这个接口。
+ * 并且各自被父容器的相应调用方法，例如，在初始化阶段，根容器Server 组件会调用init方法，而在init方法里会调用子容器Service 组件的init 方法 。
+ * 以此类推。
+ *
+ * 同样，启动，停止 步骤也是通过类似的调用机制实现统一的启动，统一的关闭，至此，我们对Tomcat 生命周期的统一初始化，启动，关闭机制有了比较清晰的认识。
+ *
+ *
+ *
  */
 public interface Lifecycle {
 
