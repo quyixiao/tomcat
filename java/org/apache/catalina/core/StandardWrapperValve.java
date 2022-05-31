@@ -48,6 +48,43 @@ import org.apache.tomcat.util.res.StringManager;
  * <code>StandardWrapper</code> container implementation.
  *
  * @author Craig R. McClanahan
+ *
+ * 下面更深入的讨论StandardWrapperValue 阀门调用Servlet的过程，Web 应用的Servlet类都根据Servlet接口，例如我们一般在写业务处理Servlet
+ * 类时都会继承HttpServlet类，为了遵循Servlet的规范，它其实最终也实现了Servlet接口，只是HttpServlet 定义的Http协议的Servlet ，将协议
+ * 共性的东西抽离出来复用，Servlet 处理客户端请求的核心方法是service 方法，所以对HttpServlet来说，它需要针对Http协议的Get ,Post ，put
+ * ,delete ,head ,options ，trace 等请求方法做出不同的分发处理 。
+ *
+ *  service 方法将请求对象和响应对象转换成HttpServletRequest 和HttpServletResponse ，然后获取请求方法，根据请求方法调用不同的处理方法
+ *  倒好，如果为GET 方法则调用doGet 方法，那么继承HttpServlet 类的Servlet只需要重写doGet 或doPost方法完成业务逻辑处理， 这就我们熟悉
+ *  Servlet了。
+ *
+ *  这样一来，StandardWrapperValue 阀门调用了Servlet 的工作其实就是通过反射机制实现对Servlet 对象来控制 ，例如，在不配置load-on-startup
+ *  的情况下，客户端首次访问该Servlet 时由于还不存在该Servlet对象，需要通过反射机制实例化出Servlet对象，并且调用初始化方法，这也是第一次
+ *  访问某个Servlet时会比较耗时的原因，后面客户端再对该Servlet 访问时都会使用该Servlet对象，无须再做实例化和初始化操作，有了Servlet对象后。
+ *  调用其service 方法即完成了对客户端请求的处理。
+ *
+ *  实际上 通过反射机制实例化Servlet 对象是一个比较复杂的过程 ，它除了完成实例化和初始化工作外还要解析该Servlet 类包含的各种注解并进行处理
+ *  另外，对于实现了SingleThreadModel 接口的Servlet类，它还需要维护一个Servlet对象池。
+ *
+ *  综上所述，Servlet 工作机制的大致流程：Request -StandardEngineValue，StandardHostValue -> StandardContextValue->StandardWrapperValue
+ *  实例化并初始化Servlet对象，由于过滤器链执行过滤器操作，调用Servlet对象的service 方法，response
+ *
+ *
+ *  Servlet 在不实现SingleThreadModel 的情况下单个实例模式运行， 这种情况下，以单个实例模式运行，如图10.3 所示，这种情况下，Wrapper 容器只会
+ *  通过反射实例化一个Servlett对象，对应此Servlet 的所有客户端请求都会共用此Servlet 对象，而对于多个客户端请求Tomcat 会使用多线程处理
+ *  所以要注意保持线程安全问题，这里举一个刚刚   伏笔和Web 应用开发时可能会犯一个错误，在某个Servlet 中使用成员变量累加去统计访问次数，这就是
+ *  存在线程安全问题。
+ *
+ *  为了支持一个Servlet 对象一个线程，Servlet规范提出了一个SingleThreadModel 接口，Tomcat 容器必须要完成的机制是，如果某个Servlet 实现
+ *  了SingleThreadModel 接口，则要保证一个线程独占一个Servlet对象，假如线程1正在使用Servlet1对象，则线程2 不能再使用Servlet1对象
+ *  则只能使用Sevlet2 对象了。
+ *
+ *  针对SingleThreadModel 模式，Tomcat 的Wrapper 容器使用了对象池的策略， Wrapper 容器会有一个Servlet堆，负责保存若干个Servlet对象
+ *  当需要Servlet对象时从堆中pop出一个对象，而当用完则push 回堆中，Wrapper 容器中最多的有20个Servlet对象，例如XXXServlet 类对象池。
+ *  已经有20个线程占用了20个对象，于是在第21个线程执行时就会因为阻塞而等待，直到对象池中有可用的对象才继续执行。
+ *
+ *
+ *
  */
 final class StandardWrapperValve
     extends ValveBase {

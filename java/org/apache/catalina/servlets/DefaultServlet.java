@@ -125,6 +125,35 @@ import org.xml.sax.ext.EntityResolver2;
  * </p>
  * @author Craig R. McClanahan
  * @author Remy Maucherat
+ *
+ *
+ * 同样是Tomcat 内部使用Servlet ，DefaultSevlet是Tomcat专门用于处理静态资源的Servlet ,它同样被部署到Tomcat安装目录下的Config 的web.xml
+ * 文件中，DefaultServlet 的配置如下 。
+ * <servlet>
+ *     <servlet-name>default</servlet-name>
+ *     <servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
+ *     <init-param>
+ *         <param-name>debug</param-name>
+ *         <param-value>0</param-value>
+ *     </init-param>
+ *     <init-param>
+ *         <param-name>listings</param-name>
+ *         <param-value>false</param-value>
+ *     </init-param>
+ *     <load-on-startup>1</load-on-startup>
+ * </servlet>
+ * <servlet-mapping>
+ *     <servlet-name>default</servlet-name>
+ *     <url-pattern>/</url-pattern>
+ * </servlet-mapping>
+ *
+ * 可以看到，所有的URL 请求都会被它匹配，但由于Mapper组件匹配Servlet时将DefaultServlet 放到最后才匹配，所以它并不会把所有的请求都拦截下来  。
+ * 只有那些经过精确匹配，前缀匹配，扩展名匹配等还没有匹配上的，才会留给DefaultServlet ，DefaultServlet 通过JNDI根据URI 在Tomcat 内部查找资源 。
+ * 然后该资源响应客户端。
+ *
+ *
+ *
+ *
  */
 public class DefaultServlet extends HttpServlet {
 

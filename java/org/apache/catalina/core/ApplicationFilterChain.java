@@ -53,6 +53,22 @@ import org.apache.tomcat.util.res.StringManager;
  * @author Craig R. McClanahan
  * ApplicationFilterChain 类是实现了 javax.servlet.FilterChain 接口。StandardWrapperValve 类中的 invoke 方法 创建一个该类的实例
  * 并且调用它的 doFilter 方法。ApplicationFilterChain 类 的 doFilter 的调用该链中第一个过滤器的 doFilter 方法。Filter 接口中 doFilter 方法的签名如下:
+ *
+ *
+ *
+ *
+ * Context 容器的过滤模块包含了过滤器相关的信息，本节将讨论如何使用这些过滤器起作用，即过滤链的使用，过滤链的调用思路其实很简单，如图10.5 所示 。
+ * 请求通过管道流转Wrapper 容器的管道，经过若干阀门后达到基础阀门StandardWrapperValue ，它将创建一个过滤器链ApplicationFilterChain 对象
+ * 创建时过滤器对象做了如下逻辑
+ *
+ * 1. 从Context 容器中获取所有过滤器相关的信息
+ * 2. 通过URL 配置过滤器，匹配加入到过滤器链中
+ * 3. 通过Servlet 名称匹配过滤器，匹配成功则加入到过滤器中
+ *
+ * 创建ApplicationFilterChain 对象后，StandardWrapperValue 将调用它的doFilter 方法，它就会开始一个一个的调用过滤器，请求被一层一层
+ * 处理，最后才调用Servlet 处理，至此，针对某个请求，过滤器链将Context 中所有过滤器中对象的请求过滤器串联起来，实现过滤器的功能 。
+ *
+ *
  */
 final class ApplicationFilterChain implements FilterChain, CometFilterChain {
 

@@ -34,6 +34,10 @@ import java.util.Set;
  * is added to the class.
  *
  * @since Servlet 3.0
+ *  在Web 容器启动时为了让第三方组件机做一些初始化工作，例如 注册Servlet 或者 Filters 等，Servlet规范中通过 ServletContainerInitializer
+ *  实现此功能，每个框架要使用ServletContainerInitializer 就必须在对应的jar 包的META-INF/services 目录下创建一个名为javax.servlet.ServletContainerInitializer
+ *  文件，文件的内容指定具体的ServiceContainerInitializer的实现类 ，于是 ，当Web 容器启动时，就会运行这个初始化器做一些组件内的初始化工作 。
+ *
  */
 public interface ServletContainerInitializer {
 

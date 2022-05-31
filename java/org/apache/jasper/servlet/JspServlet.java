@@ -59,6 +59,40 @@ import org.apache.tomcat.PeriodicEventListener;
  * @author Remy Maucherat
  * @author Kin-man Chung
  * @author Glenn Nielsen
+ *
+ *
+ * Web 应用开发人员一般对这个Servlet 比较陌生，因为他们不会直接与它打交道，既然是Servlet ，那么肯定要声明后才会被部署应用，它被部署到Tomcat
+ * 安装目录下，conf目录下的web.xml 文件中，这里的web.xml 文件是Tomcat 全局Web 描述文件，JspServlet 的配置如下 。
+ *
+ * <servlet>
+ *     <servlet-name>jsp</servlet-name>
+ *     <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+ *     <init-param>
+ *         <param-name>fork</param-name>
+ *         <param-value>false</param-value>
+ *     </init-param>
+ *     <init-param>
+ *         <param-name>xpowereBy</param-name>
+ *         <param-value>false</param-value>
+ *     </init-param>
+ *     <load-on-startup>3</load-on-startup>
+ *     <servlet-mapping>
+ *         <servlet-name>jsp</servlet-name>
+ *         <url-pattern>*.jsp</url-pattern>
+ *         <url-pattern>*.jspx</url-pattern>
+ *     </servlet-mapping>
+ * </servlet>
+ *
+ * 可以看到，所有.jsp 和.jspx 结尾的请求都会被JspServlet 处理，它包揽了所有的JSP页面的处理，我们知道JSP 页面最终也只是被被Tomcat
+ * 编译成相应的Servlet    (详细编译过程和原理可以参考16章节)，而这些Servlet处理都交给了JSPServlet .
+ *
+ * JspServle处理逻辑大致如下 ：
+ * 1. 判断是不是第一次访问JSP，如果是，则会先编译JSP页面，按一定的包和类名规则生成对应的Servlet类。
+ * 2. 加载刚刚编译好的JSP Servlet 类，并初始化它们 。
+ * 3. 调用刚刚加载的JSP Servlet 的service 方法，处理请求。
+ *
+ *
+ *
  */
 public class JspServlet extends HttpServlet implements PeriodicEventListener {
 

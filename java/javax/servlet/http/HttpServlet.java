@@ -70,6 +70,36 @@ import javax.servlet.ServletResponse;
  * <a href="http://java.sun.com/Series/Tutorial/java/threads/multithreaded.html">
  * Java Tutorial on Multithreaded Programming</a> for more
  * information on handling multiple threads in a Java program.
+ *
+ *
+ *  根据请求资源的不同各类，可以把Servlet 分成三种类别，比如请求可能访问一个普通的Servlet , 也可能访问一相JSP 页面，也可能访问一个静态资源
+ *  根据对这些不同的类别的处理方式，可以分成三种Servlet ，如图10.6所示，一个请求到达Tomcat后将URI 映射根据请求的URI 进行建模，它会计算出该请求该
+ *  发往哪个Host 容器的哪个Context 容器的哪个Wrapper处理，在路由的Wrapper容器时会通过一定算法选择不同的Servlet 进行处理，比如
+ *  普通Servlet 请求由路由到普通的Servlet,JSP页面则路由到到JSPServlet ，而静态资源则路径到DefaultServlet 。
+ *
+ *  Servlet 路径的匹配规则如下 ：
+ *  1. 首先，尝试使用精确的匹配法匹配精确的类型Servlet 的路径 。
+ *  2. 然后，尝试使用前缀匹配通配符类型Servlet .
+ *  3. 接着，尝试使用扩展名匹配通配符类型Servlet .
+ *  最后，配置默认Servlet
+ *
+ *  如果一个请求到来，则通过以上规则匹配对应的Servlet ，例如请求Http://localhost:8080/test 精确匹配<url-pattern>test</url-pattern>
+ *  的Servlet ，而http://locahost:8080/test.jsp ，则会匹配<url-pattern>*.jsp</url-pattern> 的JspServlet 。下面分别讨论三种不同的Servlet
+ *
+ *
+ * 普通Servlet
+ * 普通的Servlet 就是我们最常见的Servlet ,做Web 开发都会涉及Servlet ，要处理业务逻辑就会自己定义Servlet 时行 处理， 这就是普通的Servlet
+ * 编写好以后Servlet 通过配置web.xml 文件即可完成部署。
+ * 配置格式类似如下
+ * <servlet>
+ *     <servlet-name>test</servlet-name>
+ *     <servlet-class>com.seaboat.Test</servlet-class>
+ * </servlet>
+ * <servlet-mapping>
+ *     <servlet-name>test</servlet-name>
+ *     <url-pattern>/test</url-pattern>
+ * </servlet-mapping>
+ *
  */
 public abstract class HttpServlet extends GenericServlet {
 

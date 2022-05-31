@@ -110,6 +110,58 @@ import org.xml.sax.SAXParseException;
  *
  * @author Craig R. McClanahan
  * @author Jean-Francois Arcand
+ * ContextConfig监听器感兴趣的几个事件为，AFTER_INIT_EVENT,BEFORE_START_EVENT ,  CCOPNFIGURE_START_EVENT ,AFTER_START_EVENT
+ * CONFIGURE_STOP_EVENT 和 AFTER_DESTORY_EVENT等，按照TOMCAT 的生命同期，这些事件的顺序为AFTER_INIT_EVENT,BEFORE_START_event
+ * ,configure_start_event , after_start_event , configure_stop_event ,after_destory_evnet ,根据不同的响应事件，Config 监听器都做不同的事情 。
+ *
+ * 1. 当after_init_event 事件发生，会调用ContextConfig 监听器的init 方法，init方法的主要工作如下。
+ *
+ * 创建degester 对象，指定解析规则，因为在HostConfig jkkd中只是根据 Context 节点的属性创建了一个Context 对象，指定解析规则，因为在HostConfig
+ * 监听器中只是根据Context 节点属性创建的一个Context对象，但其实<Context>节点还有很多的
+ *
+ * 当AFTER_INIT_EVENT 事件发生时，会调用ContextConfig 监听器的init 方法，init 方法的工作如下
+ *  1创建 Digester 对象，指定解析规则，因为HostConfig 监听器中只是根据<Context> 节点属性创建一个Context 对象，但其实<Context> 节点还有很多子节点
+ *  需要解析并设置到Context 对象中，另外，Tomcat 中还有两个默认的Context 配置文件需要设置到Context 对象作为默认的属性，一个为config/context.xml
+ *  文件，另外一个为config/[EngineName]/[HostName]/context.default 文件，所以Digester 的解析工作分为两部分，一部分是解析默认的配置文件，第二部分
+ *  是解析<Context> 子节，子节点包括InstanceListener ,Listener,Loader ,Manager ,Store ,Paramter ,Realm ,Resources, ResourceLink
+ *  Value ,WatchedResource ,WrapperLifecycle , WrapperListener ,JarScaner ,Ejb , Environment,LocalEjb,Resource ,
+ *  ResourceEnvRef ,ServiceRef , Transaction 元素
+ *
+ *  2. 用第1步创建的Digester 对象按顺序解析，conf/context.xml,config/[EngineName]/[HostName]/context.xml.default ,/MeTA-INF/context.xml
+ *  等文件，必须按这个顺序，先用全局配置设置默认属性，再用Host 级别的配置设置属性，最后用Context 级别的配置设置属性，这种顺序保证了特定的属性值
+ *  可以覆盖默认的属性值，例如对相同的属性值reloadable ，Context 级别的配置文件设置为true ，而全局配置文件为false , 于是Context 的reloadable
+ *  属性最终的值为true , 创建用于解析web.xml 文件的Digester 对象 。
+ *  根据Context 对象的doBase 属性做一些调整工作，例如默认把WAR 包解压成相应的目录形式，对于不解压的WAR 包则要检验WAR 包的合法性。
+ *  当BEFORE_START_EVENT 事件发生时，会调用ContextConfig监听器的beforeStart方法，beforeStart主要的工作如下 。
+ *  根据配置属性做一些预防JAR包被锁定的工作，由于Windows 系统可能会将某些JAR包锁定，从而导致重新加载失败，这是因为重新加载需要把原来的Web
+ *  应用完全删除后，再把新的Web应用加载进来，但是假如某些Jar包被锁定了，就不能被删除了，除非把整个Tomcat停止，这里解决思路是：将Web 应用
+ *  项目根据部署的次数重命名并复制到%CTALINA_HOME%/temp 临时目录下（例如第一次部署就是1-myTomcat.war） ，并把Context对象的docBase
+ *  指向临时目录下的Web项目，这样每次重新部署都有一个新的应用名，就算原来的应用的某些Jar 包被锁定也不会导致部署失败。
+ *
+ * 当CONFIGURE_START_EVENT 事件发生时，会调用ContextConfig 监听器的configureStart 方法，configureStart 主要工作就是为了扫描
+ * Web 应用部署描述文件web.xml ，并且使用规范将它们合并起来，定义范围比较大的配置会被范围较小的配置覆盖，例如，Web 容器的全局配置文件 。
+ * web.xml 会被Host 级别或Web 应用级别的web.xml覆盖 ，详细步骤如下 。
+ * 1.将Context 级别的web.xml解析复制到WebXml对象中。
+ * 2.扫描Web应用/WEB-INF/lib目录下的所有Jar包里面的/META-INF/web-fragment.xml 文件生成多个Web Fragment ，Web Fragment 本质上还是WebXML对象 。
+ * 3.将这些Web Fragment 根据Servlet规范进行排序，主要是根据绝对顺序和相对顺序 。
+ * 4.根据Web Fragment 扫描每个Jar 包中的ServletContainerInitializer ，把它们添加到Context容器中的Map中，方便 Context容器初始化时调用它们 。
+ * 5.解析Web应用/WEB-INF/classes 目录下被注解Servlet ，Filter 或Listener ，对应的注解符为@WebServlet, @WebFilter 和@WebListener
+ * 6.解析Web 应用相关的JAr 包里的注解，其中同样包含了Servlet,Filter 和Listener
+ * 7.合并Web Fragment 到总WebXml对象中。
+ * 8.合并默认的web.xml 对应的WebXml到总的WebXml对象中，默认的web.xml 包括Web 容器全局的web.xml，Host容器级别的Web.xml ,路径分别 为Tomcat
+ * 根目录中的/config/web.xml 文件和config/engine name/host name /web.xml.default 文件 。
+ * 9.将有些使用了<jsp-file> 元素定义的Servlet 转化为JspServlet模式 。
+ * 10. 将WebXml 对象中的上下文参数，EJB，环境变量，错误页面，Filter ，监听器，安全认证，会话配置，标签，欢迎页，JSP属性组成等设置到Context
+ * 容器中，而Servlet则转换成Wrapper 放到 Context 中。
+ * 11.把合并后的WebXml字符串格式以org.apache.tomcat.util.scan.Constansts.MERGERD_WEB_XML 作为属性键存放到Context属性中。
+ * 12.扫描每个Jar包的/META-INF/resources/目录，将此目录下的静态资源添加到Context 容器中。
+ * 13.将ServletContainerInitializer添加到Context 容器中。
+ * 14.处理Servlet ，Filter 或Listener类中的注解，有三种注解，分别为类注解，字段注解，方法注解，分别把它们转化成对应的资源放到Context
+ * 容器中，实例化这些对象时需要将注解注入到对象中。
+ *
+ *
+ *
+ *
  */
 public class ContextConfig implements LifecycleListener {
 

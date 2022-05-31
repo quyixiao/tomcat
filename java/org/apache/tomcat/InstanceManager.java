@@ -33,6 +33,15 @@ import javax.naming.NamingException;
  *
  * 所以，由不同的类回城akkd的类也会有不同的生命周期，于是，实例管理器中的loadClass 方法中会有类似的如下判断 。
  *
+ * protected Class <?> loadClass(String className,ClassLoader classLoader) throws ClassNotFoundException{
+ *      if(className.startsWith("org.apache.catalina")){
+ *          return containerClassLoader.loadClass(className);
+ *      }else{
+ *         return webClassLoader.loadClass(className);
+ *      }
+ * }
+ * 判断需要实例化的Class 是否属于org.apache.catalina 包下的类，如果属于则使用Tomcat 容器的类加载器加载，这个类会在Tomcaat整个生命周期
+ * 中存在内存中，否则会使用Web为加载器加载 。
  *
  */
 public interface InstanceManager {

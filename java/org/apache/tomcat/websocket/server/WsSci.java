@@ -40,6 +40,18 @@ import org.apache.tomcat.util.res.StringManager;
  * Registers an interest in any class that is annotated with
  * {@link ServerEndpoint} so that Endpoint can be published via the WebSocket
  * server.
+ * 一般伴随着Service 或Filters等，Servlet 规范中通过ServletContainerInitializer实现此功能，每个框架要使用ServletContainerInitializer
+ * 就必须在对应的Jar 包的META-INF/services 目录中创建一个名为javax.servlet.ServletContainerInitializer的文件，文件内容指定具体的ServletContainerInitializer
+ * 实现类，于是当Web 容器启动时，就会运行这个初始化器做一些组件内的初始化工作 。
+ *
+ * 一般伴随着ServletContainerInitializer 一起使用的还有HandlesTypes 注解，通过HandleTypes 可以将感兴趣的类注入到ServletContainerInitializer
+ *  的onStartup 方法中作为参数传入
+ *
+ *  Tomcat 容器的ServletContainerInitializer 机制，主要交由Context 容器和ContextConfig 监听器共同实现，ContextConfig 监听器首先
+ *  负责在容器启动时读取每个Web 应用  的WEB-INF/lib 目录下包含的jar 包的META-INF/serivces/javax.servlet.ServletContainerInitializer
+ *  以及Web 根目录下的META-INF/services/javax.servlet.ServerletContainerInitializer，通过反射完成这些ServletContainerInitializer
+ *  的onStartup 方法，并将感兴趣的类作为参数传入
+ *
  */
 @HandlesTypes({ServerEndpoint.class, ServerApplicationConfig.class,
         Endpoint.class})

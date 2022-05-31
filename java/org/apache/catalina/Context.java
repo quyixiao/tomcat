@@ -62,6 +62,25 @@ import org.apache.tomcat.util.http.mapper.Mapper;
  * <p>
  *
  * @author Craig R. McClanahan
+ *
+ * Context 容器的生命周期伴随着Tomcat的整个生命周期，在Tomcat 的生命周期的不同阶段的Context 需要做很多的不同的操作，为了更好的将
+ * 这些操作从Tomcat中解耦出来，提供一种可插拔可扩展的能力，这里使用监听器模式，把不同的类型的工作交给不同的监听器，监听器对Tomcat生命周期不同的阶段
+ * 的事件做出响应。
+ *
+ * 实际上Tomcat 启动过程中一般默认会在Context 容器中添加4个监听器，分别为ContextConfig,TldConfig,NamingContextListener 以及MemoryLeakTrackingListener
+ * ,如图，每个监听器负责各自的工作，从名字可以大概看出各自的功能，ContextConfig 监听器主要负责在适当的阶段对Web项目的配置文件进行相关的处理
+ * ，ContextConfig 监听器主要负责在适当的阶段对，TldConfig监听器主要负责对TLD 标签配置文件的相关处理，NamingContextListener 监听器主要负责对命名资源的创建
+ * 组织，绑定相关的处理工作，使他符合JNNI标准，MemoryLeakTrackingListener 监听器主要用于跟踪重加载可能导致的内存泄漏的相关处理。
+ *
+ * 另外，这些监听器添加到Context 中的时期也是不一样的，ContextConfig 监听器可能是在Digester框架server.xml 文件生成的Context 对象时添加的，
+ * 也可能是由HostConfig 监听器添加的，TldConfig 监听器则是在Context 容器初始化 （initInternal方法）时添加的，NamingContextListener
+ * 监听器是在Context 容器启动（startInternal方法）时添加的，MemoryLeakTrackingListener 监听器则是在HostConfig监听器调用 addChild
+ * 方法把Context 容器添加到Host 容器时添加的，每个电热器负责的详细工作分别有哪些，在Tomcat 启动时它都执行了什么操作，下面对每个监听器进行详细分析 。
+ *
+ *
+ *
+ *
+ *
  */
 
 public interface Context extends Container {

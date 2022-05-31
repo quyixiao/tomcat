@@ -87,6 +87,9 @@ import org.apache.tomcat.util.res.StringManager;
  * 时，此监听器会创建JNDI 的命名上下文及其资源绑定，以此完成Tomcat 对JNDI的支持。
  *
  *
+ * Tomcat 中需要支持JNDI ，而JNDI分为全局和局部两种，Context 容器对应的即为全局，这里NamingContextListener监听器用于创建命名上下文 。
+ * 并将资源组织成树状，监听器在接收事件后完成对命名资源的创建，组织，绑定等工作，使之符合JNDI 的标准 。
+ *
  */
 public class NamingContextListener
     implements LifecycleListener, ContainerListener, PropertyChangeListener {

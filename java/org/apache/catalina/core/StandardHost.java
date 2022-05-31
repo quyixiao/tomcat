@@ -705,6 +705,32 @@ public class StandardHost extends ContainerBase implements Host {
     /**
      * Used to ensure the regardless of {@link Context} implementation, a record
      * is kept of the class loader used every time a context starts.
+     * MemoryLeakTrackingListener 监听器主要辅助完成关于内存泄漏跟踪的工作，一般情况下，如果我们通过重启Tomcat 重启Web 应用，
+     * 则不存在内存泄漏问题，但是如果不重启Tomcat而对Web 应用进行重新加载 ，则可能会导致内存泄漏，因为重载后可能会导致原来的某些
+     *
+     * 看看是什么原因导致 Tomcat 内存泄漏，这个要从热部署开始说起，因为Tomcat 提供了不必要的重启容器而只需要重启Web 应用以达到热
+     * 部署的功能，其实是通过定义一个WebClassLoader 类加载器，当热部署时，就将原来的类加载器废弃并重新实例化一个WebappClassLoader
+     * 类加载器，但这种方式可能存在内存泄漏问题。因为类加载器是一个结构复杂的对象，导致它不能被GC回收的可能性比较多，除了对类加载器对象
+     * 引用可能导致其无法回收之外，对其加载的元数据（方法，类，字段等） ,有引用也可能会导致无法被GC 回收
+     *
+     * Tomcat 的类加载器之间有父子关系，这里看启动类加载器BootstrapClassLoader和Web 应用类加载器WebappClassLoader ，在JVM 中
+     * BootstrapClassLoader 负责加载rt.jar 包的java.sql.DriverManager ，而WebappClassLoader ，在JVM 中，BootstrapClassLoader
+     * 负责加载 rt.jar 包下的java.sql.DriverManager，而WebappClassLoader 负责加载Web 应用中的Mysql 驱动包，其中 有一个很重要的
+     * 步骤就是Mysql 的驱动类需要注册到DriverManager 中，即DriverManager.registerDriver （new Driver ） 它由Mysql 驱动包自动完成 。
+     * 这样一来，Web应用进行热部署来操作时，如果没有将Mysql 的DriverManager 中反注册掉，则会导致 WebappclassLoader 无法回收，造成内存泄漏 。
+     *
+     * 接着讨论Tomcat 如何对内存泄漏进行监控，要判断WebappClassLoader 会不会导致内存泄漏，只须要判断WebappClassLoader 有没有被GC 回收
+     * 即可，在Java 中有一种引用叫弱引用，它能很好的判断WebappClassLoader 有没有被GC 回收掉，被弱引用关联的对象只能生存到下一次垃圾回收。
+     * 发生之前，即如果某WebappClassLoader 对象只能被某个弱引用关联外还被其他的对象引用，那么WebappClassLoader 对象是不会被回收的。
+     * 根据这些条件就可以判断是否有WebappClassLoader 发生内存泄漏 。
+     *
+     * Tomcat 是实现通过WeakHashMap来实现弱引用的，只须将WebappClassLoader对象放到WeakHashMap 中，例如 weakMap.put("Loader1",WebappClassLoader)
+     * 当WebappClassLoader 及其包含的元素没有被其他任何类加载器中的元素引用时，JVM 发生垃圾回收时则会把WebappClassLoader 对象回收。
+     *
+     * Tomcat 中的每个Host 容器都会对应若干个应用，为了跟踪这些应用是否有内存泄漏，需要将对应的Context 容器注册到Host 容器中的WeakHashMap
+     * 中，而这里讨论的监听器MemoryLeakTrackingListenner 就负责Context 对应的WebappClassLoader 的注册工作 。
+     *
+     *
      */
     private class MemoryLeakTrackingListener implements LifecycleListener {
         @Override

@@ -49,6 +49,27 @@ import javax.servlet.UnavailableException;
  * 一般 来说，Context 容器包含若干个子容器，这些容器就叫Wrapper 容器，它属于Tomcat 中最小级别的容器，它不能再包含其他子容器，而且
  * 它的父容器必须为Context 容器，每个Wrapper 其实就对应一个Servlet,Servlet 的各种定义在Tomcat中就Wrapper 的形式存在 ，Wrapper 属于
  * 核心类，它的构造比较复杂 。
+ *
+ * Wrapper 属于Tomcat 4 个级别容器中最小的级别的容器，与之相对的是Servlet ，Servlet 的概念对我们来说非常熟悉，我们会在它的doGet 和doPost
+ * 方法上编写逻辑处理代码，面Wrapper 则负责调用这些方法的逻辑，一般来说，一个Wrapper 对应一个Servlet 对象，也就是说，所有处理线程都共同
+ * 一个Servlet对象，但是按规定，实现了SingleThreadModel 接口的Servlet也允许多个对象存在，如图 10.1 所示，Wrapper 容器可能对应一个Servlet
+ * 对象，也可能对应一个Servelt 对象池，本章将深入讨论Servlet相关的机制及实现。
+ *
+ *
+ * 在研究Servlet 在Tomcat 中的工作机制前， 必须先看看Servlet 规范的一些重要规定，该规范提供了一个Servlet接口，接口中包含了重要的方法init ,
+ * service ,destory 等方法，Servlet 在初始化时要调用init 方法，在销毁时要调用destory 方法，而客户端请求处理时则调用service 方法，
+ * 对于这些机制，都必须由Tomcat 的内部提供支持，具体则由Wrapper 容器提供支持。
+ *
+ * 对于 Tomcat 中消息流的流转机制，我们都已经清楚了。 4个不同级别的容器是通过管道机制进行流转，对于每个请求都是一层层处理的，如图10.2 所示
+ * 当客户端请求到达服务端后，请求被抽象成了Request 对象的4个容器进行传递，首先通过Engine 容器的管道通过若干个阀门，最后通过StandardEngineValue
+ * 阀门流转到Host 容器的管道，处理后继续往下流转，通过StandardardengineValue 阀门流转到Host 容器的管道，处理后继续往下流转，通过StandardHostValue
+ * 阀门流转到Context 容器的管道，继续往下流转，通过StandardContextValue阀门流转到Wrapper 容器的管道，而对Servlet 的核心处理也正是因为StandardWrapperValue
+ * 阀门流转到Wrapper容器的管道，而对Servlet 的核心处理也正是StandardWrapperValue 阀门中，StandardWrapperValue 阀门先由ApplicationFilterChain
+ * 组件执行过滤器，然后调用Servlet的service方法请求进行处理，然后对客户端响应。
+ *
+ *
+ *
+ *
  */
 public interface Wrapper extends Container {
 

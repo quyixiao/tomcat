@@ -57,6 +57,15 @@ import org.xml.sax.SAXException;
  * @author Craig R. McClanahan
  * @author Jean-Francois Arcand
  * @author Costin Manolache
+ * Tld Config 监听器
+ * JSP 规范规定了标签，每个标签都需要在TLD 文件中声明，而TLD文件其实就是一个XML 格式的文件，所以Tomcat 在处理Context容器的过程中要解析这些
+ * XLM 文件，使用Digester 框架解析 TLD 文件，TLD 文件的根节点为<taglib>，它同时包含很多的子节点 。
+ * 要确定TLD文件的位置有几种方式 。
+ * 1. 在web.xml中声明TLD文件的路径。
+ * 2. 直接扫描WEB-INF 目录下的JAR 包里的META-INF 目录下的TLD 文件 。
+ * 3. 扫描classpath 下的Jar包下的META-INF 目录下的TLD文件 。
+ * 4. TldConfig 紧箍咒主要的工作职责就是寻找可能存在的TLD文件位置 ， 并解析找到 TLD文件，以一定的结构保存到内存中。
+ *
  */
 public final class TldConfig  implements LifecycleListener {
 

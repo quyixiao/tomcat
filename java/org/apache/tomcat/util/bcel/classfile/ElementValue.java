@@ -32,7 +32,7 @@ public abstract class ElementValue
     }
 
     public abstract String stringifyValue();
-
+    // sec@[ibcdfjsz
     public static final byte STRING            = 's';
     public static final byte ENUM_CONSTANT     = 'e';
     public static final byte CLASS             = 'c';
