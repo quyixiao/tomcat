@@ -57,6 +57,13 @@ import org.apache.tomcat.util.res.StringManager;
  * (but not required) when deploying and starting Catalina.
  *
  * @author Craig R. McClanahan
+ * 事件源，一般组件或容器类就是事件源，例如 StandardServer类，如果要触发STARTING 事件 并让相关的监听器进行处理，可以这样。
+ *
+ * StandardServer 类实现的Lifecycle 接口，并将自己传入LifeCycleSupport 对象，两者建立起关联，所有的监听器通过addLifecycListener
+ * 方法交给了LifecycleSupport 对象维护了，于是通过调用LifecycleSupport 对象的fireLifecycleEvent 方法遍历所有的监听器，一个一个的发送事件 。
+ * 就可以达到触发事件的效果 。
+ *
+ *
  */
 public final class StandardServer extends LifecycleMBeanBase implements Server {
 

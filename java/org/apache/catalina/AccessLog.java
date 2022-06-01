@@ -30,6 +30,8 @@ import org.apache.catalina.connector.Response;
  * {@link Request} and {@link Response} objects being null, having null
  * attributes or any other 'oddness' that may result from attempting to log
  * a request that was almost certainly rejected because it was mal-formed.
+ * 对任何一个系统，一个强大的日志记录功能是相当重要且必要的，根据日志的记录可及时常所系统运行时的健康状态及故障定位，然而，作为Web 容器存在
+ * 另外一种日志，访问日志，访问日志一般会记录客户端访问相关的信息。包括客户端IP , 请求时间
  */
 public interface AccessLog {
 
