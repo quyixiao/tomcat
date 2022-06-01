@@ -154,6 +154,11 @@ import org.apache.tomcat.util.buf.B2CConverter;
  * @author Remy Maucherat
  * @author Takayuki Kaneko
  * @author Peter Rossbach
+ * 引入变量使你的日志访问组件拥有自定义的格式的功能，并且使用一个简单的案例说明，如果你想拥有更加强大的自定义能力可以在此基础上实现，例如
+ * 可以把常量的变量组合简化一个字符串表示，common 字符串用于表示%h %l %u %t %r %s %b 常用的变量组合，当然要实现这样的支持，你必须在映射器中
+ * 做对应的处理
+ *
+ *
  */
 public class AccessLogValve extends ValveBase implements AccessLog {
 
@@ -1364,6 +1369,14 @@ public class AccessLogValve extends ValveBase implements AccessLog {
 
     /**
      * AccessLogElement writes the partial message into the buffer.
+     * 访问日志格式的自定义 。
+     * 经过几步设计之后，一个访问日志组件已经成型，但是为了增加用户自定义的能力我们还要继续做点事情，对于用户自定义的实现，最经典的做法就是
+     * 引入变量表示，例如 ，定义%a表示远程主机IP,%A 表示本机的IP，等等，然后在写入之前用相应的逻辑把变量替换成相应的值写入到日志 ，
+     * 本节实现日志格式的自定义支持。
+     *
+     * 整个过程其实是先自定义变量组，再逐个把变量替换成相应的值，最后再把替换后的值写入到文件，因此需要实现很多不同的变量，所以定义一个接口
+     * 用约束所有变量添加操作的定义，定义一个addElment方法，通过Request 和Response 获取相应的变量值抷回到字符串buf中。
+     *
      */
     protected interface AccessLogElement {
         public void addElement(StringBuilder buf, Date date, Request request,
@@ -1705,6 +1718,7 @@ public class AccessLogValve extends ValveBase implements AccessLog {
 
     /**
      * write HTTP status code of the response - %s
+     * 接着定义两个元素分别用于添加响应状态码和远程地址，使用时直接调用它们的addElement即可把状态码和远程地址添加到字符串中 。
      */
     protected static class HttpStatusCodeElement implements AccessLogElement {
         @Override

@@ -73,6 +73,136 @@ public final class Bootstrap {
 
 
     // -------------------------------------------------------- Private Methods
+    // Java 的设计初衷是主要面向嵌入式领域，对于自定义的一些类，考虑使用按需要加载的原则，即程序使用到时才加载类，节省内存的消耗，这时即可
+    // 通过类加载器来动态的加载 。
+    // 如果你平时只做Web 开发，那应该很少会跟类加载器打交道，但如果想深入学习Tomcat的架构，那它必不可少，所谓的类加载器，就是用于加载Java
+    // 类到Java 虚拟机中的组件，它负责读取Java字节码，并转换成java.lang.Class类的一个实例，使用字节码.class  文件得以运行，一般的类加载器
+    // 负责根据一个指定的类找到对应的字节码，然后根据这些字节码定义一个Java 类，另外还可加载资源，包括图像文件和配置文件 。
+    // 类加载器在实际使用中给我们带来的好处，它可以使Java 类动态的加载到JVM中并运行，即可在程序运行时再加载类，提供了很灵活的动态加载方式 。
+    // 例如 Applet ，从远程服务器下载字节码到客户端再动态加载到JVM 中便可以运行。
+    // 在Java 体系中，可以将系统分为三种类加载器。
+
+    // 1. 启动类加载器（Bootstrap ClassLoader）: 加载对象是Java核心库，把一些核心的Java 类加载进入JVM中，这个加载器使用原生的（C , C++）
+    // 实现，并不是继承java.lang.ClassLoader ，它是所有其他类加载器的最终父加载器，负责加载 <JAVA_HOME>/jre/lib ，目录下JVM指定
+    // 的类库，其实它属于JVM整体的一部分，JVM 一启动就将这些指定的类加载到内存中，避免以后过多的I/O操作，提高系统的运行效率，启动类加载器
+    // 无法被JAva 程序直接使用。
+    // 2. 扩展类加载器（Extension ClassLoader） : 加载对象的Java的扩展库，即加载<JAVA_HOME>/jre/lib/ext 目录里面在的类，这个类由启动类
+    // 加载器加载，但因为启动类加载器并非用Java 实现  ，已经脱离了Java体系，所以如果尝试调用扩展类加载器的getParent()方法获取父类加载器
+    // 会得到 null ,然而，它的父类加载器是启动类加载器。
+    // 3.应用程序类加载器（Application ClassLoader） : 也称为系统类加载器（SystemClassLoader） ，它负责加载用户的类路径 （CLASSPATH）
+    // 指定的类库，如果程序没有自己定义类加载器。
+    //  就默认使用应用程序类加载器，它由于启动类加载器加载，但是它的父类加载器被设置为扩展类加载器， 如果要使用这个类加载器，可以通过ClassLoader.getSystemClassLoader()
+    // 获取 。
+    // 假如想自己写一个类加载器，那么只需要继承java.lang.ClassLoader 类即可，可以用图13.1 来清晰的表示各种类加载器的关系，启动类加载器是最根本的类加载器，其不存在父类加载
+    // 器，扩展类加载器由启动类加载器加载，所以它的父类加载器是启动类加载器，应用程序类加载器由启动类加载器加载，它的父类是指向扩展类加载器。
+    // 而其他的用户自定义的类加载器由应用程序类加载器加载 。
+
+    // 由此可以看出，越重要的类加载器就越早被JVM载入，这是考虑到安全性，因为先加载的类加载器会充当下一个类加载器的父类加载器，在双亲委派
+    // 机截机制下，就能确保安全性，双亲委派模型会在类加载器加载类时首先委托维生父类加载器加载，除非父类加载器不能加载才自己加载 。
+    // 这种模型要求，除了顶层的启动类加载器外，其他的类加载器都要有自己的父类加载器，假如有一个类要加载进来，一个类加载器并不会马上尝试自己将其加载，而是
+    // 委派给父类加载器加载，父类加载器收到后又尝试委派给其父类加载器，以此类推，直到委派给启动类加载器， 这样一层层的往上委派，只有当父类加载器反馈自己
+    // 没有成这个类加载时，子加载器才会尝试自己的加载，通过这个机制，保证了Java 应用所使用的都是同一个版本的Java 核心库的类，同时这个机制也保证了安全性，
+    // 设想，如果应用程序类加载器想要加载一个有破坏性的Java.lang.System类。双亲委派模型会一层层的向上委派，最终委派给启动类加载器。
+    // 而启动类加载器检查到缓存中已经有这个类了，并不会再加载这个有破坏性的System类。
+
+    // 另外，类加载器还拥有全盘负责机制，即当一个类加载器加载一个类时，这个类所依赖的，引用的其他的所有类都由这个类加载器加载 ，除非在程序中
+    // 显式的指定另外一个类加载器加载 。
+
+    // 在Java 中，我们用完全匹配类名来标识一个类，即用包名 和类名，而在JVM 中，一个类由完全匹配类名和一个类加载器的实例ID作为唯一标识，也就是说
+    // 同一个虚拟机可以有两个包名，类名都相同的类，只要它们由两个不同的类加载器加载，当我们在Java 中说两个类是否相等时，必须在针对同一个类
+    // 加载器加载的前提下才有意义，否则，就算是同样的字节码，由不同的类加载器加载，这两个类也不是相等的，这种特性我们称提供了隔离机制 。
+    // 在Tomcat 服务器中它十分有用。
+    // 了解了JVM  的类加载器的各种机制后，看看一个类是怎样被类加载器载入进来的，如图13.2所示，要加载一个类，类加载器先判断此类是否已经加载过了
+    // （加载过的类会缓存在内存中），如果缓存中存在此类，则直接返回这个类，否则，获取父类加载器，如果父类加载器为null，则由父类加载器载入
+    // 载入成功就返回Class, 载入失败则根据类路径查找Class 文件，找到了就加载此Class 文件并返回Class, 找不到就抛出ClassNotFindException 异常。
+    // 类加载器属于JVM级别的设计，我们很多的时候基本不会与它打交道，假如你想深入理解Tomcat 内核或设计开发自己的框架和中间件，那么你必须熟悉类
+    // 加载相关的机制，在现实设计中，根据实际情况利用类加载器可以提供类库的隔离及共享，保证软件不同级别的逻辑，分割程序不会互相影响，提供更好的
+    // 安全性。
+
+    // 一般场景中使用Java 默认的类加载器即可，但有时为了达到某种目的，又不得不实现自己的类加载器，例如，为了使类库互相隔离，为了实现热部署。
+    // 重新加载功能，这个时候就需要自己定义类加载器，每个类加载器加载各自的资源，以此达到资源隔离的效果，在对资源的加载上可以沿用双亲委派机制
+    // 也可以打破双亲委派机制 。
+    // 1. 沿用双亲委派机制自定义类加载器很简单，只须要继承ClassLoader 类并重写FindClass 方法即可，下面给出一个例子。
+    //    先定义一个待加载的Test ，它很简单，只是在构建函数中输出由哪个类加载器加载 。
+    // public class Test {
+    //      public Test(){
+    //          System.out.println(this.getClass().getClassLoader().toString());
+    //      }
+    // }
+    // 2. 定义一个TomcatClassLoader 类，它继承（ClassLoader） ，重写了findClass方法，此方法要做的事情就是读取Test.class 字节流
+    // 并传入父类的defineClass方法，然后，就可以通过自定义类加载器加载TomcatClassLoader对Test.class进行加载，完成加载后输出 "TomcatLoader"
+    /** public class TomcatClassLoader extends ClassLoader{
+    *       private String name ;
+     *      public TomcatClassLoader(ClassLoader parent,String name ){
+     *          super(parent);
+     *          this.name = name ;
+     *      }
+     *      public String toString(){
+     *          return this.name ;
+     *      }
+     *      public Class <?> findClass(String name ){
+     *
+     *          InputStream is = null;
+     *          byte [] data = null;
+     *          ByteArrayOutputStream baos = new ByteArrayOutputStream();
+     *          try{
+     *              is = new FileInputStream(new File("d:/Test.class"));
+     *              int c = 0;
+     *              while(-1 != (c = is.read)){
+     *                  baos.write(c);
+     *              }
+     *              data = baos.toByteArray();
+     *          }catch(Exception e ){
+     *              e.printStackTrace();
+     *          }finally{
+     *              try{
+     *                  is.close();
+     *                  baos.close();
+     *              }catch(IOException e ){
+     *                  e.printStackTrace();
+     *              }
+     *          }
+     *          return this.defineClass(name,data ,0 ,data.length);
+     *      }
+     *
+     *      public static void main(String [] args){
+     *          TomcatClassLoader loader  = new TomcatClassLoader(TomcatClassLoader.class.getClassLoader(),"TomcatLoader");
+     *          Class clazz ;
+     *          try{
+     *              clazz = loader.loadClass("test.classloader.Test");
+     *              Object object = clazz.newInstance();
+     *          }catch (Exception e ){
+     *              e.printStackTrace();
+     *          }
+     *      }
+    * }
+     * 3. 打破双亲委派机制不仅要继承ClassLoader 类，还需要重写loadClass和findClass方法，下面给出一个例子。
+     * 定义Test 类
+     * public class Test{
+     *     public Test(){
+     *         System.out.println(this.getClass().getClassLoader().toString());
+     *     }
+     * }
+     *
+     * Tomcat 中的类加载器。
+     * Tomcat 拥有不同的自定义类加载器，以实现对各种资源的控制，一般来说，Tomcat主要用类加载器解决以下4个问题。
+     * 1. 同一个Web服务器里，各个Web 项目之间各自使用的Java 类库互相隔离 。
+     * 2. 同一个Web服务器里，各个Web项目之间可以提供共享的Java 类库。
+     * 3. 为了使服务器不受Web 项目的影响，应该使用服务器的类库与应用程序类库互相独立 。
+     * 4. 对于支持JSP的Web 服务器，应该支持热插拔（HotSwap)功能 。
+     *
+     * 对于以上的几个问题，如果单独使用一个类加载器明显达不到效果，必须根据具体情况使用若干个自定义类加载器。
+     *  下面看Tomcat 的类加载器是怎样定义的，如图13.3 所示，启动类加载器，扩展类加载器，应用程序类加载器这三个类加载器属于JDK级别的类加载器。
+     *  它们的唯一的，我们一般不会对其做任何更改，接下来，则是Tomcat 的类加载器，在Tomcat 中，最重要的一个类加载器是Common 类加载器。
+     *  它的父类加载器是应用程序类加载器。负责加载$CATALINA_BASE/lib ,$CATALINA_HOME/lib 两个目录下的所有的.class 文件与jar 文件，
+     *  而下面的虚线框的两个类加载器的主要用在Tomcat 5 版本中，Tomcat 5 版本中的两个类加载器实例默认与常见的类加载器的实现不同，
+     *  Common 类加载器是它们的父类加载器，而在Tomcat 7 版本中，这两个实例变量也是存在的，只是catalina.propeties 配置文件没有
+     *  对server.loader 和share.loader 两项进行配置，所以程序里这身份个类加载器的实例被赋值为Common 类加载器实例，即一个Tomcat 7
+     *  版本的实例其实就是只有Common类加载器实例。
+     *
+     *
+     *
+    */
 
 
     private void initClassLoaders() {
@@ -93,6 +223,21 @@ public final class Bootstrap {
             System.exit(1);
         }
     }
+    /**
+     * 首先创建一个Common 类加载器，再把Common 类加载器作为参数传进createClassLoader方法里，这个方法里面根据catalina.properties
+     * 中的server.loader 和share.loader 属性是否为空判断是否另外创建新的类加载器，如果属性为空，则把常见的类加载器直接赋值给Catalina
+     * 类加载器和共享类加载器，如果默认配置满足不了你的需求，可以通过修改catalina.properties 配置文件满足需求 。
+     *
+     * 从图13.3 中的WebApp ClassLoader 来看，就大概知道它主要的加载Web 应用程序，它的父类加载器是Common 类加载器 ，Tomcat 中一般
+     * 会有多个WebApp 类加载器实例，每个类加载器负责加载一个Web 程序 。
+     *
+     * 对照这样的一个类加载器结构，看看上面需要解决的问题是否解决 。由于每个Web 应用项目都有自己的WebApp 类加载器，很多的使用多个
+     * Web 应用项目都有自己的WebApp 类加载器，很好的使用了Web 应用程序之间的互相隔离且能通过创建新的WebApp 类加载器达到热部署。
+     * 这种类加载器的结构能使有效的Tomcat 不受Web 应用程序影响 ，而Common类加载器在存在使用多个Web应用程序能够互相共享类库。
+     *
+     *
+     *
+     */
 
 
     /**
@@ -101,6 +246,9 @@ public final class Bootstrap {
      * @param parent 父级类加载器
      * @return
      * @throws Exception
+     *
+     *
+     *
      */
     private ClassLoader createClassLoader(String name, ClassLoader parent)
         throws Exception {

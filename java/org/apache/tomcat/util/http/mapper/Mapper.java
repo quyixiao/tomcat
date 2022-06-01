@@ -40,6 +40,85 @@ import org.apache.tomcat.util.res.StringManager;
  * 包含若干个Servlet ，而当对请求使用了请求分发器RequestDispatcher 以分发到不同的Servlet上处理时，就用了此映射器。
  *
  *
+ *
+ *
+ * Mapper 组件主要的职责是负责Tomcat的请求路由，每个客户端的请求到达Tomcat后，都将由Mapper路由到对应的处理逻辑上，，在Tomcat 结构中有
+ * 两部分会包含Mapper组件，一个是Connector 组件，称为全局路由Mapper；另外一个是Context 组件，称为局部路由Mapper, 本章将深入探讨Tomcat
+ * 路由模块Mapper组件 。
+ *
+ * 对于 Web容器来说，根据请求客户端路径路由到对应的资源属于其核心功能，假设用户在自己的电脑上使用浏览器输入网址http://www.test.com/test/index.jsp
+ * 报文通过互联网到达该主机服务器，服务器应该将其转到test 应用的index.jsp页面中进行处理，然后再返回。
+ *
+ * 当客户端浏览器地址栏中输入http://tomcat.apahce.org/apache-7.0-doc/index.html时，浏览器产生HTTP报文大致如下 。
+ * GET /tomcat-7.0-doc/index.html HTTP/1.1
+ * Host : tomcat.apche.org
+ * Connection: keep-alive
+ * Cache-Control:max-age = 0
+ * Accept : text/html,application/xhtml+xml,application/xml;q=0.9,image/web, * / * ;q = 0.8
+ * Upgrade-Insecure-Requests: 1
+ * User-Agent : Mozilla/5.0 (Windows NT 10.0 ,WOW64 ) AppleWebKit/537.36(KHTMT like Gecko) Chome/45.0.2454.101 Safari/537.36
+ * Accept-Encoding: gzip ,defalte ,sdch
+ * Accept-Language : zh-CN , zh; q=0.8
+ *
+ * 注意加粗的报文，Host ,tomcat.apache.org 表明访问的主机是tomcat.apache.org 而/tomcat-7.0-doc/index.html 则表示请求的资源是
+ * tomcat-7.0-doc Web 应用的index.html 页面，Tomcat 通过解析这些报文就可以知道请求对应的资源，因为Tomcat根据请求路径对处理进行了容器级别的
+ * 分层，所以请求URL 与Tomcat内部组件的对应关系如图14.3 所示，tomcat.apche.org对应Host 容器，tomcat -7.0-doc对应的是 Context 容器，index.html
+ * 对应的是Wrapper 容器。
+ *
+ * 对应上面的请求，该Web 项目对应的配置文件主要如下 ：
+ *
+ * <Host name="tomcat.apche.org" appBas e="webapps" autoDeploy="true">
+ *     <Context path = "/tomcat-7.0-doc" doBase="/usr/tomcat/tomcat-7.0-doc"/>
+ * </Host>
+ *
+ * 当  Tomcat 启动好后，首先http://tomcat.apche.org/tomcat-7.0-doc/index.html 请求就会被Tomcat 的路由器通过匹配算法路由到名为
+ * tomcat.apache.org的Host容器上，然后在该容器中继续匹配名为tomcat-7.0-doc 的Contexttt 容器的Web 应用 ，最后该Context 容器中匹配index.html
+ * 资源，并返回给客户端 。
+ *
+ * 以上大致介绍了Web 请求从客户端到服务器tomcat的资源匹配过程 ，每个完整的请求都有如上的层次结构，Tomcat 的内部中有Host,Context，Wrapper
+ * 层次与之对应，而具体的路由工作则由Mapper 组件负责，下面介绍Mapper的实现。
+ *
+ * Mapper的实现。
+ * Mapper组件的核心功能是提供了请求路径的路由映射，根据某个请求路径，通过计算得到相应的Servlet(Wrapper)，下面介绍Mapper的实现细节，
+ * 包括Host容器，Context 容器，Wrapper 容器等映射关系以及映射算法。
+ *
+ * 如果要将整个Tomcat 容器中所有的Web 项目以Servlet级别组织起来 ，需要一个多层级的类似Map结构的存储空间
+ * Mapper 只要包含一个Host数组即可完成所有组件的关系映射，在Tomcat启动时将所有的Host 容器和它的名字组成Host映射模型添加到Mapper对象中。
+ * 把每个Host下的Context 容器和它的名字组成Context映射模式添加到对应的Host下，把每个Context下的Wappre 容器和它的名字组成的Wapper
+ * 添加到对应的Context下，Mapper 组件提供了对应的Host映射，Context 映射，Wrapper 映射的添加和移除方法，在Tomcat 容器中添加或移除相应的
+ * 容器时，都要调用相应的方法维护这些映射关系，为了提高查找速度和效率，Mapper 组件使用二分搜索查找，所以在添加时应按照字典序把Host,Context
+ * Wrapper等映射排序 。
+ * 当Tomcat 启动稳定后，意味着这些映射都已经组织好，那么具体是如何查找对应的这容器的呢？
+ * 关于Context的匹配，对上面的查找的Host 映射中的Context映射数组进行忽略大小写的二分搜索查找，这里有个比较特殊的情况就是请求地址可以直接以
+ * Context名结束，例如 http://tomcat.apache.org/tomcat-7.0-doc ，另外一些则类似于http://tomcat.apche.org/tomcat-7.0-doc/index.html
+ * ,另外映射中的name对应 Context容器的path属性。
+ *  关于Wapper的匹配，涉及几个步骤，首先，尝试使用精确匹配法匹配精确类型Servlet 的路径，然后尝试使用前缀匹配通配符类型Servlet ，接着
+ *  尝试使用扩展名匹配通配符类型Servlet ，最后匹配默认的Sevlet 。
+ *  Tomcat 在处理请求时对请求的路由分发由Mapper组件负责，请求通过Mapper 找到最终的Servlet 资源 ，而在Tomcat 中会有两种类型的
+ *  Mapper, 根据他们作用范围，分别称为全局路由Maper 和局部路由Mapper   。
+ *
+ *
+ * 局部路由Mapper是指提供了Context 容器内部路由导航功能的组件，它只存在于Context容器中，用于记录访问资源与Wrapper之间的映射 。每个
+ * Web 应用都存在自己的局部路由Mapper组件 。
+ * 在做Web开发时，我们有时会用类似request.getRequestDispacher("/servlet/jump?action=do").forward(request,response)这样的代码 。
+ * 这里其实就是使用了context容器内部的Mapper功能，用它匹配/servlet/jump?action=do 对应的Servlet，然后调用Servlet具体的处理逻辑 。
+ * 从这点来看，它只能路由一部分的地址路径，而不能路径一个完整的请求地址 。
+ * 所以局部路由Mapper只能在同一个Web 应用内进行转发路由，而不能实现跨Web 应用的路由，如果要实现跨web应用，需要用生定向的功能，让客户端
+ * 重定向到其他的主机或其他的Web应用上，而对客户端到服务端的请求，则需要全局路由Mapper组件参与 。
+ *
+ * 全局路由Mapper。
+ * 除了局部路由Mapper，另外一个一种Mapper就是全局路由Mapper,它是提供了完整的路由导航功能的组件，它位于Tomcat的Connector 组件中，通过它
+ * 能对Host,Context,Wrapper 等路由，即对于一个完整的请求地址，它能定位到指定的Host容器，Context 容器以及Wrapper容器。
+ *
+ * 所以全局路由Mapper拥有Tomcat容器完整的路由映射，负责完整的请求地址路由功能 。
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 public final class Mapper {
 
