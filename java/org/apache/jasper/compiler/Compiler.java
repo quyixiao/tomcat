@@ -47,6 +47,21 @@ import org.apache.juli.logging.LogFactory;
  * @author Kin-man Chung
  * @author Remy Maucherat
  * @author Mark Roth
+ *
+ *
+ *
+ * 从Servlet 到 Class  字节码
+ *
+ * 那么现在有了Servlet 对象的Java 源码了，接下来就是下一阶段，把Java 编译成Class 字节码 。
+ *
+ * JSP 45 标准
+ *
+ * 我们知道，Java 虚拟机只认识Class 文件，要在虚拟机上运行，就必须要遵守Class 文件的格式 ， 所以JSP编译成Servlet 后还需要进一步
+ * 编译成Class 文件，但从JSP 文件到Java 文件再到Class 文件的过程需要考虑比较多的事情 ， 其中一个比较重要的问题就是调试问题， 由于语法不一样
+ * ，JSP中的代码在执行时需要通过某种机制与Java 文件对应起来 ， 这样 在JVM执行过程中发生异常或错误才能找到JSP对应的行， 提供了一个友好的
+ * 调试信息，类似的，JSP 文件名编译后的Java 文件名同样也要得到映射 。
+ *
+ *
  */
 public abstract class Compiler {
 

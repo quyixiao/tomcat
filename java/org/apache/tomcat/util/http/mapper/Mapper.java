@@ -111,12 +111,14 @@ import org.apache.tomcat.util.res.StringManager;
  * 能对Host,Context,Wrapper 等路由，即对于一个完整的请求地址，它能定位到指定的Host容器，Context 容器以及Wrapper容器。
  *
  * 所以全局路由Mapper拥有Tomcat容器完整的路由映射，负责完整的请求地址路由功能 。
- *
- *
- *
- *
- *
- *
+ * 围绕着NamingManager 的这些类和接口是JNDI 能正常运行的基础，所有的上下文都要实现Context接口，这个接口的主要方法是lookup ,bind , 分别用于查找对象的
+ * 与绑定对象，我们熟知的InitalContext即是JNDI的入口，NamingManager包含很多的操作上下文的方法，其中，getStateToBind及getObjectInstace
+ * 两个方法有必要提一下，它们将任意类型的对象转换成适合在命名空间存储的形式，并且将存储在命名空间中的信息转换成对象，两者是相反的过程。
+ * 具体的转换策略可以在自定义的XXXFactory工厂类里面自定义，另外，还有几个接口用于约束在整个JNDI机制实现中特定的方法，为了更好的理解JNDI
+ * 的运行机制，下面分步说明JNDI 的运行机制。
+ * 1. 实例化InitialContext 作为入口 。
+ * 2. 调用InitialContext的lookup或bind方法 。
+ * 3. lookup，bind方法实际上是调用了getURLOrDefaultInitialCtx返回的上下文的lookup或bind方法 。
  *
  *
  */

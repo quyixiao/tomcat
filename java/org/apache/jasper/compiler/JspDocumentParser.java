@@ -54,6 +54,43 @@ import org.xml.sax.helpers.AttributesImpl;
  *
  * @author Jan Luehe
  * @author Kin-man Chung
+ *
+ *
+ * Jasper 模块是Tomcat 的JSP核心引擎，我们知道JSP本质上是Servlet ，那么从一个JSP文件编写完成后到真正的在Tomcat中运行，它将经历从JSP
+ * 转变成Servlet ，再由Servlet 转变成Class的过程，在Tomcat中正是使用Jasper 对JSP 语法的解析，生成 Servlet 并生成 Class 字节码，另外在
+ * 运行时，Jasper 还会检测JSP 文件是否修改，如果修改，则会重新编译JSP文件，本章就讨论Jasper 引擎的内部原理及实现，JSP 从语法上可以分为标准
+ * JSP和基于XML 的JSP ，但是其实现思路基本上相同，只是规定了不同的语法 ， 本质上都是对规定语法进行解析编译，所以本章只选择标准的JSP进入深入研究 。
+ *
+ * 标准的JSP大家都很熟悉，从开始学Java 接触到的就是它， 可以说，JSP 是Servlet 的扩展，它主要是为了解耦动静内容，解决动态内容和静态内容一起
+ * 混合在一起的Servlet中的问题， 但JSP 本质上也是一个Servlet ， 只不过它定义了一上结语法粮让开发人员可以在HTML中进行动态处理，而Servlet其实
+ * 是一个Java 类，所以这里面其实就涉及了一个JSP 编译为Java 类的过程 ， 对于Java 来说，真正的运行JVM 上的又是Class 字节码，所以这里涉及另外
+ * 一个从Java到Class字节码编译的过程，编译的具体实现由不同的厂家实现，这里讨论Tomcat 编译标准的JSP
+ *
+ * 在探讨如何编译JSP之前我们应该先看看标准的JSP语法，只有在了解JSP 语法之后才能根据其语法进行编译，下面举一些常见的语法，但并不包含所有的语法 。
+ * 旨在说明一个大致的编码过程 。
+ *
+ * 对于 代码脚本 ,格式为<% Java 代码片段 %>
+ * 对于变量声明 ，格式为<% !int i = 0 ; %>
+ * 对于表达式，格式为<%=表达式%>
+ * 对于注释，格式为<%--JSp 注释--%>
+ * 对于指令，格式为<% @page...%> , <% @include...%> , <% @taglib...%>
+ * 对于动作，格式为<jsp:include/>,<jsp:useBean/>,<jsp:setProperty/>,<jsp:getProperty/>,<jsp:forward/>,<jsp:plugin/>,<jsp:elment/>
+ * <jsp:attribute/>, <jsp:body/> ,<jsp:text/>
+ * 对于内置对象，脚本中内置了request,response, out,session, application,config , pageContext , page, Exception 等对象 。
+ *
+ * 语法树的生成，语法解析
+ * 一般来说，语句按一定的规则进行推导后会生成一个语法树，这种树状结构有利于语句结构层次的描述，它是对代码语句进行语法分析后的产物，编译器
+ * 利用它可以方便的进行编译，同样，Jasper 对JSP 语法解析后也会生成一棵树，这棵树中的各个节点包含了不同的信息，但对于JSP 来说，解析后的语法
+ * 树比较简单，它只有一个人父节点和N个子节点，如图16.1 所示 ，node1 表示形如 <% -- 字符串 --% >  ，节点里面包含了一个表示注释的字符串的属性
+ * 而node2 则可能表示形如<%= a + b %> 的表达式节点，节点里面包含一个表示表达式的属性，同样的，其他节点可能表示JSP的其他语法，有了这棵树
+ * ，我们就可以很方便的生成对应的Servlet 。
+ *
+ * 那么，具体是怎样解析生成这棵树的呢？下面给出简单的代码实现。
+ *
+ * 
+ *
+ *
+ *
  */
 
 class JspDocumentParser

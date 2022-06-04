@@ -47,6 +47,18 @@ import org.apache.juli.logging.LogFactory;
  * Catalina JNDI Context implementation.
  *
  * @author Remy Maucherat
+ * 对于绑定环节，如图15.9 所示 ，Tomcat 的初始化时将需要绑定的对象转换为 ResourceRef对象，然后绑定NamingContext 中，当然一个
+ * NamingContext 里面可能又有若干个NamingContext ，以树状组织，全部组织完后，再用ContextBindings 进行xepg，这一步比较巧妙。
+ * 它提供了命名上下文三种绑定机制，直接绑定，线程绑定，与类加载器绑定，不同的绑定机制，直接绑定，与线程绑定，与类加载器绑定 。
+ * 不同的绑定机制有不同的用途，例如 Web 应用局部命名资源就是靠类加载器绑定机制进行分隔的。
+ *
+ * 对于查找环节，如图15.10 ,程序查找命名资源先实例化一个InitialContext实例，通过URL模式查找，假如Java作为scheme ,则定位到
+ * javaURLContextFactory 工厂类，返回一个SelectorContext对象，并且这个SelectorContext 封装了对ContextBinding 的操作。
+ * 而ContextBindings则封装了NamingContext与线程，类加载器等绑定机制，最终找到了URL指定的ResourceRef 对象，并且此对象指定ResourceFactory
+ * 工厂类，此工厂类将生成 Java对象供程序使用。
+ *
+ *
+ *
  */
 public class NamingContext implements Context {
 
