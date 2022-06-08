@@ -256,6 +256,8 @@ public final class ClassLoaderFactory {
 
         // Construct the class loader itself
         final URL[] array = set.toArray(new URL[set.size()]);
+        // 这种特权操作在Tomcat 很多的地方都可以看到，例如，ClassLoaderFactory中，这是一个所以生产类的工厂，在createClassLoader 方法中
+        // 利用如下方式返回，这样一来就不会检查所有的调用ClassLoaderFactory 中的createClassLoader方法的其他实例权限
         return AccessController.doPrivileged(
                 new PrivilegedAction<URLClassLoader>() {
                     @Override

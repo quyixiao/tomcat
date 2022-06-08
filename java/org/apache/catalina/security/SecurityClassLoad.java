@@ -22,6 +22,33 @@ package org.apache.catalina.security;
  * RuntimePermission does not trigger an AccessControlException.
  *
  * @author Glenn L. Nielsen
+ *
+ *
+ * 如果你想检查此类是否有某个包的访问权限，可以显式的使用System.getSecurityManager().checkPackageAcess("包路径");
+ * 否则，会在类加载器加载某个类的时候由loadClass方法触发权限检查，如果没有权限，则抛出SecurityException异常。
+ *
+ * 在Tomcat 启动时就完成对package.definition 与package.access 的安全属性的设置，通过读取catalina.properties中的属性完成设置 。
+ *
+ * package.access=sum., org.apache.catalina., org.apache.coyote., org.apache.coyote., org.apache.tomcat., org.apache.jasper。
+ * package.definition=sun., java.,org.apache.catalina., org.apache.coyote., org.apache.tomcat., org.apache.jasper.
+ *
+ * Tomcat 会对以上声明的这些包进行权限检查，另外，Tomcat 在启动SecurityManager 进行安全管理时，有些类是必须要使用的类， 为了词句由安全管理
+ * 器导致运行到一半就抛出AcessControlException异常，在启动一开始就预先加载一些类， 以此检查对某些类是否存在读取权限，SecurutyClassLoader 灰负责对一些类
+ * 进行预加载 。
+ *
+ *
+ *
+ * 安全管理器特权
+ *
+ * AccessController 类中有个doPrivileged 静态方法，这里面的代码主体上拥有操作的特权，它可以对某个资源进行访问，而不管是有权限还是
+ * 没有权限的对象调用它， 在SecurityManager 中对Permission 时行检查从栈顶部开始， 逐一向下， 直到碰到doPrivileged的方法中调用，或者到达栈
+ * 底为止，如图17.3 所示，假如调用链为a.class-b.class-c.class,b.class 添加到了AccessController.doPrivileged，那么需要检查到栈按
+ * 从上往下的顺序，直到遇到AccessController.doPrivileged才停止检查。
+ *
+ *
+ *
+ *
+ *
  */
 public final class SecurityClassLoad {
 

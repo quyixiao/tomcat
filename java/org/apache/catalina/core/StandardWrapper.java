@@ -727,6 +727,33 @@ public class StandardWrapper extends ContainerBase
      * Execute a periodic task, such as reloading, etc. This method will be
      * invoked inside the classloading context of this container. Unexpected
      * throwables will be caught and logged.
+     *
+     * 首先，需要一个后台执行线程，Tomcat 中有专门的一条线程负责处理不同的容器的后台任务，要在不同的容器中执行某些后台任务，只须要重写
+     * backgroundProcess 方法即可实现， 由于 JpsServlet 对应于Wrapper 级别，因此要在StandardWrapper 中重写backgroundProcess
+     * 它会调用实现了PeriodicEventListener 接口的Servlet ，JspServlet 就实现了PeriodicEventListener 接口，此接口只有一个
+     * periodicEvent方法，具体的检测逻辑在此方法中实现即可 。
+     *
+     * 其次，判断重新编译的根据是什么？重新编译就是再次把JSP变成Java再变成Class,而触发这个动作的条件就是，当我们修改了某个JSP文件后。
+     * 或者某个JSP文件引入的资源被修改后，所以最好判断依据是某个JSP 或资源的最后修改时间-LastModified 属性，正常的顺序是JSP经过编译后生成
+     * Class 文件，把此Class 文件的LastModified属性设置成JSP文件的LastModified，此时两个文件的LastModified属性值是相同的，当我们
+     * 改了JSP文件保存后，JSP 的LastModified 属性就设置为当前时间，此时，通过判断两个文件的LastModified 属性值决定是否重新编译，
+     * 重新编译后，JSP与Class 文件的LastModified 属性再次设置为相同的值，对于引入的资源，内存中维护了上次编译时引入的资源的LastModified
+     * 属性，不断的获取引入资源的LastModified属性并与内存中的LastModified属性进行比较，同样可以很容易的判断是否需要重新编译 。
+     *
+     * 最后，对于本地和远程资源分别是如何检测的，对于本地资源来说，使用java.io.File 类可以很方便的实现对某个JSP 文件或其他文件的
+     * LastModified 属性读取，对于远程资源，比如 Jar 包，为了方便处理Jar 包含的属性，使用java.net.URL 可以很方便的操作，它包含了很多的
+     * 协议，例如常见的Jar,File ，Ftp 等协议，使用它是相当的方便 。
+     *
+     * URL includeUrl = new Url("jar://http://hostname/third.jar!/")
+     * URLConnection iuc =  includeUrl.openConnection();
+     * long includeLastModified = ((JarUrlConnection)iuc).getJarEntry().getTime();
+     *
+     * 如前所述，只需要三步即可以完成对远程的Jar 包的读取且取出最后修改时间，当然，URL还支持本地文件资源的读取，所以它是很好的资源读取抽象成对象
+     * ，Tomcat 中对引入的资源管理都使用了URL 作为操作对象 。
+     *
+     * 本节探讨了Jasper 自动检测机制的实现，自动检测机制给我们开发带了很好的体验，我们不必自己修改JSP 后自己去执行编译操作，而是由Tomcat
+     * 通过Jasper 帮我们定时检测编译操作，
+     *
      */
     @Override
     public void backgroundProcess() {
