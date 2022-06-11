@@ -88,6 +88,7 @@ public class JDBCStore extends StoreBase {
 
     /**
      * Connection string to use when connecting to the DB.
+     * 所用的JDBC 连接URL
      */
     protected String connectionURL = null;
 
@@ -103,6 +104,7 @@ public class JDBCStore extends StoreBase {
 
     /**
      * Driver to use.
+     * JDBC 驱动程序所用的完整的Java类名。 默认为org.apache.catalina.session.JDBCStore
      */
     protected String driverName = null;
 

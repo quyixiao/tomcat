@@ -56,6 +56,35 @@ import org.apache.tomcat.util.res.StringManager;
  * track of deltas during a request.
  *
  * @author Filip Hanik
+ * 在集群环境中，为了使集群中的各个节点的会话状态都同步，同步操作是集群重点解决的问题，一般来说，有两种同步策略，其一是每一个同步都把整个
+ * 会话对象付给集群中的其他节点，其他节点更新整个会话对象，其二是对象会话中增量修改的属性进行同步，这两种同步方案各有优点，整个会话对象同步策略的
+ * 实现过程比较简单方便，但会造成大量的无效信息的传输，增量同步方式则不会传递无效的信息，但是实现上会比较复杂，因为其中涉及对象会话属性操作过程
+ * 管理 。
+ *
+ * 本节讨论的增量同步方式中涉及的会话对象DeltaSession ， 这个对象其实是对标准的会话的扩展，使之在整个请求过程过程中记录会话所有的增量修改。
+ * DeltaSession 的类图， 除了继承StandardSession 类之外，它还实现了Externalizable ,  ClusterSession , ReplicatedMapEntry
+ * 三个接口，Externalizable接口主要对外提供了对象的读写操作，ClusterSession 接口主要提供判断集群会话是否为原始会话操作，对于 DeltaSession
+ * ，其实除了继承StandardSession特性外， 还要额外的实现这三个接口。
+ *
+ * 当客户端发起一个请求时，服务器端对请求的处理可能会涉及会话相关的操作，例如 ， 获取客户端某些属性再根据属性值进行逻辑处理，而且在整个请求过程中
+ * 可能会涉及到多次的会话操作，为了将这些改变能同步到集群的其他节点上，必须要有一个机制来实现，实际上，同步的颗粒大小是很重要的， 颗粒度太大会导致
+ * 同步不及时 ， 而颗粒度太小则可能会导致传输及性能问题，考虑到性能及可行性，Tomcat 同步的颗粒度是以一个完整的请求为单位的，即从客户端发起请求
+ * 到服务器完成逻辑处理返回结果这前这段时间为同步颗粒度，这个过程中对某会话的所有操作（对同一属性的操作只记录最新的一次操作）都会记录下来，。
+ * 这个过程中对某些会话的所有操作，对同一个属性的操作只会记录最新的操作。
+ *
+ * 在Tomcat 中会话揞的具体功能由DeltaSession 类实现， DeltaSession 继承了StandardSession 标准会话的所有特性且增加了会话增量记录的功能。
+ * 增量记录功能即通过动作集实现，动作集封装在DeltaRequest 类中，所以整个结构如图 19.8 所示 ， DeltaSession 主要通过DeltaRequest
+ * 实现动作集管理 ， 动作集由一个LinkedList<AttributeInfo> 结构保存 。AttributeInfo 描述了动作的一些消息，所以一个动作就被抽象
+ * 成了一个AttributeInfo 对象，它主要包含4个属性，name(String),value(String), action(String),type(int), 其中，name 表示会话的属性名。
+ * 即哪个属性要修改，value 表示属性名对应的值，action表示动作，可能是设置属性也可能是删除属性，type 表示会话哪种类别的属性被修改。
+ *
+ * 整个增量会话的实现机制就是上面所说的，会话的增量复制比起全量复制有很多的好处，即使实现也是比较复杂。
+ *
+ *
+ *
+ *
+ *
+ *
  */
 public class DeltaSession extends StandardSession implements Externalizable,ClusterSession,ReplicatedMapEntry {
 
