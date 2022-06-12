@@ -75,6 +75,29 @@ import org.apache.tomcat.util.res.StringManager;
  * @author Filip Hanik
  * @author Remy Maucherat
  * @author Peter Rossbach
+ *
+ *
+ * Cluster 其实就是集群的意思，它是为了方便上层调用抽象出来的一个比较高层次的概念，总的来说，它最重要的两个接口就是发送和接收接口，对于
+ * Cluster 来说，它可以让你不必关心集群之间是如何通信，与谁通信，你只要调用Cluster 接口将消息发送出去即可完成集群内的消息传递，Cluster 的
+ * 的抽象将各种繁杂的细节屏蔽掉了，使我们很容易的实现集群通信 。
+ *
+ * 如图 20.7  ,Cluster 组件包含或者说关联的组件包括，会话管理器，集群通信通道，部署器（Deployer ），集群监听器（ClusterListener）
+ * 集群阀门等，下面将对每个组件进一步的介绍 。
+ *
+ * Tomcat 的Cluster 模块主要的功能就是提供会话复制，上下文属性复制和在集群下的Web 应用部署，这些操作都存在跨节点问题， 默认的集群组件为实现
+ * SimpleTcpCluster ,SimpleTcpCluster 使用组播为集群通信方式，它提供了组播发射器和接收器用于消息的传递。
+ *
+ *
+ * 集群会话管理器。
+ * 会话管理器主要用于管理集群中的会话，这些会话都涉及跨节点操作，包括DeltaManager 和BackupManager 两个会话管理器， 这两个会话管理器
+ * 也是Tomcat集群中目前可选 的两种自带会话管理器。
+ *
+ * 集群通信通道
+ * 通道是集群之间的通道组件，它是一个代表消息传递的通道的抽象，通道默认的实现为GroupChannel 即为群组通道，通道是一个较复杂的组件，它其实
+ * 是Tribes 组件封装的一个对象，它可能包含若干个监听器和拦截器， 对数据的发送只须要调用通道的发送方法， 而数据接收则在监听器中实现，每个接收到
+ * 数据都会调用ChannelListener 进行处理。
+ *
+ *
  */
 public class SimpleTcpCluster extends LifecycleMBeanBase
         implements CatalinaCluster, LifecycleListener, IDynamicProperty,

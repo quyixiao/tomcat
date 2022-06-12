@@ -58,6 +58,12 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author Filip Hanik
  * @author Peter Rossbach
+ *
+ * 集群部署器主要用于集群内的应用部署，默认的实现是FarrrmWarDeployer ，它可以帮你自动在集群的其他实例上部署卸载应用，在集群中可以任意选择一个实例
+ * 作为管理的实例，它通过对某些目录的监听实现集群对应用的部署的自动同步功能。
+ *
+ *
+ *
  */
 public class FarmWarDeployer extends ClusterListener
         implements ClusterDeployer, FileChangeListener {

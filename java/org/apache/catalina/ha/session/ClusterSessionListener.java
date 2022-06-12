@@ -29,6 +29,13 @@ import org.apache.juli.logging.LogFactory;
  * Receive replicated SessionMessage form other cluster node.
  * @author Filip Hanik
  * @author Peter Rossbach
+ *
+ *
+ * ClusterSessionListener 的主要工作就是处理从集群中的其他节点接收到的会话消息，例如 ，如果其他节点新建或变更了会话，则会把这些变更后的
+ * 会话发往其他节点进行同步，同步的逻辑则由这些监听器处理。
+ *
+ *
+ *
  */
 public class ClusterSessionListener extends ClusterListener {
 

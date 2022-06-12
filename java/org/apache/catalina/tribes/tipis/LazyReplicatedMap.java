@@ -148,6 +148,16 @@ public class LazyReplicatedMap<K,V> extends AbstractReplicatedMap<K,V> {
      * @param value Object
      * @return Member - the backup node
      * @throws ChannelException Cluster error
+     *
+     *  实例化MapEntry ,将key 和Value 传入，传入的参数为Key 为会话的ID,Value为会话的对象，并设置源节点为目标节点 。
+     *  判断会话集中是否已经包含了Key,如果已经存在，则删除本地及备份节点上的会话。
+     *  通过轮询算法从MapMember 中选择一个作为备份节点，并赋值给MapEntry 对象的备份节点属性。
+     *  实例化一个包含MSG_BACKUP 标识的MapMessage 对象并发送给备份节点，告诉备份节点要备份这里传过来的这个会话信息。
+     *  实例化一个包含MSG_PROXY 标识的MapMessage对象并发送给除了备份节点外的其他代理节点，告诉它们，你们是代理，请记录此会话的ID ,源节点，备份节点等信息。
+     *  把MapEntry 对象放进本地缓存中。
+     *
+     *
+     *
      */
     @Override
     protected Member[] publishEntryInfo(Object key, Object value) throws ChannelException {

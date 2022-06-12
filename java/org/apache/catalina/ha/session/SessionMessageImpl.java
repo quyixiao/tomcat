@@ -24,6 +24,16 @@ import org.apache.catalina.ha.ClusterMessageBase;
  *
  * @author Filip Hanik
  * @author Peter Rossbach
+ *
+ *
+ * Tomcat 使用SessionMessageImpl 类定义了各种集群事件及操作方法， 在整个集群通信过程中就按此类定义好的事件进行通信， SessionMessageImpl
+ * 包含的事件有{EVT_SESSION_CREATED , EVT_SESSION_EXPIRED ,EVT_SESSION_ACCESSED, EVT_GET_ALL_SESSIONS,EVT_SESSION_DELTA,EVT_ALL_SESSION_DATA
+ * ,EVT_ALL_SESSION_TRANSFERCOMPLETE,EVT_CHANGE_SESSION_ID,EVT_ALL_SESSION_NOCONTEXT_MANAGER},  为SessionMessageImpl 的类图。
+ * 它继承了序列化接口（方便序列化）集群消息接口，集群的操作，会话消息接口（事件定义及会话操作）
+ *
+ *
+ *
+ *
  */
 public class SessionMessageImpl extends ClusterMessageBase implements SessionMessage {
 

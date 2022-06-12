@@ -39,6 +39,27 @@ import org.apache.juli.logging.Log;
  * saved are still subject to being expired based on inactivity.
  *
  * @author Craig R. McClanahan
+ *
+ * FileStore 提供以文件形式保存会话，在写入时，会针对每个会话生成一个文件，用于保存此会话相关的信息， 每个会话文件名定义为sessionId + .session
+ * 的格式，例如 "326257DA6DB76F8D2E38F2C4540D1DEA.session" 而存放的目录路径则由ServletContext.TEMPDIR 变量指定，一般默认的目录为%CATALINA_HOME%/
+ * work/Catalina/localhost/WebName/ ，其实就是Tomcat 安装根目录 + work + enginName +hostName + contextName ，所以假如有1万个会话则会有1万
+ * 个会话文件，为了方便操作，写入 直接使用JDK 自带的java.io.ObjectOutputStream 对会话对象进行序列化并写入文件，所以有一点需要注意的，所有的会话
+ * 中对象必须实现Serializable 接口。
+ *
+ * 类似的，加载会话是通过传入一个sessionId ，拼装成sessionId + .session 格式的文件名去寻找对应的会话文件，然后 使用JDK 自带的java.io.ObjectInputStream
+ * 将会话对象加载到内存中，其实就是一个反序列化的过程。
+ *
+ * <Store className = "org.apache.catalina.session.FileStore" directory="sessiondir"/>
+ *
+ * 如果配置了directory ，则将以%CATALINA_HOME%/work/Catalina/locahost/WebName/sessiondir为存放目录 ， 当然，如果配置了绝对路径，则以配置的绝对路径为存放目录 。
+ *
+ * 以FileStore 为存储设备使用时， 看起来的文件操作I/O 上的效率相当的低，因为对每个文件操作都是打开，操作，关闭，并未使用任何优化措施，所以Tomcat 在选择使用此
+ * 方式时，这很可能会影响整体性能的一个因素，这就要求必须做好充分的性能测试 。
+ *
+ *
+ *
+ *
+ *
  */
 public final class FileStore extends StoreBase {
 

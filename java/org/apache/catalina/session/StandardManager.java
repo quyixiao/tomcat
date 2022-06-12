@@ -60,6 +60,32 @@ import org.apache.tomcat.util.ExceptionUtils;
  *  配置文件中配置会话管理器，则Context 容器会使用该会话管理器，否则，Tomcat 会分配默认的标识会话管理器（StandardManager）,同时
  *  如果在集群环境中会使用集群会话管理器，可能是DeltaManager 和BackupManager
  *
+ *
+ *  用于保存状态的会话对象已经有了，现在就需要一个管理器来管理所有的会话，例如，会话ID 的生成，根据会话ID 找出对应的会话，对于过期的会话进行销毁
+ *  操作，用一句话描述标准的会话管理器，提供了一个专门管理某个Web 应用所有会话的容器，并且会在Web 应用启动，停止 时进行会话重新加载和持久化。
+ *
+ *  会话管理主要提供的功能包括会话id 的生成器，后台管理，处理过期会话，持久化模块及会话集的维护，如图 所示 ，标准会话管理器包含了SessionIdGenerator
+ *  组件，backGroundProcess模块，持久化模块及会话集合。
+ *
+ *  首先看SessionIdGenerator ，它负责为每个会话生成，分配一个唯一的标识，例如，最终会话生成类似于 326257DA6DB767F8D2E38F2C4540D1DEA
+ *  字符串的会话标识，具体默认生成算法主要依靠JDK 提供的SHA1PRNG算法，在集群环境中，为了方便识别会话归属 ， 它最终 生成会话标识类似于
+ *  326257DA6DB767F8D2E38F2C4540D1DEA.tomcat1 , 后面会加上Tomcat 集群的标识jvmRoute 变量的值，这里假设其中一个集群标识配置为 "tomcat1"
+ *  如果你想转换随机数生成算法，可以通过配置server.xml 的Manager 节点secureRandomAlgorithm 及secureRandomClass 属性达到修改算法的效果 。
+ *
+ *  然后看如何过期会话进行处理，负责判断会话是否过期的逻辑主要在backGroundProcess模块中， 在Tomcat 容器中会有一条线程专门用于执行后台处理
+ *  ，当然，也包括标准的会话管理器的backgroundProcess ，它不断循环判断所有的会话中是否有过期的，一旦过期，则从会话集中删除此会话。
+ *
+ *  最后是善待持久化模块和会话集的维护，由于标准的会话旨在提供一个简单便捷的管理器，因此持久化和重加载操作并不会太灵活且扩展性弱， Tomcat
+ *  会在每个StandardContext(Web 应用)停止时调用管理器属性将上经Web 应用的所有会话持久化磁盘中，文件名为SESSIONS.ser ，而目录则由server.xml
+ *  的Manager 节点的pathname 指定或Javax.servlet.context.tempdir 变量指定，默认存放的路径为% CATALINA_HOME%/work/Catalina/localhost/WebName/SESSIONS.ser
+ *  当Web应用启动时，又会加载这些持久化会话，加载完成后，SESSIONS.ser 文件将会被删除，所以每次启动成功后就看不到此文件的存在，另外，会话集维护是指
+ *  创建新会话对象，删除指会话对象及更新会话对象的功能。
+ *
+ *  标准会话管理器是我们常用的会话管理器，也是Tomcat 默认的一个会话管理器，对它的进入深入了解有助于对Tomcat会话功能的掌握，同时对后面的
+ *  会话管理器理解也更加容易 。
+ *
+ *
+ *
  */
 public class StandardManager extends ManagerBase {
 

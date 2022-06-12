@@ -52,6 +52,67 @@ import org.apache.tomcat.util.ExceptionUtils;
  * based on inactivity.
  *
  * @author Bip Thelin
+ *
+ * JDBCStore 提供的是以数据库形式存放的会话，后端可以在任意厂商的数据库，只要有对应的数据库鸡翅程序即可，既然要存放数据，肯定要先在数据库中
+ * 创建一张会话表，表的结构必须要是Tomcat 与MySQL 双方约定好的， 例如 ，Tomcat 默认的表名为tomcat$sessions ,表字段一共有6个， 分别为
+ * app,id , data, valid , maxinactive, lastaccess,其中，app 字段用于区分哪个web应用，id 字段即会话标识， data 字段用于存放会话对象的
+ * 字节串， validd 字段表示此会话是否有效，maxinactive 字段表示最大的存活时间 ， lastaccess字段表示最后的访问时间，其中需要注意的是
+ * data字段，因为它的大小直接影响会话对象的大小， 所以需要根据实际设置它的类型， 如果MySQL 可以考虑设置为Blob(65kb) 或MediumBloc (16MB)
+ *
+ * 这样一来，会话的加载和保存其实就转化为对数据库的读，写操作了， 而获取数据库连接的逻辑先判断Tomcat 容器是否有数据源，如果有，则从数据源中直接
+ * 获取一条连接使用，但是如果没有，则会自己通过驱动程序创建连接，需要注意的是， 从数据源中直接获取一条连接使用但是如果没有，则会自己通过
+ * 驱动程序创建连接，需要注意的是， 从数据源中获取连接在使用完后放回数据源中，但自己通过驱动程序创建的连接使用完则不会关闭，这个很好理解 。
+ * 因为数据源是一个池，重新获取连接很快，  而对于自建的连接，重新创建一般需要消耗数秒时间 ， 这明显会造成大问题。
+ *
+ * 下面以MySql 数据库为配置一个JDBCStore
+ *
+ * <Store className="org.apache.catalina.session.JDBCStore" connectionURL="jdbc:mysql://localhost:3306/web_session?user=user&password
+ * =password"
+ *      driverName="com.mysql.jdbc.Driver"
+ *      sessionAppCol="app_name"
+ *      sessionDataCol="session_data"
+ *      sessionIdCol="session_id"
+ *      sessionLastAccessedCol="last_access"
+ *      sessionMaxInactiveCol="max_inactive"
+ *      sessionTable="tomcat_sessions"
+ *      sessionValidCol="valid_session"
+ * />
+ *
+ *
+ * 其中半球会话表及其字段的一些属性可以不必配置，直接采用Tomcat默认的配置即可，但驱动程序及连接URL则一定要配置。
+ * 以JDBCStore 为存储设备时， 从表面是看起来，这并不会有明显的I/O 性能问题， 因为它使用数据源获取连接，这是一种池化技术，采用长连接模式 。
+ * 一般情况下，如果数据源下是非常大，都不会存在性能问题。
+ *
+ * 介绍完存储设备后，接着看持久化会话管理器， 其实持久化会话管理器主要实现的就是三种逻辑下会话进行持久化操作。
+ *
+ * 1. 当会话对象数量超过指定的阀值时，则将超出会话对象的转换出（保存在存储设备中并把内存中的此对象删除）到存储设备中。
+ * 2. 当会话空闲时间超过指定的阀值时， 则将此会话对象换出。
+ * 3. 当会话空闲时间超过指定的阀值址， 则将此会话进行备份 （保存到存储设备中并且内存中还存在此对象 ）
+ *
+ * 实现上面的逻辑只需要对所有的会话集合进行遍历即可，把符合条件的通过存储设备保存，由于有些会话被持久化到存储设备中， 所以通过ID查找会话
+ * 时需要先从内存中查找再往存储设备中查找 。
+ *
+ * 下面是一个配置例子，会话数大于 1000 时，则将空闲的时间大于60秒的会话转移到存储设备中，直到会话数量控制在1000，超出120秒的空闲时间会话被
+ * 找出到存储设备中，超出180秒的空闲时间的会话将备份到存储设备中。
+ *
+ * <Manager className="org.apache.catalina.session.PersistentManager
+ *      maxActiveSessions="1000"
+ *      minIdleSwap="60"
+ *      maxIdleSwap="120"
+ *      maxIdleBackup="180"
+ * >
+ *  <Store className="org.apache.catalina.session.FileStore" directory="sessiondir" />
+ * </Manager>
+ *
+ * 所以在了解两种存储设备后对持久化会话管理器的实现原理机制就相当的清楚了， 其实它就是提供了两种会话保存方式并提供了管理这些会话的操作。
+ * 它提高了Tomcat 状态处理方面的容错能力 。
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 public class JDBCStore extends StoreBase {
 

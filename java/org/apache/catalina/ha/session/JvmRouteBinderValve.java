@@ -78,6 +78,24 @@ import org.apache.tomcat.util.res.StringManager;
  * requested sessions are migrated.
  *
  * @author Peter Rossbach
+ * BackupManager 的整个故障转换机制比较清晰明了，可能有一些会产生疑惑，某个节点宕机后，由它生成的会话经过Apache 会分发到哪个节点呢？
+ * 会不会随机分发，例如，若tomcat1 宕机，把sessionid.tomcat1 会话的第一次请求转发到tomcat3 ，第二次请求转发到哪里呢？
+ * 实际情况它会一直转发到tomcat3 , 因为Tomcat的整个处理过程中存在一个JvmRouteBinderValue 阀门，它的作用是提供检测会话路由的功能 。
+ * 当它检测到会话的会话的ID包含了路由信息非本地JVM时，它将会对其进行更改，例如 ，把SessionId.tomcat1 转发到tomcat3 时，它会
+ * 修改为sessionid.tomcat3 ,也正是有此保证，才得以实现BackupManager 的故障转移机制 。
+ *
+ *
+ *
+ *
+ *
+ *  集群阀门 。
+ *  这里的阀门就是容器的管道处理机制中的阀门，它的逻辑在请求处理过程中会调用，默认的情况下有两个阀门，分别是JvmRouteBinderValve 和ReplicationValue
+ *  JvmRouteBinderValue 主要用于检测会话ID中的jvmRoute 是否正确，如果检查出异常则做一些处理，在mod_jk 模式下， 由于会话黏贴机制，会话的id为xxx.tomcat1
+ *  的会话会发送到tomcat1处理，但假如tomcat1 刚好失效，则可能随机转移到其他的节点，此时其他节点就要将xxx.tomcat1 改为xxx.tomcatN  ,
+ *  将此后该会话的请求都定位到tomcatN 节点上，不然，tomcat1 重新启动后，这些请求又分配到tomcat1 ,这个阀门的处理其实就是与
+ *  JvmRouteSessionIDBinderListener 监听器共同完成的。
+ *
+ *
  */
 public class JvmRouteBinderValve extends ValveBase implements ClusterValve {
 

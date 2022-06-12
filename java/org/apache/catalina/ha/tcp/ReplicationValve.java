@@ -60,6 +60,15 @@ import org.apache.tomcat.util.res.StringManager;
  * @author Craig R. McClanahan
  * @author Filip Hanik
  * @author Peter Rossbach
+ *
+ *
+ *
+ *
+ *  ReplicationValue 主要负责的工作就是将请求的处理后的会话对象进行集群同步，另外，它有一个过滤器的功能是否需要同步，例如 ，对于
+ *  HTML,CSS, JS等资源的请求， 由于这些静态资源的请求并不会太操作会话，因此这些请求没有必要触发集群的会话同步 。
+ *
+ *
+ *
  */
 public class ReplicationValve
     extends ValveBase implements ClusterValve {

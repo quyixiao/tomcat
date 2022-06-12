@@ -37,6 +37,18 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author Peter Rossbach
  * @deprecated Will be removed in Tomcat 8.0.x
+ *
+ *  集群监听器用于监听集群的消息， 一旦接收到集群其他实例发过来的消息，所有的集群监听器监听messageReceived 方法会被调用，默认情况下
+ *  会有两个监听器在启动时加入到Cluster 中，它们分别是JvmRouteSessionIDBinderListener 和 ClusterSessionListener
+ *
+ *  JvmRouteSessionIDBinderListener 主要负责的工作是监听会话ID 的变更，在使用BackupManager 的情况下， 当某节点失效后，为了保证会话能被
+ *  正确的找到而且更改会话的ID,更改后的会话ID会同步集群中的其他节点，这个修改会话的ID的工作就交给此监听器，它的逻辑相当简单，当获取了
+ *  SessionIDMessage 类型的消息时， 通过原来的ID 从会话管理器中找到会话对象，然后再通过会话的setId 设置变更后的ID , 这个监听器
+ *  的作用就是协助实现集群的故障转移机制 。
+ *
+ *
+ *
+ *
  */
 @Deprecated
 public class JvmRouteSessionIDBinderListener extends ClusterListener {
