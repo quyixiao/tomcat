@@ -40,6 +40,8 @@ import org.apache.catalina.tribes.util.Logs;
  * the sender and the receiver.
  * This is the last interceptor in the chain.
  * @author Filip Hanik
+ * 最底层的协调器， 直接与网络 I/O 做交互 。
+ *
  */
 public class ChannelCoordinator extends ChannelInterceptorBase implements MessageListener {
     private ChannelReceiver clusterReceiver = new NioReceiver();

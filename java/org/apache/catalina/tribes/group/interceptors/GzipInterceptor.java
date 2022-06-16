@@ -35,6 +35,8 @@ import org.apache.juli.logging.LogFactory;
 /**
  * @author Filip Hanik
  * @version 1.0
+ * 压缩、解压拦截器，此拦截器负责按一定的算法进行压缩和解压处理
+ *
  */
 public class GzipInterceptor extends ChannelInterceptorBase {
 

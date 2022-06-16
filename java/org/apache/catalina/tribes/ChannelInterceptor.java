@@ -25,6 +25,17 @@ import org.apache.catalina.tribes.group.InterceptorPayload;
  * other actions when a message is sent or received.<br>
  * Interceptors are tied together in a linked list.
  * @see org.apache.catalina.tribes.group.ChannelInterceptorBase
+ * 拦截口应该可以说是很经典的模式，它有点类似于过滤器，在某信息从一个地方流向另外一个地方的过程中， 可能需要统一对信息进行处理， 如果考虑到
+ * 系统的可扩展性和灵活性， 通常就会使用拦截器模式，它就像一个个卡被设置在信息流动的通道中，并且可以按照实现需要添加和减少关卡， Tribes
+ * 为了在应用层提供了对源消息的统一处理的渠道引入通道拦截器，用户在应用层只需要根据自己的需要添加拦截器即可， 例如，压缩，解压 拦截器。
+ * 消息输出，输入统计拦截器， 异步消息发送器等。
+ *
+ * 拦截器的数据流从I/O 流向应用层，中间就会经过一个拦截器栈， 应用层处理完就会返回一个ACK 发送端， 表示已经接收并处理完毕， 消息可靠级别
+ * 为SYNC_ACK ,下面尝试用一个最简单的的一些代码和伪代码说明 Tribes 的拦截器的实现， 旨在提示拦截器如何设计 ， 而并非具体的实现，
+ * 最终实现的功能如图 所示 ，最底层的协调者ChannelCoordinator 永远作为第一个加入拦截器栈的拦截器，往上则是按照添加的顺序排列 ，
+ * 且每个拦截器的previous ,next 分别指向前一个拦截器和下一个拦截器。
+ *
+ *
  */
 public interface ChannelInterceptor extends MembershipListener, Heartbeat {
 

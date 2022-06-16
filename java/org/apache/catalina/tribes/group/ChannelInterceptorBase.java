@@ -25,6 +25,10 @@ import org.apache.catalina.tribes.Member;
 /**
  * Abstract class for the interceptor base class.
  * @author Filip Hanik
+ *
+ * 定义一个基础拦截器， 提供了一些公共的操作，因为拦截器执行完后要触发下一个拦截器， 所以触发工作统一抽离到基础类里面完成，当然，里面
+ * 包含前一个和后一个拦截器引用 。
+ *
  */
 public abstract class ChannelInterceptorBase implements ChannelInterceptor {
 
