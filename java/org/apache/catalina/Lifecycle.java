@@ -83,7 +83,7 @@ package org.apache.catalina;
  * Tomcat 的架构设计是清晰的，模块化的，它拥有很多的组件，假如在启动Tomcat 时一个个组件启动，这不仅麻烦而且容易遗漏组件，还会对后面的
  * 动态组件扩展带来麻烦，对于这个问题，Tomcat的设计者们提供了一个解决方案，用Lifecycle 管理启动，停止，关闭。
  *
- * Tomcat 内部架构各个核心组件有包含与被包含的关系，假如 ，Servlet包含Service ，Service包含Container 和Connector ，往下再一层层
+ * Tomcat 内部架构各个核心组件有包含与被包含的关系，假如 ，Server包含Service ，Service包含Container 和Connector ，往下再一层层
  * 包含，Tomcat 就是以容器的方式来组织整个系统架构，就像数据结构的树，树的根节点没有父节点，其他节点有且仅有一个父节点，每个父节点有零个
  * 或多个子节点，鉴于此，可以通过父容器启动它的子容器，这样只要启动根容器，即可把其他的容器都启动，达到统一，停止，关闭的效果 。
  *

@@ -89,6 +89,7 @@ public final class CookieSupport {
                 "org.apache.catalina.STRICT_SERVLET_COMPLIANCE",
                 "false"));
 
+        // 配置Cookie 中的值是否可以包含 "=" 符号
         ALLOW_EQUALS_IN_VALUE = Boolean.parseBoolean(System.getProperty(
                 "org.apache.tomcat.util.http.ServerCookie.ALLOW_EQUALS_IN_VALUE",
                 "false"));

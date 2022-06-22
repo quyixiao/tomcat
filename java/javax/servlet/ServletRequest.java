@@ -35,6 +35,13 @@ import java.util.Map;
  *
  * @author Various
  * @see javax.servlet.http.HttpServletRequest
+ *
+ * ServletRequest  接口的实现类封装了客户端请求的所有信息， 如果使用HTTP  协议通信则包括HTTP 的请求行和请求头部， HTTP 对应的请求
+ * 对象的类型是HttpServletRequest类，ServletRequest 接口的实现类中的信息包括以下的几个部分。
+ *
+ * 一些HTTP 请求头部的获取方法，如getHeader , getHeaders ,getHeaderNames
+ *
+ *
  */
 public interface ServletRequest {
 

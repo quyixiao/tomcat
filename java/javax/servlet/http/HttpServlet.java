@@ -123,6 +123,16 @@ import javax.servlet.ServletResponse;
  *
  *
  *
+ * Servlet 规范的核心接口是Servlet接口，它是所有Servlet的实现接口，在Java Servlet API  中已经提供了两个抽象类方便方便开发者实现Servlet类。
+ * 分别是GenericServlet和HttpServlet，GenericServlet 定义了一个通用的协议无关的Servlet ,而HttpServlet则定义了HTTP 的Servlet ，这两个
+ * 抽象的类可以使用Servlet类复用很多的共性功能。
+ *
+ * Servlet接口的核心方法是service方法，它是处理客户端请求的方法，客户端发起请求会被路由到对应的Servlet对象上， 前面说到的HttpServlet
+ * 类的service 方法把对HTTP协议的Get,POST,PUT,DELETE,HEAD,OPTIONS,TRACE 等请求转发到各自的处理方法中，即doGet ，doPost ,doPut ，doDelete
+ * doHead ，doOptions ,doTrace等方法 ， HttpServlet 提供了这些共性的处理逻辑， 其他继承它的类就不用再各自的实现， 只需要在对应的方法中
+ * 做具体的处理逻辑即可，例如，我们在做Web 开发时常常会自己定义一个Servlet ，并在doGet 和doPost方法中做业务逻辑 。
+ *
+ *
  *
  */
 public abstract class HttpServlet extends GenericServlet {

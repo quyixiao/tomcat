@@ -33,6 +33,9 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author Remy Maucherat
  * @since 4.1
+ *
+ *  在Tomcat 初始化前该监听器会初始化一个Jasper组件，Jasper 是Tomcat 的JSP编译器核心引擎，用于Web 应用启动前初始化Jasper。
+ *
  */
 public class JasperListener
     implements LifecycleListener {

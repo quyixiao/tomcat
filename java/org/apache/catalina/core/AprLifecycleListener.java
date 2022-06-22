@@ -43,6 +43,10 @@ import org.apache.tomcat.util.res.StringManager;
  * @author Remy Maucherat
  * @author Filip Hanik
  * @since 4.1
+ * 有时候，Tomcat 会使用APR 本地库进行优化，通过JNI 方式调用本地库能大幅度的提高对静态文件的处理能力 ， AprLifecycleListener 监听器
+ * 对初始化前的事件和销毁后的事件感兴趣，在Tomcat 初始化前，该监听器会尝试初始化 APR 库，假如能初始化成功， 则会使用APR 接受客户端请求并处理
+ * 请求，在Tomcat 销毁后，该监听器会做APR 不理工作 。
+ *
  */
 public class AprLifecycleListener
     implements LifecycleListener {

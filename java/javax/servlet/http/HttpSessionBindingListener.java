@@ -29,6 +29,10 @@ import java.util.EventListener;
  * @author Various
  * @see HttpSession
  * @see HttpSessionBindingEvent
+ * Servlet 可将某些对象以键值对的形式保存到HttpSession 中，处于同一个ServletContext 和相同的会话中的任意Servlet 可以使用会话保存对象 。
+ * 如果某些对象想要保存到会话或从会话中和移除时得到通知，可以在某个对象实现HttpSessionBindingListener 接口，里面的valueBound 和valueUnBound
+ * 分别会在对应的时刻触发 。
+ *
  */
 public interface HttpSessionBindingListener extends EventListener {
 

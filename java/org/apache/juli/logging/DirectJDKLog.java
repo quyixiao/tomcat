@@ -37,6 +37,7 @@ class DirectJDKLog implements Log {
      */
     private static final String SIMPLE_FMT="java.util.logging.SimpleFormatter";
     private static final String SIMPLE_CFG="org.apache.juli.JdkLoggerConfig"; //doesn't exist
+    // 配置日志框架的格式类
     private static final String FORMATTER="org.apache.juli.formatter";
 
     static {

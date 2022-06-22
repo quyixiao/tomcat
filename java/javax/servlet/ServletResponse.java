@@ -46,6 +46,22 @@ import java.util.Locale;
  * define profiles of MIME, and those standards are still evolving.
  *
  * @see ServletOutputStream
+ *
+ * ServletResponse 接口的对象封装了服务器要返回的客户端所有信息， 如果使用HTTP ，则包含了HTTP 的响应行， 响应头和响应体。
+ * 为了提高效率，一般ServletResponse接口对响应提供了输出缓冲 ， 其中 ，getBufferSize用于获取缓冲区的大小 ，  setBufferSize 用于设置
+ * 缓冲区的大小 ， flushBuffer 强制刷新缓冲区，resetBuffer  将清空缓冲的内容，但不清空请求头和状态码，isCommitted 判断是否有任何响应
+ * 字节已经返回给客户端，reset 清空缓冲区的内容  ， 同时清空头部信息状态码。
+ *
+ * ServletResponse 接口对应HTTP 的实现对象为HttpServletResponse ，可以通过setHeader 和addHeader 方法向HttpServletResponse 中添加头部
+ * 可以通过sendRedirect 将客户端重定向到另外一个地址 ， 可以通过sendError 将错误信息输出到客户端 。
+ *
+ * 当ServletResponse 接口关闭时，缓冲区的内容必须立即刷新到客户端， ServletResponse 接口只在Servlet 的service 方法或过滤器doFilter
+ * 方法的作用域内有效， 除非它关联的ServletResponse 接口调用了startAsync方法启动异步处理， 此时ServletResponse 接口会一直有效，
+ * 直到调用AsyncContext 的comple方法，另外，Web 容器通常会出于性能原因而不销毁，ServletResponse 接口对象，而是重复利用Response
+ * 接口对象 。
+ *
+ *
+ *
  */
 public interface ServletResponse {
 

@@ -1401,7 +1401,8 @@ public class AprEndpoint extends AbstractEndpoint<Long> {
     }
 
     // ------------------------------------------------------ Poller Inner Class
-
+    // 它的职责是在非阻塞I/O 方式下轮询多个客户端连接，不断的检测，处理各种事件，例如不断的检测各个连接是否可读。对于可读的客户端连接
+    // 尝试进行读取并解析消息报文
    public class Poller implements Runnable {
 
         /**

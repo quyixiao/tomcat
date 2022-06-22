@@ -39,10 +39,13 @@ public final class Constants {
     public static final String HostContextXml = "context.xml.default";
     public static final String HostWebXml = "web.xml.default";
 
+    // 配置此选项将使用JarScanner 扫描时会跳过这些包
     public static final String DEFAULT_JARS_TO_SKIP =
             "tomcat.util.scan.DefaultJarScanner.jarsToSkip";
+    // 配置此选项避免扫描Servlet 3.0 插件功能 。
     public static final String PLUGGABILITY_JARS_TO_SKIP =
             "org.apache.catalina.startup.ContextConfig.jarsToSkip";
+    // 配置此选项避免扫描TLD 功能 。
     public static final String TLD_JARS_TO_SKIP =
             "org.apache.catalina.startup.TldConfig.jarsToSkip";
 

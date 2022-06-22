@@ -62,6 +62,10 @@ import javax.servlet.ServletContext;
  * be directly visible in another.
  *
  * @see HttpSessionBindingListener
+ *
+ *
+ * Servlet 容器默认的会话超时时间 ， 可以通过HttpSession 的getMaxInactiveInterval 方法获取和setMaxInactiveInterval方法设置 。
+ *
  */
 public interface HttpSession {
 

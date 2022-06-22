@@ -93,6 +93,7 @@ public class StandardSession implements HttpSession, Session, Serializable {
     static {
         STRICT_SERVLET_COMPLIANCE = Globals.STRICT_SERVLET_COMPLIANCE;
 
+        //  配置是否跟踪统计活跃的会话数
         String activityCheck = System.getProperty(
                 "org.apache.catalina.session.StandardSession.ACTIVITY_CHECK");
         if (activityCheck == null) {

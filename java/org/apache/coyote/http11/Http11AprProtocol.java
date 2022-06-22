@@ -47,6 +47,34 @@ import org.apache.tomcat.util.net.SocketWrapper;
  * 进行处理并响应客户端，HTTP APR 模式协议的整体结构如图6.45 所示 。
  *
  *
+ *
+ * HTTP  Connector 所支持的协议版本HTTP/1.0和HTTP/1.0 无须显式配置HTTP 的版本，Connector 会自动适配版本，每个Connector实例对应一个
+ * 商品，在同个Service 实例内可以配置若干Connector实例，商品必须不同，但协议可以相同，HTTP Connector 包含的协议处理组件有Http1Protocol
+ * Java BIO 模式，Http11NioProtocol(Java NIO 模式) BIO 模式为org.apache.coyote.http11.Http11Protocol ，NIO 模式为
+ * org.apache.coyote.http11NioProtocol ,APR/native模式为org.apache.coyote.http11.Http11AprProtocol 。
+ *
+ * AJP Connector组件用于支持AJP协议通信，当我们想将Web 应用中包含的静态内容交给Apache 处理时， Apache 与Tomcat 之间的通信则使用AJP
+ * Protocol(Java BIO模式 )，AjpNioProtocol (Java NIO 模式)和AjpAprProtocol(APR/native模式) Tomcat 启动时根据server.xml 的
+ * <Connector> 节点配置I/O模式， BIO 模式为org.apache.coyote.ajp.AjpProtocol，NIO 模式为org.apache.coyote.ajp.AjpNioProtocol，
+ * APR/native模式为org.apache.coyote.ajp.AjpAprProtocol 。
+ *
+ * Connector 也在服务端提供了SSL 安全通道的支持，用于客户端以HTTPS 方式访问，可以通过配置server.xml的<Connector> 节点的SSLEnabled
+ *
+ * 在BIO 模式下，对于 每个客户端的请求连接都将消耗线程池里面的一条连接 ， 直到整个请求响应完毕，此时，如果有很多的请求几乎同时到达Connector
+ * ，当线程池中的空闲线程用完后，则会创建新的线程，直到达到最大线程数， 但如果此时还有更多的请求到来， 虽然线程池已经处理不过来了，但操作
+ * 系统还是会将客户端接收起来放到一个队列里，这个队列的大小通过SocketServer设置backlog 而来，如果还有再多的请求过来，队列已经超过了
+ * SocketServer 的backlog 大小，那么直接被拒绝掉，客户端将收到 "connection refused" 报错。
+ *
+ * 在NIO 模式下，则是所有的客户端的请求连接先由一个接收线程接收，然后由若干（一般为CPU数）线程轮询读写事件，最后将具体的读写操作交由线程池
+ * 处理， 可以看到，以这种方式，客户端连接不会在整个请求响应过程中占用连接池内的连接，它可以同时处理比BIO 模式多得多的客户端连接数，此种
+ * 模式能承受更大的并发，机器资源使用效率高很多， 另外，APR/native 模式也是NIO模式，它直接用本地代码实现了NIO模式 。
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 public class Http11AprProtocol extends AbstractHttp11Protocol<Long> {
 

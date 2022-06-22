@@ -72,7 +72,7 @@ import org.apache.tomcat.util.res.StringManager;
  * </Host>
  *
  * 当  Tomcat 启动好后，首先http://tomcat.apche.org/tomcat-7.0-doc/index.html 请求就会被Tomcat 的路由器通过匹配算法路由到名为
- * tomcat.apache.org的Host容器上，然后在该容器中继续匹配名为tomcat-7.0-doc 的Contexttt 容器的Web 应用 ，最后该Context 容器中匹配index.html
+ * tomcat.apache.org的Host容器上，然后在该容器中继续匹配名为tomcat-7.0-doc 的Context 容器的Web 应用 ，最后该Context 容器中匹配index.html
  * 资源，并返回给客户端 。
  *
  * 以上大致介绍了Web 请求从客户端到服务器tomcat的资源匹配过程 ，每个完整的请求都有如上的层次结构，Tomcat 的内部中有Host,Context，Wrapper
@@ -103,7 +103,7 @@ import org.apache.tomcat.util.res.StringManager;
  * 在做Web开发时，我们有时会用类似request.getRequestDispacher("/servlet/jump?action=do").forward(request,response)这样的代码 。
  * 这里其实就是使用了context容器内部的Mapper功能，用它匹配/servlet/jump?action=do 对应的Servlet，然后调用Servlet具体的处理逻辑 。
  * 从这点来看，它只能路由一部分的地址路径，而不能路径一个完整的请求地址 。
- * 所以局部路由Mapper只能在同一个Web 应用内进行转发路由，而不能实现跨Web 应用的路由，如果要实现跨web应用，需要用生定向的功能，让客户端
+ * 所以局部路由Mapper只能在同一个Web 应用内进行转发路由，而不能实现跨Web 应用的路由，如果要实现跨web应用，需要用重定向的功能，让客户端
  * 重定向到其他的主机或其他的Web应用上，而对客户端到服务端的请求，则需要全局路由Mapper组件参与 。
  *
  * 全局路由Mapper。

@@ -26,6 +26,11 @@ import java.util.EventListener;
  * HttpSessionActivationListener.
  *
  * @since 2.3
+ *
+ * 分页式环境中， 会话的所有请求在同一时间必须仅被一个JVM 处理，分页式容器迁移会话时会通知实现 HttpSessionActivaltionListener 接口的
+ * 所有会话属性。
+ *
+ *
  */
 public interface HttpSessionActivationListener extends EventListener {
 

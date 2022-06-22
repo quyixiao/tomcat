@@ -83,6 +83,19 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author Remy Maucherat
  *
+ * 该监听器主要负责Server组件内的全局命名资源在不同的生命周期的不同操作，在Tomcat启动时创建命名资源，绑定命名资源， 在Tomcat 停止解绑
+ * 命名资源，反注册MBean 。
+ *
+ * 在Tomcat启动初始化时，通过Digester框架将Server.xml的描述映射到对象，在Server 组件中创建NamingResources 和 NamingContextListener 两个对象
+ * 监听器将在启动初始化时利用ContextResources 里面的属性创建命名上下文，并且组织成树状。
+ * 如图5.7 所示，Tomcat 启动时将server.xml 配置文件里面的GlobalNamingResource节点通过Digester 框架映射到一个NamingResources 对象，
+ * 当然，这个对象里面包含了不同类型的资源对象，同时会创建一个NamingResources对象描述资源属性进行处理，绑定的路径由配置文件的Resource
+ * 节点的name属性决定， name 即为JNDI对象树的分支节点，例如，name为"jdbc/myDB" ，那么此对象就可以通过"java:jdbc/myDB"访问，而树的位置
+ * 应该是jdbc/myDB,但是Web 应用中是无法直接访问全局命名资源的，因为要访问全局命名资源，所以这些资源都必须在Server组件中。
+ *
+ *
+ *
+ *
  * 实际上，Tomcat 要完成命名目录接口需要另外一个NamingContextListener 监听器组件协同，这两个组件都属于Context 容器，当Web 应用初始化
  * 时，此监听器会创建JNDI 的命名上下文及其资源绑定，以此完成Tomcat 对JNDI的支持。
  *

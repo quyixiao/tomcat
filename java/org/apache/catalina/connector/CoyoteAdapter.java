@@ -59,6 +59,7 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author Craig R. McClanahan
  * @author Remy Maucherat
+ *  将一个Connector 和 Container 适配起来的适配器
  */
 public class CoyoteAdapter implements Adapter {
 
@@ -77,6 +78,7 @@ public class CoyoteAdapter implements Adapter {
     public static final int ADAPTER_NOTES = 1;
 
 
+    // 配置是否允许用 "\" 符号作为路径分隔符
     protected static final boolean ALLOW_BACKSLASH =
         Boolean.parseBoolean(System.getProperty("org.apache.catalina.connector.CoyoteAdapter.ALLOW_BACKSLASH", "false"));
 

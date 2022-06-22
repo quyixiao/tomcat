@@ -53,6 +53,19 @@ import org.w3c.dom.ls.DOMImplementationLS;
  * Locked files usually occur when a resource inside a JAR is accessed without
  * first disabling Jar URL connection caching. The workaround is to disable this
  * caching by default.
+ * 该监听器主要提供解析JRE内存漏泄和锁文件的一种措施，该监听器会在Tomcat 初始化时使用系统类加载器先加载一些类和设置缓存属性，以避免内存漏泄
+ * 和锁文件 。
+ *
+ *  先看JRE 内存泄漏问题，内存潺潺的根本原因在于当垃圾回收时无法回收本该回收的对象，假如一个待回收的对象被另外一个生命周期很长的对象引用，那么
+ *  这个对象将无法被回收。
+ *
+ *  其中一种JRE 内存泄漏是因为上下文类加载器导致的内存泄漏，在JRE 库中的某些类在运行时会以单例对象的形式存在，并且它会存在很长的一段时间，
+ *  基本上是从Java 程序启动到关闭，JRE 库的这些类使用上下文类加载器进行加载， 并且保留了上下文类加载器引用，所以将导致被引用的类加载器无法
+ *  回收， 而Tomcat 在重载一个Web 应用时正是通过实例化一个新的类加载器来实现， 旧的类加载器无法被垃圾回收器回收， 导致内存泄漏，如图
+ *  5.3 所示 ， 某些上下文类加载器为WebappClassLoader 的线程加载JRE 的DriverManager类， 此过程将导致webappClassLoader 被引用 。
+ *  后面，该WebappClassLoader 将无法被回收， 发生内存泄漏 。
+ *
+ *
  */
 public class JreMemoryLeakPreventionListener implements LifecycleListener {
 

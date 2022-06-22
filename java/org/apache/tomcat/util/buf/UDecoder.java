@@ -36,6 +36,7 @@ public final class UDecoder {
 
     private static final StringManager sm = StringManager.getManager(UDecoder.class);
 
+    // 配置允许使用%2F 和 %5C 作为路径分隔符
     public static final boolean ALLOW_ENCODED_SLASH =
         Boolean.parseBoolean(System.getProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH", "false"));
 

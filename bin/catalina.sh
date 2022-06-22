@@ -477,6 +477,9 @@ elif [ "$1" = "start" ] ; then
 
   echo "Tomcat started."
 
+
+
+
 elif [ "$1" = "stop" ] ; then
 
   shift

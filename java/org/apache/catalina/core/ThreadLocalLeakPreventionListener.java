@@ -51,6 +51,21 @@ import org.apache.tomcat.util.threads.ThreadPoolExecutor;
  *
  * This listener must be declared in server.xml to be active.
  *
+ *监听器主要解决ThreadLocal 的使用可能带来的内存泄漏问题， 该监听器会在Tomcat 启动后将监听器Web应用重加载的监听器注册到每个Web 应用上。
+ * 当Web应用重新加载时，该监听器会将所有的工作线程销毁并再创建，以避免ThreadLocal引起的内存漏泄
+ *
+ * ThreadLocal 导致内存泄漏的经典场景是Web 应用重加载，如图5.5 所示 ，当Tomcat 启动后，对客户端的请求处理由专门的工作线程池负责，线程池中
+ * 线程的生命周期一般比较长，假如Web 应用中使用ThreadLocal 保存了AA 对象，而且AA 类由WebappclassLoader 加载，那么它就可以看成是线程引用
+ * AA对象，Web 应用加载是通过重新实例化一个Webappclassloader类加载器来实现的， 由线程一直未销毁，旧的WebappClassLoader 也无法被回收。
+ * 导致内存泄漏 。
+ *
+ * 解决ThreadLocal内存泄漏最彻底的方法就是当Web 应用重新加载时，把线程池内的所有线程销毁并重新创建，这样就不会发生线程引用某些对象问题了。
+ * 如图5.6所示 ， Tomcat 中处理ThreadLocal 内存泄漏的工作其实主要就是销毁线程池原来的线程，然后创建新的线程， 这分两部来做。 第一步
+ * 先将任务队列堵住，不让新的任务进来，第二步将线程池中所有的线程停止 。
+ *
+ * ThreadLocalLeakPreventionListenr 监听器的工作就是实现当Web应用重新加载时销毁池中的线程并重新创建新的线程，以此避免ThreadLocal内存泄漏 。
+ *
+ *
  */
 public class ThreadLocalLeakPreventionListener implements LifecycleListener,
         ContainerListener {

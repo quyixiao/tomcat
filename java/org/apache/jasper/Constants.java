@@ -40,6 +40,7 @@ public class Constants {
      * _jspService is the name of the method that is called by
      * HttpJspBase.service(). This is where most of the code generated
      * from JSPs go.
+     * 配置JSP执行时调用的服务方法，默认是_jspService
      */
     public static final String SERVICE_METHOD_NAME =
         System.getProperty("org.apache.jasper.Constants.SERVICE_METHOD_NAME", "_jspService");
@@ -111,6 +112,7 @@ public class Constants {
 
     /**
      * The default package name for compiled jsp pages.
+     * 配置编译jsp 页面的包名，置为为org.apache.jsp
      */
     public static final String JSP_PACKAGE_NAME =
         System.getProperty("org.apache.jasper.Constants.JSP_PACKAGE_NAME", "org.apache.jsp");

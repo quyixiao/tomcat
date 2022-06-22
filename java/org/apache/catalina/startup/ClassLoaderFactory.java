@@ -320,7 +320,7 @@ public final class ClassLoaderFactory {
                     if (log.isDebugEnabled())
                         log.debug("  Including jar file " + url);
                     set.add(url);
-                } else if (repository.getType() == RepositoryType.GLOB) {
+                } else if (repository.getType() == RepositoryType.GLOB) {   // 以*.jar 结尾
                     File directory=new File(repository.getLocation());
                     directory = directory.getCanonicalFile();
                     if (!validateFile(directory, RepositoryType.GLOB)) {

@@ -54,6 +54,7 @@ public final class Constants {
 
     /**
      * If true, custom HTTP status messages will be used in headers.
+     * 配置是否在HTTP 报文头部使用自定义状态
      */
     public static final boolean USE_CUSTOM_STATUS_MSG_IN_HEADER =
             Boolean.getBoolean("org.apache.coyote.USE_CUSTOM_STATUS_MSG_IN_HEADER");

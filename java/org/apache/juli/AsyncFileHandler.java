@@ -48,7 +48,9 @@ public class AsyncFileHandler extends FileHandler {
     public static final int OVERFLOW_DROP_FLUSH = 3;
     public static final int OVERFLOW_DROP_CURRENT = 4;
 
+    // 配置异步方式下达到日志记录内存限制时所采用的措施
     public static final int OVERFLOW_DROP_TYPE = Integer.parseInt(System.getProperty("org.apache.juli.AsyncOverflowDropType", "1"));
+    //  配置异步方式下日志在内存中能保存的最大记录数
     public static final int DEFAULT_MAX_RECORDS = Integer.parseInt(System.getProperty("org.apache.juli.AsyncMaxRecordCount", "10000"));
     public static final int LOGGER_SLEEP_TIME = Integer.parseInt(System.getProperty("org.apache.juli.AsyncLoggerPollInterval", "1000"));
 

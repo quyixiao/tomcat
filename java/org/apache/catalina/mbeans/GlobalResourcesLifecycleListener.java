@@ -46,6 +46,9 @@ import org.apache.tomcat.util.modeler.Registry;
  *
  * @author Craig R. McClanahan
  * @since 4.1
+ * 该监听器主要负责实例化Server 组件里面的JNDI 资源的MBean， 并提交JMX管理 ， 此监听器对生命周期内启动事件和停止事件感兴趣，它会在启动时
+ * JNDI 创建MBean ，而在停止时销毁MBean
+ *
  */
 public class GlobalResourcesLifecycleListener
     implements LifecycleListener {

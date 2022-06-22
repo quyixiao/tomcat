@@ -158,6 +158,10 @@ public class StandardHost extends ContainerBase implements Host {
     /**
      * deploy Context XML config files property.
      * 如果java安全机制开启了，那么则deployXML为false
+     * 如果设置为false ，那么Tomcat 不会解析Web 应用中的用于设置Context 元素的META-INF/context.xml文件，出于安全原因，如果不希望Web
+     * 应用中包含Tomcat 的配置元素 。 就可以把这个属性设置 为false . 在这种情况下， 应该<CATALINA_HOME>/conf/[enginename]/[hostname] 一设置Context 元素，该属性默认值为
+     * true
+     *
      */
     private boolean deployXML = !Globals.IS_SECURITY_ENABLED;
 
@@ -186,12 +190,17 @@ public class StandardHost extends ContainerBase implements Host {
 
     /**
      * Unpack WARs property.
+     * 如果此项设置为true , 表示将appBase 属性txpgr目录下的Web 应用的WAR 文件先展开为开放目录结构后再运行，如果为false ,则直接运行WAR 文件
+     *
      */
     private boolean unpackWARs = true;
 
 
     /**
      * Work Directory base for applications.
+     * 指定虚拟主机的工作目录，Tomcat 运行时会把与这个虚拟主机的所有Web 应用相关的临时文件放在此目录下，它的默认值为<CATALINA_HOME>/work
+     * 如果<HOST> 元素下的一个<Context>元素设置了workDir属性，那么<Context>元素的workDir属性会覆盖<Host>元素的workDir 属性。
+     *
      */
     private String workDir = null;
 

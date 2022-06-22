@@ -103,6 +103,7 @@ public class ApplicationContext implements ServletContext {
     static {
         STRICT_SERVLET_COMPLIANCE = Globals.STRICT_SERVLET_COMPLIANCE;
 
+        // 配置是否传入ServletContext.getResource()或ServletContext.getResourceAsStream() 的参数一定要以"/"开头
         String requireSlash = System.getProperty(
                 "org.apache.catalina.core.ApplicationContext.GET_RESOURCE_REQUIRE_SLASH");
         if (requireSlash == null) {

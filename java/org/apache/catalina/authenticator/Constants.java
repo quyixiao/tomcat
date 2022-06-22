@@ -74,6 +74,7 @@ public class Constants {
             "javax.security.auth.useSubjectCredsOnly";
 
     // Cookie name for single sign on support
+    // 配置单点登录的会话的Cookie 名字
     public static final String SINGLE_SIGN_ON_COOKIE =
         System.getProperty(
                 "org.apache.catalina.authenticator.Constants.SSO_SESSION_COOKIE_NAME",
