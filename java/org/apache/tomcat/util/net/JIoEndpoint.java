@@ -184,6 +184,18 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
     /**
      * The background thread that listens for incoming TCP/IP connections and
      * hands them off to an appropriate processor.
+     *
+     *
+     * Acceptor 主要职责就是监听是否有客户端套接字连接并接收套接字，再将套接字次由任务执行器（Executor）执行， 字不断从系统底层读取套接字，
+     * 接着做尽可能少的处理， 最后扔进线程池， 由于接收线程默认就只有这一条， 因此这里强调要做尽可能少的处理， 它对每次接收处理时间长短
+     * 可能对整个性能产生影响 。
+     *
+     * 于是接收器所做的工作都是非常少且简单的， 仅仅维护了几个状态变量，负责流量控制闸门的累加操作和ServerSocket 的接收操作， 设置接收到
+     * 套接字的一些属性，将接收到的套接字放入到线程池及一些异常处理，其他需要较长的时间处理逻辑就交给了线程池， 例如，对套接字底层的读取，
+     * 对HTTP协议报文的解析及响应客户端的一些操作等， 这样处理有助于提升系统处理响应性能，此过程如图6.5所示 。
+     *
+     *
+     *
      */
     protected class Acceptor extends AbstractEndpoint.Acceptor {
 
@@ -540,6 +552,39 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
      *                  if the endpoint is shutting down. Returning
      *                  <code>false</code> is an indication to close the socket
      *                  immediately.
+     *
+     *
+     *
+     * 为了确保整个Web 服务器的性能，应该在接收到请求后以最快的速度把它转交到其他线程上去处理，在接收到客户端的请求后，这些请求被次给
+     * 任务执行器Executor ，它是一个拥有最大最小线程数限制的线程池， 这所以称为任务执行器， 是因为可能认为线程池启动了若干线程不断的检测某个
+     * 任务队列，一旦发现有需要等待的任务，如图6.8 所示 ， 每个线程都不断的循环检测任务队列，线程数量不会少于最小的线程数，也不能大于最大的
+     * 线程数。
+     *
+     * 任务执行器的实现使用了JUC工具包的ThreadPoolExecutor类，它提供了线程池的多种机制， 例如最大最小线程数量限制，多余线程回收时间，
+     * 超出最大线程数时线程做出的拒绝动作等，继承此类并重写一些方法基本就能满足Tomcat 的个性化需求 。
+     *
+     * Connector 组件的Executor 分为两种类型，共享Executor 和私有Executor .
+     *
+     * 所谓共享的Executor 则指直接使用Service组件的线程池，多个Connector可以共用这些线程池， 可以在server.xml中通过如下配置，先在
+     * <Service> 节点下配置一个<Executor> ，它表示该任务执行器的最大线程数为150 ，最小线程数为4 ，线程名的前缀为catalina-exec-
+     * 并且命名为tomcatThreadPool, <Connector> 节点中指定以tomcatThreadPool 作为任务执行器， 对于多个Connector ，如图6.9 所示 ，
+     * 可以同时指向同一个Executor ，以达到共享的目的 。
+     *
+     * <Service>
+     *     <Executor name = "tomcatThreadPool" namePrefix="catalina-exec-" maxThreads="150" minSpareThreads="4"></Executor>
+     *     <Connector executor="tomcatThreadPool" port="8080" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" ></Connector>
+     * </Service>
+     *
+     * 所谓私有Executor 是指<Connector> 未使用共享线程池，而是自己创建的线程池， 如下面的配置所示，第一个Connector 配置未引用共享线程池。
+     * 所以它会为该Connector创建一个默认的Executor ，它的最小线程数为10，最大线程数为200，线程名字前缀为TP-exec-,线程池里面的线程
+     * 全部为守护线程，线程数超过10时等待60秒， 如果还没有任务执行交销毁此线程，第二个Connector 配置未引用的共享线程池， 但它声明了
+     * maxThreads 和 minSpareThreads属性，表示私有线程池最小的线程数为minSpareThreads ， 而最大线程数为maxThreads
+     * 第一个Connector 和第二个Connector 各自使用自己的线程池，这便是私有Executor
+     * <Service>
+     *     <Connector port="8080" protocol="HTTP/1.1" connectionTimeout="2000" redirect port="8443"/>
+     *     <Connector port="8009" protocol="AJP/1.3" redirectPort="8443" maxThreads=200 minSpareThreads=10/>
+     * </Service>
+     *
      */
     protected boolean processSocket(Socket socket) {
         // Process the request from this socket

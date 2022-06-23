@@ -70,11 +70,6 @@ import org.apache.tomcat.util.net.SocketWrapper;
  * 模式能承受更大的并发，机器资源使用效率高很多， 另外，APR/native 模式也是NIO模式，它直接用本地代码实现了NIO模式 。
  *
  *
- *
- *
- *
- *
- *
  */
 public class Http11AprProtocol extends AbstractHttp11Protocol<Long> {
 
