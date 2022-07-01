@@ -40,6 +40,11 @@ import org.apache.tomcat.util.res.StringManager;
  * @author Filip Hanik
  *  过滤器专心用于处理分块传输，分块传递是一种数据传输机制，当没有指定content-length 时可以通过分块传输完成通信 。
  *
+ *  以上就是Tomcat 的套接字缓冲装置中过滤器机器及其实现方法，同时也介绍了Tomcat 的输入装置中不同的过滤器的功能，过滤器模式能让Tomcat
+ *  在后期升级，扩展时更加方便 。
+ *
+ *
+ *
  */
 public class ChunkedInputFilter implements InputFilter {
 

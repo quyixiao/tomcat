@@ -37,6 +37,18 @@ import org.apache.tomcat.util.net.SocketWrapper;
  * well as transfer decoding.
  *
  * @author <a href="mailto:remm@apache.org">Remy Maucherat</a>
+ *
+ * 互联网中的信息从一端向另外一端过程相当的复杂，中间可能通过若干个硬件，为了提高发送和接收效率，在发送端及接收端将引入缓冲区，所以两端
+ * 的套接字都拥有各自的缓冲区，当然，这种缓冲区的引入也带来了不确定的延时， 在发送端一般先将消息写入缓冲区， 直到缓冲区填满才发送， 而
+ * 接收端则一次只读取最多不超过缓冲区大小的消息。
+ *
+ * Tomcat 在处理客户端的请求时需要读取客户端的请求数据，它同样需要一个缓冲区，用于接收字节流，在Tomcat 中称为套接字输入缓冲装置 。 它主要的
+ * 责任是提供一种缓冲模式，以从Socket 中读取字节流，提供了填充缓冲区的方法，提供了解析HTTP 协议请求的方法，提供了解析HTTP 协议请求头方法 。
+ * 以及按照解析的结果组装请求对象Request 。
+ *
+ *
+ *
+ *
  */
 public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
 
@@ -84,6 +96,17 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
      * @throws IOException If an exception occurs during the underlying socket
      * read operations, or if the given buffer is not big enough to accommodate
      * the whole line.
+     * buf : 字节数组 用于存放缓冲字节流，它的大小由程序设定，Tomcat 中的默认设置为8 * 1024 ，即8KB
+     * pos: 整形 , 表示读取指针，读取到哪个位置值即为多少
+     * lastValid: 整型， 表示从操作系统底层读取的数据填充到buf中的最后位置。
+     * end : 整型 ，表示缓冲区buf中HTTP 协议请求报文头问结束的位置 ， 同时也表示报文体的开始位置 。
+     * 同时也表示报文体的开始位置，从图6.12中从上往下看，最开始的缓冲区buf 是空的， 接着读取套接字操作系统底层的若干字节流读取到buf中
+     * 于是状态如2所示 ，读取到的字节流将buf 从头往后进行填充，同时post为0，lastValid 为此读取后最后的位置值，然后第二次读取的操作系统
+     * 底层若干字节流，每次读取多少并不确定，字节流应该接在2 中， lastValid指定的位置后面而非从头开始，此时pos 及lastValid根据实际情况 。
+     * 被赋予新值，假如再读取一次则最终姿态为5，多出一个end变量，它的含义是HTTP 请求报文的请求行及请求头结束的位置 。
+     *
+     *
+     *
      */
     @Override
     public boolean parseRequestLine(boolean useAvailableDataOnly)
@@ -126,6 +149,8 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
 
         boolean space = false;
 
+
+
         while (!space) {
 
             // Read new bytes if needed
@@ -138,6 +163,13 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
             // also be tolerant of multiple SP and/or HT.
             if (buf[pos] == Constants.SP || buf[pos] == Constants.HT) {
                 space = true;
+                // 下面代码其实是调用了ByteChunk 的setBytes 方法，把字节流及末坐标设置好， 后面的request.method.toString() 同样
+                // 调用了ByteChunk 的toString 方法，根据指定的编码进行转码，这里是ISO_8859_1,这样一来就达到了延迟处理模式效果 。
+                // 在需要时才根据指定的编码转码并获取字符串，如果不需要，则无须转码，处理性能得到提高 。
+
+                // Tomcat 对于套接字的信息都用消息字节表示，好处是实现一种延迟处理模式，提高性能，实际上，Tomcat 还引入字符串缓存。
+                // 在转码之前会先从缓存中查找是否有对应的编码的字符串， 如果存在 ，则不必再执行转码动作，而是直接返回对应的字符串，
+                // 性能进一步得到优化，为了提高性能，我们必须要多做一些额外的工作，这也是Tomcat 接收到信息不直接用字符串保存的原因 。
                 request.method().setBytes(buf, start, pos - start);
             } else if (!HttpParser.isToken(buf[pos])) {
                 throw new IllegalArgumentException(sm.getString("iib.invalidmethod"));
@@ -298,6 +330,12 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
      * HTTP header parsing is done
      */
     @SuppressWarnings("null") // headerValue cannot be null
+    // 至此，整个缓冲装置的工作原理基本搞清楚了， 一个完整的过程是从底层字节流读取到对这些字节流的解析并组装成一个请求对象request
+    // 方便程序后面使用，由于每次从底层读取到的字节流的大小都不确定，因此通过pos,lastValid变量进行控制，以完成对字节流的准确读取接收。
+    // 除此之外，输入缓冲装置还提供了解析请求头部方法，处理逻辑是按照HTTP协议中规定对头部的解析，然后依次放入request对象中， 需要额外
+    // 说明的是， Tomcat 实际运行中并不会在将请求行， 请求头部等参数解后直接转化为String类型设置到request 中，而是继续使用ASCII 码
+    // 存放这些值，因为对这些ASCII 码转码会导致性能问题， 其中思想只有到需要的时候才会转码，很多的参数没有使用到，就不会进行转码，
+    // 以此提高处理性能，这方面的详细内容如图6.12节，请求-Request 会涉及， 最后附笔附上套接字输入缓冲装置的结构图 ，如图6.14所示 。
     private boolean parseHeader()
         throws IOException {
 
@@ -578,6 +616,17 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
      * 容器后期可能需要处理HTTP报文的请求体，所以必须提供一个获取的通道，这个通道就是请求体读取InputStreamInputBuffer ，它其实是套接字
      * 缓冲数组buf 的已读指针是否已经达到尾部，如果达到尾部，则重新读取操作系统的底层字节，最终读取到目标缓冲区desBuf上
      * InputStreamInputBuffer 包含在套接字缓冲装置中，通过它可以将请求体读取到目标缓冲defBuf 上。
+     *
+     *  如图6.18所示 ， InputStreamInputBuffer 包含在套接字缓冲装置中，通过它可以将请求休读取到目标缓冲区desBuf上 。
+     *
+     *  如图6.19所示 ，在套接字输入缓冲装置中， 从操作系统底层读取的字节缓冲在buf中，请求行和请求头被解析后，缓冲区buf 的指针指向请求体
+     *  的起始位置，通过请求体读取器InputStreamInputBuffer可进行读操作，它会自动判断buf是否已经读取完，读完则重新从操作系统底层读取字节
+     *  到buf中，当其他组件从套接字输入缓冲装置读取请求体时，装置将判定其中是否包含过滤器，假设包含，则通过一层层过滤器完成过滤操作后
+     *  才能读取到desBuf ， 这个过程就像被加入了一首处理关卡， 经过每一道关卡都执行相应的操作， 最终完成源数据到目的数据的操作。
+     *
+     *
+     *
+     *
      *
      */
     protected class InputStreamInputBuffer

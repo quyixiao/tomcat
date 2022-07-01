@@ -43,6 +43,13 @@ import org.apache.tomcat.util.net.SocketWrapper;
  * @author Remy Maucherat
  * @author Costin Manolache
  * @author Filip Hanik
+ * Http11NioProtocol 表示非阻塞模式的HTTP 协议通信，它包含从套接字连接接收，处理请求，响应客户端的整个过程 ， 它主要包含NioEndPoint
+ * 组件和Http11NioProcessor组件，启动时NioEndPoint 组件将启动某个端口监听，一个连接到来后将被注册到NioChannel队列中，由Poller
+ * 轮询器负责检测通道的读写事件，并在创建任务后扔进线程池中， 线程池进行任务处理， 处理过程中将通过协议解析Http11NioProcessor 组件对
+ * HTTP 协议解析，同时通过适配器（Adapter）匹配到指定的容器进行处理并响应客户端 ， 整体结构如图6.32所示 。
+ *
+ *
+ *
  */
 public class Http11NioProtocol extends AbstractHttp11JsseProtocol<NioChannel> {
 

@@ -71,6 +71,15 @@ import org.apache.tomcat.util.net.jsse.NioX509KeyManager;
  * @author Mladen Turk
  * @author Remy Maucherat
  * @author Filip Hanik
+ *  非阻塞接收终端 - NioEndPoint
+ *
+ *   NioEndChannel组件是非阻塞I/O 终端的一个抽象，如图6.33 所示 ， NioEndPoint组件包含了很多的子组件，其中 LimitLatch
+ *   连接控制器，Acceptor (套接字接收器)，Poller 轮询器，Poller池， SocketProcessor 任务定义器 以及Executor 任务执行器。
+ *
+ *   LimitLatch 组件负责对连接数的控制，Acceptor 组件负责接收套接字连接并注册到通道队列里， Poller 组件负责轮询检查事件列表 ，
+ *   Poller 池包含若干Poller 组件，SocketProcessor 组件是任务定义器， Executor 组件是负责处理套接字的线程池，下面将对每个组件
+ *   结构与作用进行解析 。
+ *
  */
 public class NioEndpoint extends AbstractEndpoint<NioChannel> {
 

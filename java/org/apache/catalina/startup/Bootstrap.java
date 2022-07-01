@@ -235,11 +235,7 @@ public final class Bootstrap {
      * Web 应用项目都有自己的WebApp 类加载器，很好的使用了Web 应用程序之间的互相隔离且能通过创建新的WebApp 类加载器达到热部署。
      * 这种类加载器的结构能使有效的Tomcat 不受Web 应用程序影响 ，而Common类加载器在存在使用多个Web应用程序能够互相共享类库。
      *
-     *
-     *
      */
-
-
     /**
      *
      * @param name 是配置项的名字，全名为name.loader，配置项配置了类加载器应该从哪些目录去加载类

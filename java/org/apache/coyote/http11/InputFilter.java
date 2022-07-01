@@ -28,6 +28,12 @@ import org.apache.tomcat.util.buf.ByteChunk;
  *
  * @author Remy Maucherat
  * 输入过滤器接口InputFilter ，继承InputBuffer 类，额外提供setBuffer 方法以设置前一个缓冲 。
+ * 一般情况下，我们通过请求体读取器InputStreamInputBuffer 获取的仅仅是源数据，即未经过任务处理发送方发来的字节，但是有些时候这个读取的
+ * 过程中希望做一些额外的处理，而且这些额外的处理可能是根据不同的条件做不同的处理，考虑到程序的解耦与扩展，于是引入过滤器过滤模式，输出
+ * 过滤器InputFilter ，在读取数据过程中，对于额外的操作，只需要通过添加不同的过滤器即可以实现， 例如添加对HTTP1.1 协议分场传输的相关操作
+ * 过滤器。
+ *
+ *
  *
  */
 public interface InputFilter extends InputBuffer {

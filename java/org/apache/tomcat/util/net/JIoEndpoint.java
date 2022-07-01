@@ -297,6 +297,12 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
     /**
      * This class is the equivalent of the Worker, but will simply use in an
      * external Executor thread pool.
+     * SocketProcessor 的任务主要分为三个：处理套接字并响应客户端，连接数计数器减1，关闭套接字，其中对套接字的处理也是最重要的也是最复杂的。
+     * 它包含对底层套接字字节流的读取，HTTP 协议请求报文的解析（请求行，请求头， 请求体等信息的解析），根据请求行解析得到的路径去寻找相应的
+     * 虚拟主机上的WEB 项目资源 ， 根据处理的结果组装好HTTP 协议响应报文输出到客户端， 此部分Web 容器处理客户端请求的核心，接下来
+     * 一一剖析，引入任务定义器后，整个模块如图6.10所示 。
+     *
+     *
      */
     protected class SocketProcessor implements Runnable {
 

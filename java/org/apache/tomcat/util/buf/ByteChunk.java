@@ -63,6 +63,19 @@ import java.nio.charset.Charset;
  * @author James Todd [gonzo@sun.com]
  * @author Costin Manolache
  * @author Remy Maucherat
+ *
+ * 它是一个很重要的字节数组处理缓冲工具，它封装了字节缓冲器及对字节缓冲区的操作，包括缓冲区的写入，读取，扩展缓冲区的大小等，另外，它还提供了
+ * 相应的字符编码转码操作，使缓冲操作变得更加方便，除了缓冲区之外，它还有两个通道，ByteInputChannel和ByteOutputChannel ，一个用于输入读取数据
+ * 一个用于输出数据，并且会自动判断缓冲区是否超出规定的缓冲大小，一旦超出了，则把缓冲区数据全部输出 。
+ *
+ * 缓冲区buf 负责存放待输出的字节数组，此区域有初始值及最大值 ， 在运行时会根据实际进行扩充，一旦达到最大值则马上输出到指定的目标， 此外，还
+ * 定义了两个内部接口， ByteInputChannel 和ByteOutputChannel ，一般可以认为，一个用于读取数据，一个用于输出数据，另外，它还包含Chartset
+ * 对象，借且它，可以方便转码工作 。
+ *
+ *
+ *
+ *
+ *
  */
 public final class ByteChunk extends AbstractChunk {
 
@@ -184,6 +197,7 @@ public final class ByteChunk extends AbstractChunk {
 
     // -------------------- Setup --------------------
 
+    // 内存分配方法
     public void allocate(int initial, int limit) {
         if (buff == null || buff.length < initial) {
             buff = new byte[initial];
@@ -287,6 +301,7 @@ public final class ByteChunk extends AbstractChunk {
     }
 
 
+    // 缓冲区字节添加方法
     public void append(byte b) throws IOException {
         makeSpace(1);
         int limit = getLimitInternal();
@@ -450,6 +465,7 @@ public final class ByteChunk extends AbstractChunk {
      * reached. You can also call it explicitly to force the data to be written.
      *
      * @throws IOException Writing overflow data to the output channel failed
+     *  缓冲区刷新方法
      */
     public void flushBuffer() throws IOException {
         // assert out!=null
@@ -466,6 +482,8 @@ public final class ByteChunk extends AbstractChunk {
      * Never grow bigger than the limit or {@link AbstractChunk#ARRAY_MAX_SIZE}.
      *
      * @param count The size
+     *
+     * 缓冲区扩容方法
      */
     public void makeSpace(int count) {
         byte[] tmp = null;

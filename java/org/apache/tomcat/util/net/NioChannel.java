@@ -37,6 +37,8 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author Filip Hanik
  * @version 1.0
+ *
+ *
  */
 public class NioChannel implements ByteChannel{
 

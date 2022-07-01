@@ -44,9 +44,29 @@ import org.apache.tomcat.util.net.SocketWrapper;
  *
  * 在NIO模式下，Tomcat 同样存在一个类似的缓冲装置用来处理HTTP 协议报文，它     就是非阻塞套接字输入缓冲装置，它与阻塞套接字输入缓冲装置之间不同
  * 在于读取套接字的数据时的方式，阻塞方式会一直阻塞，直到数据返回，而非阻塞则是尝试读取，有没有数据返回，所以它们的基本原理机制都是相同的。
- * 而唯一的差异就在于此，如果对缓冲装置的工作不太清楚。
+ * 而唯一的差异就在于此，如果对缓冲装置的工作不太清楚，可以参考6.1.2节
  *
- * 有了填充方法，接下来，需要一个解析报文的操作过程，当Poller 轮询检测到有可读事件后，开始处理相应的NioChannel,非阻塞套接字输入缓冲装置
+ * 为了更好的理解如何使用NIO模式从底层读取字节并进行解析，下面给出一一个简化的处理过程，首先需要一个方法提供读取字节，代码如下所示 ：
+ * NIO 模式下读取数据不再使用流的方式读取，而是通过通道读取，所以这里使用了NioChannel对象读取，非阻塞并不能保证一定读取到数据，读不到
+ * 数据时会直接返回-1 。
+ *
+ * public class InternalInputBuffer{
+ *     byte [] buf = new byte[8*1024]
+ *     int pos = 0 ;
+ *     int lastValid = 0 ;
+ *     ByteBuffer readBuf = ByteBuffer.allocate(8192);
+ *
+ *     public boolean fill(){
+ *         int nRead = nioChannel.read(readbuf);
+ *         if(nRead > 0 ){
+ *             readBuf.get(buf,pos,nRead);
+ *             lastValid = pos + nRead;
+ *         }
+ *         return (nRead > 0);
+ *     }
+ * }
+ *
+ * 有了填充方法，接下来，需要一个解析报文的操作过程，如图6.42 所示 ， 当Poller 轮询检测到有可读事件后，开始处理相应的NioChannel,非阻塞套接字输入缓冲装置
  * InternalNioInputBuffer将开始读取NioChannel 里面的数据，然后开始尝试解析HTTP 请求行，解析过程中，如果数据不足，则用fill方法尝试读取数据 。
  * 此时，如果读取不到数据，则直接返回，结束此次处理，当Poller 再次检测到该通道的可读事件后，非阻塞套接字输入缓冲装置再从NioChannel 里面读取数据 。
  * 拼接着上一次结束的位置继续处理，但如果用fill方法尝试读取数据成功，则不必等到Poller第二次轮询，往下继续尝试解析HTTP 请求头部，由于 这个

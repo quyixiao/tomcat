@@ -41,13 +41,15 @@ import org.apache.tomcat.util.buf.CharChunk;
  *
  * @author Costin Manolache
  * @author Remy Maucherat
+ *
+ *
+ *
  */
 public class OutputBuffer extends Writer
     implements ByteChunk.ByteOutputChannel, CharChunk.CharOutputChannel {
 
 
     // -------------------------------------------------------------- Constants
-
 
     public static final String DEFAULT_ENCODING =
         org.apache.coyote.Constants.DEFAULT_CHARACTER_ENCODING;

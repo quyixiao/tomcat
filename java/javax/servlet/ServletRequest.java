@@ -36,10 +36,17 @@ import java.util.Map;
  * @author Various
  * @see javax.servlet.http.HttpServletRequest
  *
+ * Request 使用了门面设计模式，门面模式的使用主要出于数据安全考虑，系统中多个组件之间涉及数据交互，如果组件不想把自己的内部数据全部暴露给
+ * 其他组件，就可以使用门面模式，将某一个组件设计成一个门面，把其他组件感兴趣的数据进行封装，通过此门面完成数据访问，如图 6.24 所示 。
+ * 其他组件通过一个门面 （Facade）访问某个组件，门面实现对数据安全控制，对于敏感数据不提供任何访问通道， 而非敏感数据则暴露，可供访问 。
+ *
  * ServletRequest  接口的实现类封装了客户端请求的所有信息， 如果使用HTTP  协议通信则包括HTTP 的请求行和请求头部， HTTP 对应的请求
  * 对象的类型是HttpServletRequest类，ServletRequest 接口的实现类中的信息包括以下的几个部分。
  *
  * 一些HTTP 请求头部的获取方法，如getHeader , getHeaders ,getHeaderNames
+ *
+ *
+ *
  *
  *
  */

@@ -89,11 +89,22 @@ import org.apache.tomcat.util.res.StringManager;
  * @author James Todd [gonzo@eng.sun.com]
  * @author Costin Manolache
  * @author kevin seguin
+ *
+ *
+ *
+ *
  * 请求头部 -MimeHeaders
+ *
  * HTTP 协议的请求头部像一个键值对，例如Content-Length:123 , 前面为键，后面为值，读取值表示文本的长度为123，对于若干个头部，在请求对象中把它们封装
  * 成MimeHeaders对象，MimeHeaders 对象里面包含了一个链表结构，用于存放头部名和头部值，如图6.22 所示，每个MimeHeaderField 对象指向其
  * 前驱节点对象，同时也指向其后继节点对象，采用这种双向链表结构有利于快速搜索，以MimeHeaderField作为单位，它表示一个头部，其中包含的name value 分别用于保存头部的
  * 键值对。
+ *
+ * 所以为Request对象的结构，其中包含了HTTP 请求行相关的字段值，例如请求方法，请求路径，协议版本，同时也包含所有的HTTP请求头部，如
+ * User-Agent ， Content-Type ,Content-Length , 这些头部被封装成MimeHeaders对象，当然，也包含了我们常用的Cookies,它在请求对象中
+ * 被封装成一个Cookies对象，除此之外，它还包含一些非HTTP 协议属性，
+ * 如服务器商品，服务器名称，远程地址，远程端口等， 请求对象中的属性值不但可以供 Tomcat 内核处理过程中使用， 而且有些属性需要提供给
+ * Web应用开发使用，本节将深入
  *
  */
 public class MimeHeaders {

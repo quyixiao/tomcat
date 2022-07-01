@@ -49,7 +49,7 @@ public interface ActionHook {
 
 
     /**
-     * Send an action to the connector.
+     * Send an action to the connector
      *
      * @param actionCode Type of the action
      * @param param Action parameter

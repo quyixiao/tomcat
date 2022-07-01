@@ -33,6 +33,13 @@ import java.util.Locale;
  * @author dac@eng.sun.com
  * @author James Todd [gonzo@eng.sun.com]
  * @author Costin Manolache
+ * Tomcat 不会直接将解析出来的HTTP 协议直接转化成String类型保存到request中，而是保留字节流的形式，在需要的时候才进行转码工作，以此提高
+ * 处理性能，MessageBytes 正是为了解决这个问题而提出的一个类。
+ *
+ *  消息字节封装了不同类型用于表示信息，它包含了4种类型， T_BYTES,T_CHARS , T_STR, T_NULL分别表示字节类型，字符类型，字符串类型， 空。
+ *  由于Web 服务器的使用ASCII 码通信，对就的是字节，因此这里选取T_BYTES类型作为安全进行说明，其他类型与此相似 ， 消息字节的使用非常简单。
+ *  例如有一个字节数组byte[] buffer ，该数组从第3-20 下标之间的字节数组组成的字符表示request 对象方法变量的值， 那么用以代码简单的表示 。
+ *
  */
 public final class MessageBytes implements Cloneable, Serializable {
     private static final long serialVersionUID = 1L;

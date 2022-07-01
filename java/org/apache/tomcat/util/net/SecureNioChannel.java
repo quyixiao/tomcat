@@ -46,9 +46,9 @@ import org.apache.juli.logging.LogFactory;
 public class SecureNioChannel extends NioChannel  {
 
     protected static final Log log = LogFactory.getLog(SecureNioChannel.class);
-
+    // 存放网络接收到的未经过解密的字节流
     protected ByteBuffer netInBuffer;
-    protected ByteBuffer netOutBuffer;
+    protected ByteBuffer netOutBuffer;   // 经过加密后待发送的字节流
 
     protected SSLEngine sslEngine;
 
@@ -570,6 +570,14 @@ public class SecureNioChannel extends NioChannel  {
     /**
      * Callback interface to be able to expand buffers
      * when buffer overflow exceptions happen
+     *  SocketChannel 属于JDK 提供的类，用于使套接字在应用层和操作系统内核之间读写， 这里主要分析ApplicationBufferHandler接口。
+     *  它主要包含getReadBuffer 和getWriterBuffer 两个方法 ， 分别用于获取读缓冲和写缓冲，在分配内存方式上有两种，一种方式是分配操作
+     *  系统本地内存，称为直接内存，它不直接由垃圾回收器管理 ， 它能提高性能，因为它不需要反复的从Java    堆到Native堆进行内存复制，
+     *  直接内存只有在它对应的Java 类DirectByteBuffer 类作为垃圾回收时才会调用释放内存方法 ， 或者程序手动调用对应的方法释放直接内存，
+     *  否则直接内存不会释放， 所以可能导致内存泄漏，另外一种方式是分配Java 堆内存， 它由垃圾回收器管理 ， 它需要Native 堆内存与Java
+     *  堆内存之间相互复制， 该接口的详细实现如下 ：
+     *
+     *
      */
     public static interface ApplicationBufferHandler {
         public ByteBuffer expand(ByteBuffer buffer, int remaining);

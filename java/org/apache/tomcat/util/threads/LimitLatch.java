@@ -27,6 +27,28 @@ import org.apache.juli.logging.LogFactory;
  * Shared latch that allows the latch to be acquired a limited number of times
  * after which all subsequent requests to acquire the latch will be placed in a
  * FIFO queue until one of the shares is returned.
+ *
+ *
+ *
+ * 与BIO 中的控制器不同的是，控制阀门的大小不相同 ， BIO 模式受本身模式的限制，它的连接数与线程数比例是1 ： 1  的关系，所以当连接数
+ * 太多时将导致线程数很多，JVM 线程数过多将导致线程间切换的成本很高， 默认情况下，Tomcat 处理连接池的线程数为200，所以BIO流量控制
+ * 阀门大小也默认设置为200 ， 但NIO 模式能克服BIO 连接数的不足 ，它能基于事件同时维护大量的连接，对于事件遍历只须次给同一个或少量的线程
+ * ，再把具体的事件逻辑次给线程池， 例如，Tomcat 把套接字接收工作次次给一个线程， 而把套接字读写及处理工作次给N 个线程。
+ * N 一般为CPU 的核数， 对于 NIO 模式，Tomcat 默认把流量阀门大小设置 为1000 ，如果你想更改大小， 可以通过 server.xml 中的<Connector>
+ *     节点的maxConnections 属性修改，同时要注意，连接数达到最大值后，操作系统仍然会接收到客户端连接，直到操作系统接收队列被塞满 ， 队列
+ * 默认长度是100， 可以通过server.xml 中的<Connnector> 节点的acceptCount 属性配置， Tomcat 连接数控制器的伪代码如下：
+ *
+ * LimitLatch limitLatch = new LimitLatch(10000);
+ * 创建阻塞的ServerSocketChannel 对象
+ * While(true){
+ *     limitLatch.countUpOrAwait(); // 这里可能阻塞，达到1000则阻塞，不再接收连接 。
+ *     SocketChannel socketChannel = ServerSocketChannel.accept();
+ *     将socketChannel 对象设为非阻塞并向Selector 注册读写事件 。
+ *     轮询检查出可以写的连接 ， 并次由连接池读写及处理。
+ *     响应完客户端后执行， limitLatch.countDown();
+ * }
+ *
+ *
  */
 public class LimitLatch {
 

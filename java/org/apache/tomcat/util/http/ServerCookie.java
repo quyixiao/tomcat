@@ -35,6 +35,22 @@ import org.apache.tomcat.util.buf.MessageBytes;
  *
  *  Tomcat.core uses this recyclable object to represent cookies,
  *  and the facade will convert it to the external representation.
+ *  第一次访问localhost:8080/web/index.jsp时，浏览器搜索本地无关的Cookie，服务器接收报文后做出响应，通过HTTP 协议的Set-Cookie 头部
+ *  把"user=lilei;weight=70kg"返回浏览器，同时浏览器把Cookie信息保存到本地，第二次访问时，浏览器检查到有相关的Cookie并发往服务器，
+ *  服务器接收到信息后知道此浏览器之前由lilei用户使用，并且他的体重是70kg, 服务器可以根据用户信息做一些个性化的处理，这就是Cookie 。
+ *
+ *  Cookie将信息储存在客户端，每次通信要将这些信息附带到报文里，这会导致带宽的浪费，敏感数据的安全隐患， 对复杂的数据力不从心等问题。
+ *  每次访问都把Cookie 发送到服务器，当Cookie较大时，明显有带宽浪费问题， 假如将用户名，密码存放在客户端，显然存在安全性问题，Cookie
+ *  对于非键-值对结构数据显然力不从心， 针对这些问题， 提出一种解决方案，服务器会话（Session） , 它将数据存在服务器中， 无须客户端携带，
+ *  数据安全更加可控且数据结构可以任意复杂，当然，这种会话实现也要依赖Cookie，服务器把一个唯一的JSESSIONID发往客户端，每个唯一的值
+ *  表示一个客户端，客户端与服务器通信时携带此唯一值，服务器根据唯一值寻找属于客户端的所有数据 。
+ *
+ *  重新回到Cookie ，浏览器将Cookie 发往Tomcat 服务器后，Tomcat 需要将这些信息封装成Cookie对象，如图6.23所示 ，Cookies 对象包含了
+ *  若干个ServerCookie ，而每个ServerCookie 主要包含了name和value , 即键-值对， 当然，还包括其他参数，例如 maxAge  表示Cookie 过期
+ *  时间，path 表示Cookie存放路径，domain表示服务器主机名，另外还有其他参数，读者可以自行查阅HTTP 协议的Cookie标准，有个参数需要特别说明
+ *  secure 参数表示是否使用SSL 安全协议发送Cookie ，以避免明文被网络拦截 。
+ *
+ *
  */
 public class ServerCookie implements Serializable {
 
