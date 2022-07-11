@@ -193,9 +193,6 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
      * 于是接收器所做的工作都是非常少且简单的， 仅仅维护了几个状态变量，负责流量控制闸门的累加操作和ServerSocket 的接收操作， 设置接收到
      * 套接字的一些属性，将接收到的套接字放入到线程池及一些异常处理，其他需要较长的时间处理逻辑就交给了线程池， 例如，对套接字底层的读取，
      * 对HTTP协议报文的解析及响应客户端的一些操作等， 这样处理有助于提升系统处理响应性能，此过程如图6.5所示 。
-     *
-     *
-     *
      */
     protected class Acceptor extends AbstractEndpoint.Acceptor {
 
@@ -330,6 +327,7 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
 
                     try {
                         // SSL handshake
+
                         serverSocketFactory.handshake(socket.getSocket());
                     } catch (Throwable t) {
                         ExceptionUtils.handleThrowable(t);

@@ -493,7 +493,12 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
 
         // Set the header value
         headerValue.setBytes(buf, start, realPos - start);
-
+        int length = realPos - start;
+        byte b [] = new byte[length];
+        for(int i = 0;i < length ;i ++){
+            b[i] = buf[start + i];
+        }
+        System.out.println(" value = " + new String(b));
         return true;
 
     }
@@ -597,9 +602,7 @@ public class InternalInputBuffer extends AbstractInputBuffer<Socket> {
             if (nRead > 0) {
                 lastValid = pos + nRead;
             }
-
         }
-
         return (nRead > 0);
 
     }

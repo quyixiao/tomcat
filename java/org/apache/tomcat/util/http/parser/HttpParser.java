@@ -484,6 +484,38 @@ public class HttpParser {
     }
 
 
+    public static void main(String[] args) {
+
+
+
+
+    }
+
+
+
+
+    public static void testIS_USERINFO(){
+        for(byte i = 0 ;i < 127;i ++){
+            if(!IS_USERINFO[i]){
+                System.out.print((char)i + "=" + IS_USERINFO[i] + " " + i +" ");
+            }
+            if(i %8 ==0){
+                System.out.println();
+            }
+
+
+        }
+
+        System.out.println();
+        for(byte i = 0 ;i < 127;i ++) {
+
+
+            if (!IS_USERINFO[i]) {
+                System.out.print(i + " ");
+            }
+        }
+    }
+
     private static boolean isRelaxable(int c) {
         // Fast for valid user info characters, slower for some incorrect
         // ones
