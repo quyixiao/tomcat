@@ -90,8 +90,9 @@ import org.apache.tomcat.util.res.StringManager;
  * @author Craig R. McClanahan
  * @author Remy Maucherat
  *
+ *  Tomcat 提供了ServletContext实现类为ApplicationContext ，但是类仅提供了Tomcat 服务器使用， Web 应用使用是其门面类ApplicationContextFade
  *
- *
+ *=
  */
 public class ApplicationContext implements ServletContext {
 

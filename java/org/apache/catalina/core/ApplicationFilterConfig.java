@@ -63,6 +63,8 @@ import org.apache.tomcat.util.res.StringManager;
  * Context 容器的十字路口模块的主要对象就是包含了以上三个对象，FilterDef ,ContextFilterMaps ，和ApplicationFilterConfig ，而调用这些过滤器进行
  * 过滤的工作则由Wrapper 容器中的管道负责 。
  *
+ * FilterConfig 实现类为ApplicationFilterConfig ，同时该类也负责Filter的实例化，FilterMap 用于存储 filter-mapping 配置，
+ *
  *
  */
 public final class ApplicationFilterConfig implements FilterConfig, Serializable {

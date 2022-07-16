@@ -46,6 +46,12 @@ import org.apache.tomcat.util.res.StringManager;
  * @author <a href="mailto:nicolaken@supereva.it">Nicola Ken Barozzi</a> Aisa
  * @author <a href="mailto:stefano@apache.org">Stefano Mazzocchi</a>
  * @author Yoav Shapira
+ * 为Host 添加一个Value 实现ErrorReportValue （我们也可以通过修改Host 的errorReportValueClass 属性指定自己的错误处理Value）
+ * 该类的主要用于服务器处理异常时输出的错误页面，如果我们没有在web.xml中添加错误处理页面，Tomcat 返回的异常栈页面便是ErrorReportValue生成的
+ *
+ * 【注意】 如果希望定制Web应用的错误页面，除了按照Servlet规范在web.xml中添加<error-page></error-page>外，还可以通过设置Host的
+ * errorReportValueClass 属性实现 ，前者的作用范围是当前WEb 应用，而后者是整个虚拟机，除非错误页面与具体的Web 应用无关，否则不推荐使用此配置
+ * 方式，当然修改该配置还有一个重要的用途，出于安全考虑对外隐藏服务器的细节，毕竟ErrorReportValue输出的内容是包含了服务器的信息的。
  */
 public class ErrorReportValve extends ValveBase {
 

@@ -174,6 +174,67 @@ import org.apache.tomcat.util.scan.StandardJarScanner;
  * 项目的Class 被更改，然后重新加载，每个Web 应用对应的一WebappLoader ，每个WebappLoader 互相隔离，各自包含的类互相不可见。
  *
  *
+ * StandardContext 通过ServletMappings 属性存储servlet-mapping 配置。
+ *
+ *
+ * 接下来看StandardContext在启动过程（具体参见StandardContext.startInternal）
+ * 1. 发布正在启动的JMX通知，这样可以通过添加NotificationListener 来监听Web应用的启动。
+ * 2. 启动当前Context维护的JNDI资源 。
+ * 3. 初始化当前Context 使用的WebResourceRoot 并启动，WebResourceRoot 维护了Web 应用的所有的资源集合（Class 文件，Jar 包 以及其他资源文件 ）
+ * 主要用于类加载和按照路径查找资源文件 。
+ * 【注意】：WebResourceRoot是Tomcat8 新增的资源接口，旧版本采用FileDirContext管理目录资源，采用WARDirContext 管理WAR 包资源 。
+ * WebResourceRoot表示组成Web 应用的所有资源的集合，在WebResourceRoot 中，一个Web 应用的资源又可以按照分类划分为多个集合（WebResourceSet）,
+ * 当查找资源时，将按照指定的顺序处理，其分类和顺序如下 。
+ * Pre资源 :即在Context.xml通过<PreResources> 配置资源，这些资源将按照它们配置的顺序查找 。
+ * Main资源：即Web应用目录，WAR 包或者WAR 包解压目录包含的文件，这些资源的查找顺序为WEB-INF/classes,WEB-INF/lib
+ * Jar 资源：即在context.xml 中通过<JarResources> 配置的资源，这些资源将按照它们的配置顺序查找 。
+ * Post资源：即在context.xml中通过<PostResources> 配置资源，这些资源将按照它们的配置顺序查找 。
+ * 由WebResourceRoot支持的资源集合以及配置方式，我们可以发现，从Tomcat 8 版本开始，Context 不仅可以加载Web 应用内部资源，还可以加载
+ * 位置其外部的资源，而且通过PreResources ，JarResources ,PostResources 这3类资源集合控制其在资源查找时的优先级，通过这种方式，我们
+ * 可以实现对某些资源的复用，如1.5节所述，提供一个公用的Web 应用包， 然后其他的Web应用均以此为基础，添加相关的定制化功能 。
+ * 4. 创建Web应用类加载器（WebappLoader）,WebappLoader 继承自LifecycleMBeanBase ，在其启动时创建Web应用类加载器（WebappClassLoader）,
+ * 此外，该类还提供了backgroundProcess, 用于Context 后台处理，当检查到Web应用的类文件，Jar 包发生变更时，重新加载Context 。
+ * 5. 如果没有设置Cookie处理器， 则创建默认的 Rfc6265CookieProcessor
+ * 6. 设置字符集映射（CharsetMapper）,该映射主要用于根据Locale获取字符集编码 。
+ * 7. 初始化临时目录，默认为$CATALINA_BASE/work/<Engine名称>/<Host名称>/<Context名称>
+ * 8. Web 应用依赖检测，主要检测依赖扩展点的完整性。
+ * 9 如果当前Context 使用了JNDI ,则为其添加NamingContextListener。
+ * 10 启动Web应用类加载器（WebappLoader.start）,此时才真正的创建WebappClassLoader实例。
+ * 11. 启动安全组件（Realm）
+ * 12. 发布CONFIGURE_START_EVENT事件，ContextConfig监听该事件以完成Servlet的创建，具体下一节将讲解 。
+ * 13. 启动Context 子节点（Wrapper）
+ * 14. 启动Context 维护的Pipeline
+ * 15. 创建会话管理器，如果配置了集群组件，则由集群组件创建，否则使用标准的会话管理器（StandardManager）,在集群环境下，需要将会话管理器注册
+ * 到集群组件 。
+ * 16. 将Context的Web资源集合（org.apache.catalina.WebResourceSet）添加到ServletContext属性，属性名为org.apache.catalina.resources
+ * 17. 创建实例管理器（InstanceManager）,用于创建对象的实例， 例如 Servlet,Filter等。
+ * 18. 将Jar 包扫描器（JarScanner）添加到ServletContext属性，属性名为org.apache.tomcat.JarScanner
+ * 19. 合并ServletContext的初始化参数和Context组件中的ApplicationParameter ，合并原则，ApplicationParameter配置则可以覆盖，那么只有
+ * 当ServletContext 没有相关的参数或者相关的参数为空时添加，如果配置为不可覆盖 ，则强制添加 ，此时即ServletContext没有相关的参数或者相关的参数也不
+ * 会生效。
+ * 20. 启动添加到当前Context的ServletContainerInitializer ，该类的实例具体由ContextConfig查找并添加，具体过程见下一节讲解，该类主要
+ * 用于可编程的方式添加到Web应用的配置，如Servlet ,Filter 等。
+ * 21. 实例化应用监听器（ApplicationListener）,分为事件监听器（ServletContextAttributeListener,ServletRequestAttributeListener,
+ * ServletRequestListener,HttpSessionIdListener,HttpSessionAttributeListener）以及生命周期监听器（HttpSessionListener,ServletContextListener）
+ * 这些监听器可以通过Context部署描述文件，可编程方式（ServletContainerInitializer）或者Web.xml添加，并且触发ServletContextListener.contextInitialized 。
+ * 22. 检测未覆盖的HTTP方法的安全约束
+ * 23. 启动会话管理器。
+ * 24. 实例化FilterConfig(ApplicationFilterConfig),Filter,并调用Filter.init初始化 。
+ * 25. 对于loadOnStartup >= 的Wapper ，调用Wrapper.load() ，该方法负责实例化Servlet,并调用Servlet.init进行初始化 。
+ * 26. 启动后台定时处理线程，只有当backgroundProcessorDelay > 0 时启动，用于监控守护文件的变更等，当backgroundProcessorDelay <= 0 时
+ * 表示Context的后台任务由上线容器（Host）调度
+ * 27. 发布正在运行的JMX通知
+ * 28. 调用WebResourceRoot.gc()释放资源 （WebResourceRoot加载资源时，为了提高性能会缓存某些信息，该方法用于清理这些资源，如关闭JAR 文件 ）
+ * 29. 设置Context状态，如果启动成功，设置STARTING （其父类 LifecycleBase会自动将状态转换为STARTED）,否则设置为FAILED 。
+ *
+ * 通过上面的讲述，我们已经知道了StandardContext的整个启动过程 ， 但是这部分工作并不包含如何解析Web.xml中的Servlet，请求映射，Filter等
+ * 相关配置，这部分工作的具体由ContextConfig完成的。
+ *
+ *
+ *
+ *
+ *
+ *
  *
  *
  */

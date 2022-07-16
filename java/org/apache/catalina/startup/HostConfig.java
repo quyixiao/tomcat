@@ -88,7 +88,7 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * 在Tomcat 启动时，有两个阶段可以将Context 添加到Host中，第二种方式是用Digester框架解析server.xml 文件时将生成的Context添加到Host中
  * 这种方式需要你先将Context节点配置到server.xml 的Host 节点下，这样的做的缺点就是不但把应用配置与Web 服务器耦合在一起，而且
- * 对server.xml 配置的修改不会立即生效，除非重启TOmcat ，另外一种方式就是server.xml 加载解析完后再在特定的时刻寻找指定的Context配置文件 。
+ * 对server.xml 配置的修改不会立即生效，除非重启Tomcat ，另外一种方式就是server.xml 加载解析完后再在特定的时刻寻找指定的Context配置文件 。
  * 这时已经将应用的解耦出Web 服务器，配置文件可能为Web应用的/META-INF/contex.xml 文件，也可能是%CATALINA_HOME%config/[EngineName]/[HostName]/[WebName].xml
  *
  * 第一种方式在Server.xml 解析时会自动组织好Host 与Context 之间的关系，它不是本章的重点，我们的重点讨论第二种方式，由于 Tomcat 有完整的
@@ -117,6 +117,18 @@ import org.apache.tomcat.util.res.StringManager;
  * 5.调用Host的addChild方法将上面生成的Context添加到Host容器中，此时会触发Context 启动的动作相当的繁杂，这将在第9章中深入讨论。
  * 6.将Context 对象的WatchedResource 添加到生加载监听列表中，Tomcat会有专门的后台线程检测这些文件是否改动，如果有改动，则会重新执行加载 。
  * 加载指的是不会重新组织Host和 Context 的关系，而是根据更新后的Web 项目更改Context的内容 。
+ *
+ *
+ * 如前所述，实际上在大多数的情况下，Web 应用部署并不需要配置多个基础目录，而是能够做到自动，灵活部署， 这也是Tomcat 默认部署方式 。
+ * 在默认的情况下，server.xml 并未包含Context 相关配置，仅包含Host 配置如下 ：
+ * <Host name="localhost" appBase="webapps" unpackWARs="true" autoDeploy="true" ></Host>
+ * 其中 ，appBase 为Web 应用部署基础目录，所以需要部署的Web 应用均需要复制此目录下，默认为$CATALINA_BASE/webapps，Tomcat 通过HostConfig
+ * 完成该目录下的Web应用自动部署。
+ * 前面的时序图仅描述了HostConfig 的基本API调用，它实际的处理过程要复杂得多，接下来，我们进行仔细的分析 。
+ * 在讲解Server 的创建时，我们曾讲到HostConfig 是一个LifecycleListener实现，并且由Catalina默认添加到Host实例上 。
+ * HostConfig 处理生命周期事件包括，START_EVENT,PERIODIC_EVENT , STOP_EVENT ,其中前两者都与Web应用部署密切相关，后者用于Host停止注销对应的MBean
+ * 【注意】该事件处理仅用于服务器启动过程，而Tomcat的Web 应用可以通过多种方式进行部署， 如后台定时加载，通过管理工具进行部署，集群部署等
+ * 从前面的时序图中可以知道，该事件处理包含了3部分，Context描述文件的部署，Web 目录的部署， WAR 包的部署， 而这3个部分对应Web应用的3类不同的部署方式。
  *
  *
  */
@@ -557,7 +569,22 @@ public class HostConfig
      * in our "application root" directory.
      * 部署应用的三种方式
      * 1. 描述符部署
+     * Context描述文件部署
+     * Tomcat 支持通过一个独立的Context 描述文件来配置并启动Web 应用，配置方式同server.xml 中的<Context> 元素，该配置文件的存储路径
+     * 由Host 的xmlBase属性指定 ，如果未指定，则默认值为$CATALINA_BASE/config/<Engine名称>/<Host名称> ，因此Tomcat 默认Host ,Context
+     * 描述文件的路径为$CATALINA_BASE/config/Catalina/localhost 。
+     *
+     * 注意：Context 的path和webappVersion 与Context 描述文件，Web 应用目录 ， WAR 包命名存在对应关系，在接下来章节中我们会详细讲述
+     * 在此之前，我们使用最简单的path配置，（即采用如/a/b 样式的多级路径 ），同时不配置webappVersion，Web目录部署以及WAR包部署均基于
+     * 此约束进行说明 。
+     * <Context path="/myApp" docBase="test/myApp" reloadable="false" >
+     *     <WatchedResource>WEB-INF/web.xml</WatchedResource>
+     * </Context>
+     * 与此同时，将目录名为myApp的Web 应用复制到test目录下，Tomcat 启动时便会自动部署该Web 应用，根据请求地址http://localhost:8080/myApp 。
+     *  此种方式与在server.xml 中的配置相比要灵活得多，而且可以实现相同的部署需求 。
+     *
      * 2. War包部署
+     *
      * 3. 文件夹部署
      *
      * 另外Tomcat中是使用异步多线程的方式部署应用的
@@ -569,6 +596,7 @@ public class HostConfig
         String[] filteredAppPaths = filterAppPaths(appBase.list());
         // Deploy XML descriptors from configBase
         // 描述符部署
+
         deployDescriptors(configBase, configBase.list());
         // Deploy WARs
         // war包部署
@@ -686,7 +714,19 @@ public class HostConfig
 
     /**
      * @param cn
-     * @param contextXml
+     *
+     * 扫描Host 配置文件的部署过程如下 ，具体可
+     * 1. 扫描Host 配置文件基础目录 ， 即$CATALINA_BASE/config/<Engine名称>/<Host名称>, 对该目录下的每个配置文件，由于线程池完成解析部署。。
+     * 2. 对于每个文件的部署线程，进行如下操作。
+     *  使用Digester解析配置文件，创建Context实例。
+     *  更新Context 实例的名称 ，路径 （不考虑webappVersion的情况下，使用文件名），因此<Context>元素中的配置path属性无效。
+     * 3.为Context 添加ContextConfig 生命周期监听器 。
+     * 4.通过Host的addChild()方法将Context 实例添加到Host , 该方法会判断Host是否已经启动。 如果是，则直接启动Context
+     * 5.将Context描述文件，Web 应用目录及web.xml 等添加到守护资源 ， 以便文件发生变更时（使用资源文件的上次修改时间进行判断），重新部署或者加载Web 应用 。
+     *
+     * 即便要对Web 应用单独指定目录管理或者对Context 创建进行定制，我们也建议采用该方案或者随后讲到的配置文件备份方案， 而非直接在server.xml
+     * 文件中配置，它们的功能相同，但是前面两者灵活性要高得多， 而且对服务器侵入要小。
+     *
      */
     @SuppressWarnings("null") // context is not null
     protected void deployDescriptor(ContextName cn, File contextXml) {
@@ -694,8 +734,6 @@ public class HostConfig
         // 部署一个应用本身比较简单，分为
         // 1. 注册ContextConfig：
         // 2. 将context添加到host中
-
-
         DeployedApplication deployedApp =
                 new DeployedApplication(cn.getName(), true);
 
@@ -865,6 +903,19 @@ public class HostConfig
     // 调用Host的addChild方法将Context 对象添加到Host 中，此时会触发Context 启动，启动动作相当的繁杂。
     // 将Context 对象中的WatchedResource 添加到重加载监听器列表中，Tomcat 会有专门的后台线程检测这些文件是否改动，如果有改动，则会重新
     // 执行加载，加载指的是不会重新组织Host 与Context的关系，而是根据更新后的Web 项目更改Context 的内容 。
+    //
+    // new
+
+    // Web目录部署
+    // 以目录的形式发布并部署Web 应用是Tomcat 中闻常见的部署方式，我们只需要将包含Web 用所有资源文件（JavaScript ，CSS,图片，JSP 等 ）
+    // Jar 包，描述文件（WEB-IN/web.xml）的目录复制到Host指定的appBase目录下即完成部署。
+    // 注意：此时Host 的deployIgnore 属性可以将符合某个正则表达式的Web 应用目录忽略而不进行部署， 如果不指定 ， 则所有的目录均进行部署。
+    // 此种部署方式下， Catalina同样支持通过配置文件来实例化Context(默认位于Web 应用的META-INF目录下，文件名为context.xml),我们仍然
+    // 可以在配置文件中对Context 进行定制但是无法覆盖name,path,webappVersion,docBase这4个属性， 这些均由Web 目录路径及名称确定（因此
+    // 此种方式无法自定义Web 应用部署目录）
+    // Catalina部署Web 应用目录的过程如下 ：
+    // 1.对于Host的appBase目录（默认为$CATALINA_BASE/webapps）下所有符合条件的目录（不符合deployIgnore的过滤规则），目录名不为META-INF
+   // 和WEB-INF ，由线程池完成部署。
     protected void deployWARs(File appBase, String[] files) {
 
         if (files == null)
@@ -975,6 +1026,21 @@ public class HostConfig
     /**
      * @param cn
      * @param war
+     * 对于每个WAR 包进行如下操作。
+     * 1.    如果Host的deployXML属性为true，且在WAR 包同名的目录去除扩展名， 下存在META-INF/context.xml文件，同时在Context的copyXML 属性为false  。
+     * 则使用该描述文件创建Context 实例，用于WAR 包解压目录位于部署目录的情况） 。
+     *     如果Host的deployXML属性为true,且在WAR 包压缩文件下存在META-INF/context.xml文件，则使用该描述文件创建Context 对象 。
+     *     如果deployXML属性值为false,但是在WAR 包压缩文件下存在META-INF/context.xml文件，则构造FailedContext实例（Catalina的空模式，用于表示Context部署失败）
+     *     其他情况下，根据Host的contextClass属性指定类型创建Context对象，如不指定，则为org.apache.catalina.core.StandardContext ，此时
+     * 所有的Context 属性均采用默认配置， 除name ，path ,webappVersion,docBase会根据WAR 包的路径及名称进行设置外。
+     *
+     * 2. 如果deployXML为true,且META-INF/context.xml存在于WAR 包中， 同时Context的copyXML属性为true , 则将context.xml文件复制到
+     * $CATALINA_BASE/config/<Engine名称>/<Host名称> 目录下，文件名称同WAR 包名（去除扩展名）。
+     * 3. 为Context 实例添加ContextConfig生命周期监听器。
+     * 4.通过Host 的addChild()方法将Context 实例添加到Host，该方法会判断Host是否已经启动，如果是，则直接启动Context .
+     * 5. 将Context 描述文件，WAR包及web.xml等添加到守护资源 ， 以便文件发生变更时重新部署或者加载Web应用 。
+     *
+     *
      */
     protected void deployWAR(ContextName cn, File war) {
 
@@ -1532,6 +1598,7 @@ public class HostConfig
      *              requires that any file modification must have occurred at
      *              least as long ago as the resolution of the file time stamp
      *              be skipped
+     *
      */
     protected synchronized void checkResources(DeployedApplication app,
             boolean skipFileModificationResolutionCheck) {
@@ -1884,6 +1951,19 @@ public class HostConfig
 
     /**
      * Check status of all webapps.
+     *
+     * 对于每一个已经部署的Web 应用，不包含在serviced列表中，Serviced列表的具体作用参见下面的注意 ，检查用于重新部署的守护资源，对于
+     * 每一个守护资源文件或者目录，如果发生变更，那么就有以下几种情况 。
+     *
+     * 如果资源对应目录，则仅更新守护资源列表中的上次修改时间
+     * 如果Web 应用存在Context描述文件并且当前变更的WAR包文件，则得到原Context 的docBase，如果docBase不以".war"结尾（即Context指向的是WAR解压目录  ）
+     * 删除解压目录并重新加载，否则直接重新加载，更新守护资源 。
+     * 其他情况下，直接卸载应用，并且由接下来处理步骤重新部署。
+     * 2. 对于每个已经部署的web 应用，检查用于重新加载的守护资源，如果资源发生变更，则重新加载Context 对象 。
+     * 如果Host配置为卸载旧版本应用（undeployOldVersions属性为true），则检查并卸载
+     * 4.部署Web 应用（新增以及处于卸载状态的描述文件，Web 应用目录，WAR 包），部署过程 同上面叙述 。
+     *
+     *
      */
     protected void check() {
 
@@ -1892,6 +1972,10 @@ public class HostConfig
             DeployedApplication[] apps =
                 deployed.values().toArray(new DeployedApplication[0]);
             for (int i = 0; i < apps.length; i++) {
+                // 注意 HostConfig的serviced属性维护了一个Web应用列表，该列表会由Tomcat的管理程序通过MBean进行配置，当Tomcat修改
+                // 某个Web 应用 （如重新部署）时，会先通过同步的addServiced()将其添加到serviced()列表中，并且在操作完毕后，通过同步
+                // removeServiced()方法将其移除，通过此种方式，避免后台定时任务与Tomcat 管理工具的冲突，因此，在部署HostConfig 中的
+                // 描述文件，Web 应用目录  ， WAR包时，均需要确认serviced列表中不存在同名的应用 。
                 if (!isServiced(apps[i].name))
                     checkResources(apps[i], false);
             }
@@ -2044,6 +2128,9 @@ public class HostConfig
     /**
      * This class represents the state of a deployed application, as well as
      * the monitored resources.
+     *      在HostConfig 中通过DeployedApplication维护了两个守护资源列表，redeployResources 和 reloadResources ，前者用于守护导致
+     * 应用重新部署新的资源 ， 后者守护导致应用重新加载资源 ， 两个列表维护了资源及其最后修改时间  。
+     *
      */
     protected static class DeployedApplication {
         public DeployedApplication(String name, boolean hasDescriptor) {

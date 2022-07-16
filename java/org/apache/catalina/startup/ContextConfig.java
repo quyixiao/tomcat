@@ -161,6 +161,9 @@ import org.xml.sax.SAXParseException;
  *
  *
  *
+ * ContextConfig
+ * 在3.3.4 节中我们讲到，Context 创建时会默认添加一个生命周期监听器， ContextConfig 该监听器一共处理6类事件，此处我们仅讲解其中与Context
+ * 启动关系重大的3类，AFTER_INIT_EVENT， BEFORE_START_EVENT, CONFIGURE_START_EVENT ， 以便读取可以了解该类的Context 启动中的扮演的角色 。
  *
  */
 public class ContextConfig implements LifecycleListener {
@@ -817,16 +820,22 @@ public class ContextConfig implements LifecycleListener {
                 ExpandWar.validate(host, war, pathName);
             }
         } else {
+
             File docDir = new File(docBase);
             if (!docDir.exists()) {
+                // 如果docBase为一个有效的目录，而且存在与该目录同名的WAR包，同时需要解压部署，则重新解压WAR包
                 File warFile = new File(docBase + ".war");
                 if (warFile.exists()) {
                     URL war = UriUtil.buildJarUrl(warFile);
+                    // 3.如果docBase为一个有效目录，而且存在与该目录同名的WAR包，同时需要解压部署
                     if (unpackWARs) {
+                        // 3.1 解压WAR文件
                         docBase = ExpandWar.expand(host, war, pathName);
                         file = new File(docBase);
+                        // 3.2 将Context的docBase更新为解压后的路径 （基于appBase的相对路径）
                         docBase = file.getCanonicalPath();
                     } else {
+                        // 3.3 如果不需要解压部署，只检测WAR包，docBase为WAR包路径
                         docBase = warFile.getCanonicalPath();
                         ExpandWar.validate(host, war, pathName);
                     }
@@ -855,8 +864,9 @@ public class ContextConfig implements LifecycleListener {
     protected void antiLocking() {
 
         if ((context instanceof StandardContext)
+                // 当Context的antiResourceLocking属性为true时，Tomcat会将当前的Web应用目录复制到临时文件夹下，以避免对原目录资源加锁。
             && ((StandardContext) context).getAntiResourceLocking()) {
-
+            // 1 根据Host的appBase以及Context 的docBase计算docBase的绝对路径
             Host host = (Host) context.getParent();
             String appBase = host.getAppBase();
             String docBase = context.getDocBase();
@@ -879,7 +889,9 @@ public class ContextConfig implements LifecycleListener {
             }
             ContextName cn = new ContextName(path, context.getWebappVersion());
             docBase = cn.getBaseName();
-
+            // 2. 计算临时文件夹的Web应用根目录或WAR包名
+            // 2.1 Web目录：${Context生命周期内的部署次数}-${目录名}
+            // 2.2 WAR包：${Context生命周期内部署次数}-${WAR包名}
             if (originalDocBase.toLowerCase(Locale.ENGLISH).endsWith(".war")) {
                 antiLockingDocBase = new File(
                         System.getProperty("java.io.tmpdir"),
@@ -898,15 +910,47 @@ public class ContextConfig implements LifecycleListener {
 
             // Cleanup just in case an old deployment is lying around
             ExpandWar.delete(antiLockingDocBase);
+            // 3. 复制Web目录或者WAR包到临时目录
             if (ExpandWar.copy(docBaseFile, antiLockingDocBase)) {
+                // 4. 将Context 的docBase更新为临时目录下的Web应用目录或者WAR包路径
                 context.setDocBase(antiLockingDocBase.getPath());
             }
+            // 通过上面的讲解我们知道，无论是AFTER_INIT_EVNT还是BEFORE_START_EVENT处理，仍然属于启动前准备工作，以确保Context
+            // 相关属性的准确性，而真正创建Wrapper的则是CONFIGURE_START_EVENT事件
         }
     }
 
 
     /**
      * Process a "init" event for this Context.
+     * AFTER_INIT_EVENT 事件
+     * 严格意义上来讲，该事件属于Context初始化阶段，它主要用于Context属性配置工作 。
+     * 通过前面的讲解，我们可知道，Context 的创建可以有如下几个来源 。
+     * 1.在实例化Server 时，解析server.xml 文中的的Context元素创建 。
+     * 2.在HostConfig部署web应用时，解析Web应用（目录或者WAR包），根目录下的META-IN/context.xml文件创建，如果不存在该文件，则自动创建
+     * 一个Context对象，仅对设置了path，docBase等少数几个属性。
+     * 3.在Host部署Web应用时，解析$CATALINA_BASE/conf/<Engine名称>/<Host名称>下的Context 部署描述文件。
+     *
+     * 除了Context 创建时属性配置，将Tomcat提供的默认配置也一并添加到Context实例，如果Context 没有显式的配置这些属性，这部分工作即
+     * 由该事件完成，具体过程如下 。
+     *
+     * 如果Context 的override属性为false ，即使用默认的配置。
+     * 1. 如果存在 conf/context.xml 文件 （Catalina容器级默认配置），那么解析该文件，更新当前Context 实例属性；
+     * 2. 如果存在conf/<Context名称>/<Host名称>/context.xml.default 文件（Host 级默认配置），那么解析该文件，更新当前 Context 实例属性。
+     *
+     * 如果Context 的configFile属性不为空，那么解析该文件，更新当前Context实例属性。
+     *
+     * 【注意】此处我们可能会产生疑问，为什么最后一步还要解析configFile呢？因为在服务器独立运行时，该文件和创建Context 时解析的文件是相同的。
+     * 这是由于Digester解析时会将原有的属性覆盖，试想一下，如果在创建Context时，我们指定了crossContext属性，而这个属性恰好在默认的配置中
+     * 也存在，此时我们希望的效果当然是忽略默认的属性，而如果不在最后一步解析configFile，此时的结果将会是默认属性覆盖指定属性，险此之外，
+     * 在嵌入式启动Tomcat 时，Context 为手动创建，即使存在META-INF/context.xml文件，此时也需要解析configFile文件（即META-INF/context.xml文件）
+     * 以此更新其属性。
+     *
+     * 通过上面的执行顺序，我们可以知道，Tomcat 中的Context 属性的优先级为：configFile,conf/<Engine名称>/<Host名称>/context.xml.default
+     * conf/context.xml ，即Web应用配置优先级最高，其次为Host配置，Catalina容器的配置优先级最低 。
+     *
+     *
+     *
      */
     protected void init() {
         // Called from StandardContext.init()
@@ -930,6 +974,12 @@ public class ContextConfig implements LifecycleListener {
 
     /**
      * Process a "before start" event for this Context.
+     * BEFORE_START_EVENT事件 。
+     * 该事件在Context 启动之前触发，用于更新Context的docBase属性和解决Web 目录锁的问题。
+     *      更新Context的docBase属性主要是为了满足WAR部署的情况，当Web应用为一个WAR压缩包且需要解压部署（Host的unpackWAR为true,且Context
+     * 的unpcakWAR为true）时，docBase属性指向的是解压后的文件目录，而非WAR包路径 。
+     *
+     *
      */
     protected synchronized void beforeStart() {
 
@@ -946,6 +996,10 @@ public class ContextConfig implements LifecycleListener {
 
     /**
      * Process a "contextConfig" event for this Context.
+     * Context在启动节点之前，触发了CONFIGURE_START_EVENT事件，ContextConfig正是通过该事件解析Web.xml，创建Wrapper（Servlet）
+     * Filter,ServletContextListener等一系列的Web容器相关的对象，完成Web容器的初始化。
+     *
+     *
      */
     protected synchronized void configureStart() {
         // Called from StandardContext.start()

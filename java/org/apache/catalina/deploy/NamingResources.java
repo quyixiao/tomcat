@@ -55,6 +55,7 @@ import org.apache.tomcat.util.res.StringManager;
  * 对象封装，如图9.5所示 ，命名资源的配置有两个地方，分别是Tomcat 容器的server.xml 文件和每个Web 项目的context.xml 文件，它们都通过
  * Digester框架读取配置文件中对应的属性并设置到NamingResource 的属性中，NamingResource 组件便充当这么一个功能 。
  *
+ * NamingResources 用于存储 Web应用声明的命名服务（JNDI） ，
  *
  */
 public class NamingResources extends LifecycleMBeanBase implements Serializable {

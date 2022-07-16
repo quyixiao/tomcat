@@ -1474,6 +1474,8 @@ public abstract class ContainerBase extends LifecycleMBeanBase
      * Execute a periodic task, such as reloading, etc. This method will be
      * invoked inside the classloading context of this container. Unexpected
      * throwables will be caught and logged.
+     *
+     *
      */
     @Override
     public void backgroundProcess() {
@@ -1525,6 +1527,13 @@ public abstract class ContainerBase extends LifecycleMBeanBase
             }
             current = current.getNext();
         }
+        // PERIODIC_EVENT事件
+        // 如前所述，Catalina的容器支持定期执行自身及其子容器的后台处理过程（该机制位置所有容器的父类ContainerBase中，默认情况下由Engine
+        // 维护后台任务处理线程），具体处理过程在容器的backgroundProcess() 方法中定义 ， 该机制常用于定时扫描Web应用的变更，并进行重新加载
+        // 后台任务处理完之后，将触发PERIODIC_EVENT事件
+        //      当HostConfig 接收到PERIODIC_EVENT 事件后，会检测守护资源的变更情况，如果发生了变更，将重新加载或者部署应用以及更新资源的最后修改时间。
+        //【注意】重新加载和重新部署的区别在于，前者是针对同一个Context对象的重启，而后者是重新创建了一个Context对象，Catalina中，同时守护两类资源 。
+        // 以区别是重新加载应用还是重新部署应用，如Context描述文件变更，则需要重新部署应用，而web.xml文件变更时，则需要重新加载Context 即可 。
         fireLifecycleEvent(Lifecycle.PERIODIC_EVENT, null);
     }
 

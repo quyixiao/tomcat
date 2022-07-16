@@ -872,7 +872,14 @@ public class StandardHost extends ContainerBase implements Host {
      * @exception LifecycleException if this component detects a fatal error
      *  that prevents this component from being used
      *
-     *
+     * 1. 如果配置了集群组件Cluster ,则启动
+     * 2. 如果配置了安全组件Realm ,则启动
+     * 3. 启动子节点（即通过server.xml 中的<Context>创建StandardContext实例），StandardContext启动见ghlf
+     * 4.启动Host持有的Pipeline组件
+     * 5.设置Host状态为STARTING, 此时会触发START_EVENT生命周期事件，HostConfig监听该事件，扫描Web 部署目录，对于部署文件
+     * ，WAR 包，目录会自动创建StandardContext闪现，添加到Host 并启动。
+     * 6. 启动Host层级的后台任务处理， Cluster后台任务处理（包括部署变更检测，心跳，），Realm后台任务处理， Pipeline中的Value 的后台
+     * 任务处理，某些Value 通过后台任务实现定期处理功能，如StuckThreadDetectionValue 用于检测耗时请求。
      *
      *
      */
