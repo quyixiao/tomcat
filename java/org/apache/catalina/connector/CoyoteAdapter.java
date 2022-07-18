@@ -743,6 +743,7 @@ public class CoyoteAdapter implements Adapter {
         // URI decoding
         // %xx decoding of the URL
         try {
+            // 对URI解码，初始化请求路径参数
             req.getURLDecoder().convert(decodedURI, false);
         } catch (IOException ioe) {
             res.setStatus(400);
@@ -762,6 +763,7 @@ public class CoyoteAdapter implements Adapter {
         // Character decoding
         convertURI(decodedURI, request);
         // Check that the URI is still normalized
+        // URI是否合法，如果非法，则返回响应码400
         if (!checkNormalize(req.decodedURI())) {
             res.setStatus(400);
             res.setMessage("Invalid URI character encoding");
@@ -789,13 +791,16 @@ public class CoyoteAdapter implements Adapter {
 
         // Version for the second mapping loop and
         // Context that we expect to get for that version
-        String version = null;
-        Context versionContext = null;
-        boolean mapRequired = true;
-
+        String version = null;          // 需要匹配的版本号，初始化为空，也就是匹配所有的版本
+        Context versionContext = null;  // 用于暂时按照会话的ID匹配的Context ，初始化为空
+        boolean mapRequired = true; // 是否需要映射，用于控制映射匹配循环，初始化为true
+        // 2. 通过一个循环（mapRequired==true）来处理映射匹配，因为通过一次处理并不能确保得到正确的结果，第3 步至第8步均循环内处理
         while (mapRequired) {
             // This will map the the latest version by default
             // 根据serverName和uri来设置mappingData
+            // 3 在循环第1步，调用Mapper.map()按照请求路径进行匹配，参数为serviceName, url,version,因为version初始化时为空，
+            // 第一次执行时，所有匹配请求路径的Context均会返回 ，此时MappingData.contexts 中存放了所有的结果，而MappingData.contexts
+            // 存放了最新版本
             connector.getMapper().map(serverName, decodedURI,
                     version, request.getMappingData());
             request.setContext((Context) request.getMappingData().context);
@@ -804,6 +809,7 @@ public class CoyoteAdapter implements Adapter {
             // If there is no context at this point, either this is a 404
             // because no ROOT context has been deployed or the URI was invalid
             // so no context could be mapped.
+            // 如果没有匹配到任何结果，那么返回404 响应码？匹配结束
             if (request.getContext() == null) {
                 res.setStatus(404);
                 res.setMessage("Not found");
@@ -849,8 +855,12 @@ public class CoyoteAdapter implements Adapter {
             parseSessionSslId(request);
 
             sessionID = request.getRequestedSessionId();
-
+            // 5. 上面尝试从请求的URL,Cookie，SSL 会话获取ID, 并将mapRequired设置为false(当第3步执行成功后)，默认不再执行循环
+            // 是否需要重新执行由后续步骤确定
             mapRequired = false;
+            // 6. 如果version不为空，且MappingData.context与versionContext相等，即表明当前匹配结果是会话查询结果，此时不再执行第7步
+            // 当前步骤仅用于重复匹配，第一次执行时，version和versionContext均为空，所以需要继续执行第7步，而重复执行时，已经指定了版本
+            // 可得到唯一的匹配结果
             if (version != null && request.getContext() == versionContext) {
                 // We got the version that we asked for. That is it.
             } else {
@@ -860,14 +870,20 @@ public class CoyoteAdapter implements Adapter {
                 Object[] contexts = request.getMappingData().contexts;
                 // Single contextVersion means no need to remap
                 // No session ID means no possibility of remap
+                // 7. 如果不存在会话ID,那么第3步匹配的结果即为最终结果（即使用匹配的最新版本），否则从MappingData.contexts中查找
+                // 包含请求会话ID的最新版本，查询结果分如下情况
+                // 7.1 没有查询结果（即表明会话ID过期）或者查询结果与第3步匹配结果相等，这同样使用的是第3步匹配的结果
                 if (contexts != null && sessionID != null) {
                     // Find the context associated with the session
                     for (int i = contexts.length; i > 0; i--) {
                         Context ctxt = (Context) contexts[i - 1];
                         if (ctxt.getManager().findSession(sessionID) != null) {
                             // We found a context. Is it the one that has
-
                             // already been mapped?
+                            // 7.2 在查询结果且与第3步匹配的结果不相等（表明当前会话使用的不是最新版本），将version设置为查询结果的版本，versionContext
+                            // 设置为查询结果，将mapRequired设置为true,重置MappingData，此种情况下，需要重复执行第3步（之所以需要重复执行
+                            // ,是因为虽然通过会话ID查询到了合适的Context,但是MappingData中记录了Wrapper 以及相关的路径信息仍属于最
+                            // 新版本Context,是错误的），并明确指定了匹配版本，指定了版本后，第3步应只存在唯一的匹配结果
                             if (!ctxt.equals(request.getMappingData().context)) {
                                 // Set version so second time through mapping
                                 // the correct context is found
@@ -885,7 +901,9 @@ public class CoyoteAdapter implements Adapter {
                     }
                 }
             }
-
+            // 如果mapRequired为false，即已经匹配到唯一的结果，但匹配的Context状态为暂停（如正在重新加载），此时等待1秒钟
+            // 并将mapRequired设置为true , 重置MappingData，此种情况下，需要进行重新匹配，直到匹配到一个有效的Context 或者无任何匹配
+            // 结果为止
             if (!mapRequired && request.getContext().getPaused()) {
                 // Found a matching context but it is paused. Mapping data will
                 // be wrong since some Wrappers may not be registered at this
@@ -900,10 +918,15 @@ public class CoyoteAdapter implements Adapter {
                 mapRequired = true;
             }
         }
-
+        // 通过上面的处理，Tomcat 确保得到的Context符合如下要求
+        // 匹配请求路径
+        // 如果有效会话，则为包含会话的最新版本
+        // 如果没有有效会话，则为所有的匹配请求最新版本
+        // Context必须是有效的（非暂停状态）
         // Possible redirect
         MessageBytes redirectPathMB = request.getMappingData().redirectPath;
         if (!redirectPathMB.isNull()) {
+            // 如果映射结果MappingData的redirectPath属性不为空（即为重定向请求），则调用org.apache.catalina.connector.Response.sendRedirect发送重定向并结束
             String redirectPath = urlEncoder.encode(redirectPathMB.toString(), "UTF-8");
             String query = request.getQueryString();
             if (request.isRequestedSessionIdFromURL()) {
@@ -927,6 +950,7 @@ public class CoyoteAdapter implements Adapter {
         // Filter trace method
         if (!connector.getAllowTrace()
                 && req.method().equalsIgnoreCase("TRACE")) {
+            // 如果当前Connector不允许追踪（allowTrace为false）, 且当前请求Method为TRACE,则返回响应码405
             Wrapper wrapper = request.getWrapper();
             String header = null;
             if (wrapper != null) {
@@ -952,9 +976,8 @@ public class CoyoteAdapter implements Adapter {
             request.getContext().logAccess(request, response, 0, true);
             return false;
         }
-
+        // 执行连接器的认证及授权
         doConnectorAuthenticationAuthorization(req, request);
-
         return true;
     }
 

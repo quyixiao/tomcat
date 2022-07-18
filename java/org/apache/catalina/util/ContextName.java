@@ -21,6 +21,14 @@ import java.util.Locale;
 /**
  * Utility class to manage context names so there is one place where the
  * conversions between baseName, path and version take place.
+ *      在 Web 应用加载的最后，我们讲解一下Context命名规则，尽管在大多数情况下，Context 的名称与部署目录名称或者WAR包名称（去除扩展名，下文名）
+ * 为基础文件名称相同，但是，Tomcat 支持的命名规则要复杂得多，在部署简单的情况下，我们基本可以忽略Tomcat 对Context命名规则的处理，
+ * 但是在复杂的逻辑情况下，这可能给我们应用部署带来极大的便利性。
+ *      实际上，Context的name,path和version的3个属性和基础文件名称有非常紧密的关系 。
+ *      当未指定version时，name与path相同，如果path为空字符串，基础文件名为"ROOT",否则，将path起始的"/"删除，并将其余的"/"替换成
+ * # 即为基础文件名称 。
+ *
+ *
  */
 public final class ContextName {
     private static final String ROOT_NAME = "ROOT";

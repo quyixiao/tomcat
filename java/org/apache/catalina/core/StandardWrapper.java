@@ -106,6 +106,9 @@ import org.apache.tomcat.util.modeler.Util;
  *  Wrapper 类必须实现该接口，该方法的签名如下 ：
  *
  *
+ *
+ *
+ *
  */
 @SuppressWarnings("deprecation") // SingleThreadModel
 public class StandardWrapper extends ContainerBase
@@ -1258,6 +1261,7 @@ public class StandardWrapper extends ContainerBase
             InstanceManager instanceManager = ((StandardContext)getParent()).getInstanceManager();
             try {
                 // 有了类加载器和腰加载的 Servlet 名字，就可以使用 loadServlet 方法来加载类 了。
+                // 1. 创建Servlet实例，如果添加了JNDI 注解，将进行依赖注入
                 servlet = (Servlet) instanceManager.newInstance(servletClass);
             } catch (ClassCastException e) {
                 unavailable(null);
@@ -1281,6 +1285,8 @@ public class StandardWrapper extends ContainerBase
             }
 
             if (multipartConfigElement == null) {
+                // 2. 读取javax.servlet.annotation.MultipartConfig配置，以用于multipart/form-data请求处理，包括临时文件存储路径 。
+                // 上传文件最大字节数，请求最大字节数，文件大小阈值。
                 MultipartConfig annotation =
                         servlet.getClass().getAnnotation(MultipartConfig.class);
                 if (annotation != null) {
@@ -1310,7 +1316,7 @@ public class StandardWrapper extends ContainerBase
                 singleThreadModel = true;
             }
 
-            // 初始化servlet
+            // 4. 初始化servlet
             initServlet(servlet);
 
             fireContainerEvent("load", this);

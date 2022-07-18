@@ -24,10 +24,10 @@ import javax.servlet.annotation.MultipartConfig;
  */
 public class MultipartConfigElement {
 
-    private final String location;// = "";
-    private final long maxFileSize;// = -1;
-    private final long maxRequestSize;// = -1;
-    private final int fileSizeThreshold;// = 0;
+    private final String location;// = "";                      // 临时文件存储路径
+    private final long maxFileSize;// = -1;     // 上传文件最大字节数
+    private final long maxRequestSize;// = -1;      // 请求最大字节数
+    private final int fileSizeThreshold;// = 0;     // 文件大小阀值
 
     public MultipartConfigElement(String location) {
         // Keep empty string default if location is null
