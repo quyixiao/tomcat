@@ -823,6 +823,10 @@ public final class Mapper {
      * @param uri URI
      * @param mappingData This structure will contain the result of the mapping
      *                    operation
+     * 在讲解算法之前，有必要先了解一下Mapper的静态结构，这有助于我们加深对算法的理解，Mapper静态结构如图 3 -6 所示 。
+     * 第一：Mapper 对Host ，Context , Wrapper 均提供了对应的封装类，因此描述算法时， 我们用MappedHost，MappedContext ，MappedWrapper
+     *表示其封装对象，用Host,Context,Wapper 表示Catalina组件 。
+     *
      */
     public void map(MessageBytes host, MessageBytes uri, String version,
                     MappingData mappingData)
@@ -880,6 +884,16 @@ public final class Mapper {
         // Virtual host mapping
         // 从当前Engine中包含的虚拟主机中进行筛选
         Host[] hosts = this.hosts;
+        // 1. 一般情况下，需要查找Host名称为请求的serverName,但是，如果没有指定Host名称，那么将使用默认的Host名称
+        // 【注意】：默认的Host名称通过按照Engine的defaultHost属性查找其Host子节点获取，查找规则：Host名称与defaultHost相等
+        // 或Host缩写名与defaultHost相等（忽略大小写），此处需要注意一个问题，由于Container在维护子节点时，使用的是HashMap 。
+        // 因此得到其子节点列表时 ，顺序与名称的哈希码相关，例如 ，如果Engine 中配置的defaultHost为"Server001",而Tomcat 中配置了
+        // "SERVER001" 和 "Server001" 两个,两个Host ，此时默认Host名称为"SERVER001"，而如果我们将"Sever001"换成了"server001", 则
+        // 结果就变成了"server001",当然，实际配置过程中，应彻底避免这种命名
+        // 2. 按照Host名称查找Mapper.Host(忽略大小写)，如果没有找到匹配结果，且默认的Host名称不为空，则按默认的Host名称精确查找
+        // ,如果存在匹配结果，将其保存到MappingData的Host属性
+        // 【注意】此处有时候会让人产生疑惑（第1步在没有指定host名称时），已经将host名称设置为默认的Host名称，为什么第2步仍然压根按照
+        // 默认的Host名称查找，这主要满足如下场景，当host不为空，且为无效名称时 ， Tomcat将会尝试返回默认的Host ，而非空值 。
         Host mappedHost = exactFindIgnoreCase(hosts, host);
         if (mappedHost == null) {
             if (defaultHostName == null) {
@@ -896,7 +910,17 @@ public final class Mapper {
         ContextList contextList = mappedHost.contextList;
         Context[] contexts = contextList.contexts;  // 找到的host中对应的context
         int nesting = contextList.nesting;
-
+        // 3. 按照url查找MapperdContext最大可能匹配的位置pos(只限于第2步查找的MappedHost下的MappedContext),之所以如此描述。
+        // 与Tomcat的查找算法相关
+        // 【注意】：在Mapperd中所有的Container是有序的，按照名称的ASCII正序排列，因此Tomcat采用十分法进行查找，其返回的结果存在如下两种情况
+        // 3.1  -1:表明url比当前的MappedHost下所有的MappedContext的名称都小，也就是说，没有匹配到MappedContext
+        // 3.2 >=0 可能是精确匹配的位置，也可能是表中比url小的最大值位置，即使没有精确匹配，也不代表最终没有匹配项，这需要进一步的处理。
+        // 如果比较难以理解，我们下面试举一个例子，例如我们配置了两个Context,路径分别为/myapp/和/myapp/app1 ，在Tomcat中，这两个是
+        // 允许同时存在的，然后我们尝试输入请求路径http://127.0.0.1:8080/myapp/app1/index.jsp, 此时url为/myapp/app1/index.jsp
+        // 很显然，url 可能和Context路径精确匹配，此时返回比其最小的最大值位置（即/myapp/app1）,当Tomcat发现其非精确匹配时，会将url
+        // 进行截取（截取为/myapp/app1）,再进行匹配，此时将会精确匹配到/myapp/app1, 当然，如果我们输入的是http://127.0.0.1:8080/myapp/app2/index.jsp
+        // Tomcat将会继续截取，直到匹配到/myapp
+        // 由此可见，Tomcat 总是试图查找一个最精确的MappedContext（如上例使用/myapp/app1）,而非/myapp， 尽管这两个都是可以匹配的。
         int pos = find(contexts, uri); //折半查找法
         if (pos == -1) {
             return;
@@ -907,6 +931,10 @@ public final class Mapper {
         int length = -1;
         boolean found = false;
         Context context = null;
+        // 4. 当第3步查找的pos>=0 ,得到对应的MappedContext，如果url与MappedContext路径相等或者url以MappedContext路径+"/"开头
+        // 均视为找到了匹配的MappedContext,否则，循环执行第4步，逐渐 降低精确度以查找合适的MappedContext（具体可以参见第3步的例子）
+        // 【注意】对于第3步的例子，如果请求地址为http://127.0.0.1:8080/myapp/app1 ,那么最终的匹配条件是url与MappedContext路径相等
+        // 如果请求地址为 http://127.0.0.1:8080/myapp/app1/index.jsp ,那么最终的匹配条件应该是url以MappedContext路径 + "/"开头。
         while (pos >= 0) {
             context = contexts[pos];
             if (uri.startsWith(context.name)) {
@@ -929,7 +957,8 @@ public final class Mapper {
             pos = find(contexts, uri);
         }
         uri.setEnd(uriEnd);
-
+        // 5. 如果循环结束后仍然未找到合适的MappedContext ，那么会判断第0个MappedContext的名称是否为空字符串，如果是，则将其作为匹配
+        // 结果（即使用默认的MappedContext）
         if (!found) {
             // 就算没有找到，那么也将当前这个请求交给context[0]来进行处理,就是ROOT应用
             if (contexts[0].name.equals("")) {
@@ -945,6 +974,9 @@ public final class Mapper {
         mappingData.contextPath.setString(context.name); // 设置最终映射到的contextPath
 
         ContextVersion contextVersion = null;
+        // 6. 前面曾讲到MappedContext存放了路径相同的所有版本的Context(ContextVersion) ，因此第5步结束后，还需要对MappedContext版本进行
+        // 处理，如果指定了版本号，则返回版本号相等的ContextVersion ,否则返回版本号最大的，最后，将ContextVersion中维护的Context保存到
+        // MappingData中
         ContextVersion[] contextVersions = context.versions;
         final int versionCount = contextVersions.length;
         if (versionCount > 1) { // 如果context有多个版本
@@ -967,6 +999,8 @@ public final class Mapper {
         mappingData.contextSlashCount = contextVersion.slashCount;
 
         // Wrapper mapping
+        // 7. 如果Context当前状态为有效（如图3-6可知，当Context处于暂停状态时，将会重新按照url映射，此时MappedWrapper的映射没有意义），
+        // 则映射对应的MappedWrapper
         if (!contextVersion.isPaused()) {
             // 根据uri寻找wrapper
             internalMapWrapper(contextVersion, uri, mappingData);
@@ -977,6 +1011,10 @@ public final class Mapper {
 
     /**
      * Wrapper mapping.
+     * MapperWrapper映射
+     * 我们知道ContextVersion中将MappedWrapper分为：默认Wrapper(defaultWrapper)，精确Wrapper(exactWrappers) ,前缀加通配符匹配
+     * Wrapper(wildcardWrappers)和扩展名匹配Wrapper(extensionWrappers), 之所以分为这几类是因为他们之间存在匹配的优先级。
+     *
      */
     private final void internalMapWrapper(ContextVersion contextVersion,
                                           CharChunk path,
