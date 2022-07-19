@@ -98,6 +98,7 @@ public class Connector extends LifecycleMBeanBase  {
 
     /**
      * The "enable DNS lookups" flag for this Connector.
+     * 设置为false, 会禁用request.getRemoteHost() 方法的DNS查询，从而提升响应性能（减少DNS查询耗时）
      */
     protected boolean enableLookups = false;
 

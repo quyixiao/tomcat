@@ -29,6 +29,13 @@ import java.util.concurrent.Executor;
  * @author Remy Maucherat
  * @author Costin Manolache
  * @see Adapter
+ *
+ *ProtocolHandler : Coyote协议接口，通过封装Endpoint和Processor，实现针对具体的协议的处理功能，Tomcat按照协议和I/O提供了6个实现类
+ * Http11NioProtocol,Http11AprProtocol,Http11Nio2Protocol,AJPNioProtocol,AjpAprProtocol,AjpNio2Protocol,我们在$CATALINA_BASE
+ * /conf/server.xml 中设置链接时，至少要指定具体的ProtocolHandler(当然，也可以指定协议名称，如"HTTP/1.1" ，如果服务器安装了APR ,
+ * 那么将使用Http11AprProtocol，否则使用Http11NioProtocol,Tomcat7 以及之前的版本则会是Http11Protocol)。
+ *
+ *
  */
 public interface ProtocolHandler {
 

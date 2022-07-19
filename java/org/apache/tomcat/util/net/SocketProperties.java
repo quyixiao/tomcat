@@ -101,6 +101,9 @@ public class SocketProperties {
 
     /**
      * TCP_NO_DELAY option. JVM default used if not set.
+     * tcpNoDelay : 该属性设置为true , 会启动Socket的TCP_NO_DELAY选项，它会禁用Nagle算法，该算法通过降低网络发送包的数量提升网络利用率，
+     * 在非交互式Web应用环境中该算法会缩短响应时间，但是在交互式Web应用环境中则会加大响应的时间，因为它会将小包拼接为大包再进行发送。
+     * 从而导致响应延迟
      */
     protected Boolean tcpNoDelay = Boolean.TRUE;
 

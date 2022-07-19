@@ -152,6 +152,10 @@ public abstract class AbstractHttp11Processor<S> extends AbstractProcessor<S> {
 
     /**
      * Maximum number of Keep-Alive requests to honor.
+     * 用于控制HTTP请求的keep-alive的行为，以启动持续链接（即多个请求通过同一个HTTP链接发送），该属性指定HTTP链接在被服务器关闭之前处理
+     * 的请求的最大数目，Tomcat默认的值为100，如果设置为1表示禁用该特性，因此，该属性会提升单个客户端的请求效率，尤其当一个Web页面包含多个
+     * HTTP请求时，减少了新链接找开销，但同时会影响到服务器整体的吞吐量（链接持续时间过长，使服务器容易达到最大链接数，此时其他客户端的请求只能）
+     * 等待，甚至被直接拒绝，这种情况下，我们可以适当调低keepAliveTimeout的值。
      */
     protected int maxKeepAliveRequests = -1;
 

@@ -566,6 +566,13 @@ public class NioEndpoint extends AbstractEndpoint<NioChannel> {
 
             // Start poller threads
             // 用Poller线程来处理来处理io读写事件,线程的个数，如果是多核就是两个线程，如果单核就是一个线程
+            // 1. NioEndpoint中的ServerSocketChannel是阻塞的，因此，仍然采用多线程并发接收客户端链接 。
+            // 2. NioEndpoint根据pollerThreadCount配置的数量创建Poller线程，与Acceptor相同，Poller线程也是单独启动，不会占用请求处理的
+            // 线程池，默认的Poller线程个数与JVM可使用的处理器相关。上限为2
+            // 3. Accepor接收到新的链接后，将获得SocketChannel置为非阻塞，构造NioChannel对象，按照轮转法（Round-Robin）获取Poller
+            // 实例，并将NioChannel注册到PollerEvent事件队列
+            // 4. Poller负责为SocketChannel 注册读事件，接收到读事件后，由SocketProccesor完成客户端请求处理，SocketProcessor完成
+            // 客户端请求处理，SocketProcessor的处理过程具体参见4.2节的说明
             pollers = new Poller[getPollerThreadCount()];
             for (int i=0; i<pollers.length; i++) {
                 pollers[i] = new Poller();
@@ -950,6 +957,13 @@ public class NioEndpoint extends AbstractEndpoint<NioChannel> {
     /**
      *
      * PollerEvent, cacheable object for poller events to avoid GC
+     *      Poller运行时，首先将新添加到队列中的PollerEvent取出，并将SocketChannel的读事件（OP_READ）注册到Poller持有的Selector上
+     * 然后执行Selector.select，当捕获到读事件时，构造SocketProcessor，并提交到线程池进行请求处理。
+     *      为了提升对象的利用率，NioEndpoint分别为NioChannel和PollerEvent对象创建了缓存队列，当需要NioChannel和PollerEvent对象时
+     * 会检测缓存队列中是否存在可用的对象，如果存在则从队列中取出对象并重置，如果不在，则新建。
+     *
+     *
+     *
      */
     public static class PollerEvent implements Runnable {
         // PollerEvent表示需要注册的事件,

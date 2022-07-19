@@ -50,11 +50,19 @@ public class StandardThreadExecutor extends LifecycleMBeanBase
 
     /**
      * max number of threads
+     * maxThreads ：Tomcat是一款多线程Servlet容器，每个请求都会分配一个线程进行处理，因此Tomcat采用线程池来提高处理性能，maxThreads
+     * 用于指定Connector 创建的请求处理线程的最大数目，该属性决定了可以并行处理的请求最大数目，即并发上限，当并发请求数超过maxThreads
+     * 时，多余的请求只能排队等待，增大该属性可以提高Tomcat的并发处理能力，但是这也意味着会占用更多的系统资源，因此如果非常大反而会降低
+     * 性能，甚至导致Tomcat崩溃。
      */
     protected int maxThreads = 200;
 
     /**
      * min number of threads
+     * Tomcat 允许的空闲线程最小数目，也是启动Connector创建线程数目，如果空闲线程数小于该值，Tomcat将创建新的线程数，该属性设置为圈套值对
+     * 性能并无益处，因为会占用额外的系统资源，默认值为4，可以满足大多数的Web应用的需求 ，但是对于存在突发的情况的Web应用，可能适当调大
+     * 该值
+     *
      */
     protected int minSpareThreads = 25;
 

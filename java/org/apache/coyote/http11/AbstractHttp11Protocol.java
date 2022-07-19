@@ -110,7 +110,7 @@ public abstract class AbstractHttp11Protocol<S> extends AbstractProtocol<S> {
     }
 
 
-    private int socketBuffer = 9000;
+    private int socketBuffer = 9000;                   // 用于指定Socket输出缓冲的大小，单位为字节
     public int getSocketBuffer() { return socketBuffer; }
     public void setSocketBuffer(int socketBuffer) {
         this.socketBuffer = socketBuffer;

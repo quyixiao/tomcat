@@ -1012,8 +1012,21 @@ public final class Mapper {
     /**
      * Wrapper mapping.
      * MapperWrapper映射
-     * 我们知道ContextVersion中将MappedWrapper分为：默认Wrapper(defaultWrapper)，精确Wrapper(exactWrappers) ,前缀加通配符匹配
+     *      我们知道ContextVersion中将MappedWrapper分为：默认Wrapper(defaultWrapper)，精确Wrapper(exactWrappers) ,前缀加通配符匹配
      * Wrapper(wildcardWrappers)和扩展名匹配Wrapper(extensionWrappers), 之所以分为这几类是因为他们之间存在匹配的优先级。
+     *      此外，在ContextVersion中，并非每一个Wrapper对应一个MappedWrapper对象，而是每一个url-pattern对应一个，如果web.xml中的
+     * servlet-mapping配置如下 ：
+     *      <servlet-mapping>
+     *          <servlet-name>example</servlet-name>
+     *          <url-pattern>*.do</url-pattern>
+     *          <url-pattern>*.action</url-pattern>
+     *      </servlet-mapping>
+     * 那么，在ContextVersion中将存在两个MappedWrapper封装对象，分别指向同一个Wrapper实例。
+     * Mapper按照如下规则将Wrapper添加到ContextVersion对应的MappedWrapper分类中去。。。。
+     * 1. 如果url-pattern以/* 结尾，则为wildcardWrappers，此时MappedWrapper的名称为url-pattern去除结尾的"/*"
+     * 2. 如果url-pattern 以 *. 结尾，则为extensionWrappers，此时,MappedWrapper的名称为url-pattern去除开头的 "*."
+     * 3. 如果url-pattern 以 "/" 结尾，则为defaultWrapper，此时MappedWrapper的名称为空字符串
+     * 4. 其他情况均为exactWrappers , 如果url-pattern为空字符串，MappedWrapper的名称为"/" ，否则为url-pattern的值 。
      *
      */
     private final void internalMapWrapper(ContextVersion contextVersion,
@@ -1031,12 +1044,16 @@ public final class Mapper {
         }
         int servletPath = pathOffset + length;
         path.setOffset(servletPath);
-
+        // 接下来看一下MappedWrapper的详细匹配过程
+        // 1. 依据url和Context路径来计算 MappedWrapper匹配路径，例如，如果Context路径为"/myapp",url为"/myapp/app1/index.jsp"
+        // 那么MappedWrapper的匹配路径为"/app1/index.jsp", 如果url 为"/myapp",那么MappedWrapper的匹配路径为"/"
+        // 2. 先精确查找exactWrappers 。
         // Rule 1 -- Exact Match 精准匹配
         Wrapper[] exactWrappers = contextVersion.exactWrappers;
         internalMapExactWrapper(exactWrappers, path, mappingData);
 
         // Rule 2 -- Prefix Match 前缀匹配 *.jar
+        // 如果未找到，然后再按照前缀查找wildcardWrappers ，算法与MappedContext查找类似，逐步降低精度
         boolean checkJspWelcomeFiles = false;
         Wrapper[] wildcardWrappers = contextVersion.wildcardWrappers;
         if (mappingData.wrapper == null) {
@@ -1076,6 +1093,7 @@ public final class Mapper {
         }
 
         // Rule 3 -- Extension Match /123123/*
+        // 如果未找到，然后按照扩展名查找extensionWrappers 。
         Wrapper[] extensionWrappers = contextVersion.extensionWrappers;
         if (mappingData.wrapper == null && !checkJspWelcomeFiles) {
             internalMapExtensionWrapper(extensionWrappers, path, mappingData,
@@ -1083,6 +1101,17 @@ public final class Mapper {
         }
 
         // Rule 4 -- Welcome resources processing for servlets
+        // 如果未找到，则尝试匹配欢迎文件列表（web.xml的welcome-file-list配置），主要用于我们输入的请求路径是一个目录而非文件的情况
+        // 如：http://127.0.0.1:8080/myapp/app1 ，此时使用匹配路径为"原匹配路径+welcome-file-list中的文件名称" ，欢迎文件匹配分为如下两步
+        // 4.1 对于每个欢迎文件生成的新的匹配路径，先查找exactWrappers，再查找wildcardWrappers，如果该文件的物理路径不存在 ，则查找
+        // extensionWrappers，如果extensionWrappers未找到，则使用defaultWrapper
+        // 4.2 对于每个欢迎文件生成的新的匹配路径，查找extensionWrappers
+        // 【注意】在第1步中，只有当存在物理路径时，才会查找extensionWrappers，并在找不到时使用defaultWrapper，而在第2步则不判断物理路径
+        // 直到通过extensionWrappers查找，按照这种方式处理，如果我们配置如下 。
+        // 4.2.1 url-pattern 配置为"*.do"
+        // 4.2.2 welcome-file-list 包括index.do ,index.html
+        // 当我们输入的请求路径为http://127.0.0.1:8080/myapp/app1/ ,  且在app1目录下存在index.html文件时，打开的是index.html，而
+        // 非index.do ，即便它位于前面（因为它不是个具体文件，而是由Web 应用动态生成 ）
         if (mappingData.wrapper == null) {
             boolean checkWelcomeFiles = checkJspWelcomeFiles;
             if (!checkWelcomeFiles) {
@@ -1151,6 +1180,8 @@ public final class Mapper {
          * but may not have a physical backing to it. This is for
          * the case of index.jsf, index.do, etc.
          * A watered down version of rule 4
+         *  如果未找到，则使用默认的MappedWrapper（通过conf/web.xml,即使Web应用不显式的进行配置，也一定会存在一个默认的Wrapper）
+         * 因此，无论请求链接是什么，只要匹配到合适的Context,那么肯定会存在一个匹配的Wrapper
          */
         if (mappingData.wrapper == null) {
             boolean checkWelcomeFiles = checkJspWelcomeFiles;

@@ -776,6 +776,9 @@ public abstract class AbstractEndpoint<S> {
     }
 
     protected final void startAcceptorThreads() {
+        // 3. 根据acceptorThreadCount配置的数量，创建并启动org.apache.tomcat.util.net.JIoEndpoint.Acceptor线程，Acceptor实现
+        // 了Runnable接口，负责轮询接收客户端请求（Socket.accept()） ,这些线程是单独启动的，并未放到线程池中，因此不会影响到请求并发处理
+        // Acceptor还会检测Endpoint状态（如果处于暂停状态，则等待）以及最大链接数
         int count = getAcceptorThreadCount();
         acceptors = new Acceptor[count];
 

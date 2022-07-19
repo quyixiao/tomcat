@@ -151,9 +151,54 @@ import org.xml.sax.ext.EntityResolver2;
  * 只有那些经过精确匹配，前缀匹配，扩展名匹配等还没有匹配上的，才会留给DefaultServlet ，DefaultServlet 通过JNDI根据URI 在Tomcat 内部查找资源 。
  * 然后该资源响应客户端。
  *
+ *      由前面的配置可知，Default的url-pattern为"/"，因此，它将作为默认的Servlet，当客户端请求不能匹配到他的Servlet时，将由该Servlet处理
+ *      DefaultServlet主要用于处理静态资源，如HTML,图片，CSS,JS文件等，而且为了提升服务器的性能，Tomcat对访问文件进行了缓存，按照默认的配置。
+ * ，客户端请求路径与资源的物理路径是一致的， 即当我们输入的链接为http://127.0.0.1:8080/myapp/static/sample.png时， 加载的图片物理路径为
+ * $CATALINA_BASE/webapps/myapp/static/sample.png
+ *      当然，如果我们希望DefaultServlet只加载static目录下的资源，只需要将url-pattern改为"/static/*" 即可，此时DefaultServlet将不再
+ * 是默认的Servlet , 但是，这不会改变我们的请求路径，也就是说资源指向的仍旧是物理路径，这是因为DefaultServlet根据完整的请求地址获取文件而非
+ * 基于Servlet相对路径 。
+ *    如果我们希望Web应用覆盖Tomcat的DefaultServlet配置，只需要将"/"添加到自定义的Servlet的url-pattern中即可（此时，自定义的Servlet将
+ *成为默认的Servlet）。
+ * 【注意】覆盖DefaultServlet配置时要慎重，因为这可能导致无法加载静态文件，除非在覆盖的情况下，自定义Servlet可以兼容DefaultServlet
+ * 的功能以及请求地址的处理（大多数Servlet基于相对路径来分发请求， 而非完整路径，此时如果直接覆盖，将导致客户端请求无效）
+ * 当然，我们应该尽量避免使用不同的Servlet之间产生覆盖，因为覆盖结果会与具体的加载顺序(web.xml,web-fragment.xml以及注解顺序)相关
+ * 当系统复杂度上升时，可维护性势必会降低，建议通过划分Servlet请求目录（如：/static/,/html/,/js/等）指定请求扩展名（如：*.do ,*.action）
+ * 来合理的请求路径命名。
+ *      DefaultServlet除了支持访问静态资源，还支持查找目录列表，只需要名为"listings"的<init-param>设置为true，此时如果我们输入
+ *  http://127.0.0.1:8080/myapp/static/，且该目录下没有任何欢迎文件（welcome-file-list配置），Tomcat将返回对物理目录下的文件目录列表 。
+ *  【注意】需要确保welcome-file-list不包含虚拟的文件名，如index.do ,否则此时仍然会由index.do匹配的Servlet处理。
+ *      默认情况下，Tomcat 以HTML形式输出文件目录列表 （包括文件名，大小，最后修改时间），此外，可以通过参数localXsltFile ，contextXsltFile
+ * 或globalXsltFile指定一个XSL 或XSLT 文件，此时，Tomcat将XML形式输出文件目录，并使用指定的XSL或XSLT文件将其转换为响应输出，通过这种
+ * 方式，我们可以根据需要定制文件目录输出界面 。
+ * Tomcat输出的XML内容格式如下：
+ * <?xml version='1.0'?>
+ *     <listing contextPath='Web应用根目录' director='当前查看目录' hasParent='true'>
+ *         <entries>
+ *             <entry type='file' urlPath='文件路径' size='文件大小' date='最后修改时间'></entry>
+ *             <entry type='dir' urlPath='子目录路径' date='最后修改时间'>目录名</entry>
+ *         </entries>
+ *     </listing>
+ * </?xml>
  *
- *
- *
+ *      DefaultServlet支持初始化参数如表3-5所示，我们可以根据实际需要进行配置。
+ * 参数                  描述
+ * debug                Debug日志级别，主要用于开发环境，当前版本只有0，1-10，>= 11 这3个级别，而且同一级别内的值无论配置为何都是等价的。
+ * listings             如果配置为true,当请求目录下没有欢迎文件时，将显示文件目录列表，默认为false,如果目录下包含过多的子目录和文件，将
+ *                      操作非常的耗费性能，在请求访问最大的情况下占用大量的系统资源 。
+ * readmeFile           ReadMe文件名，当DefaultServlet允许显示文件目录，且当前文件目录下存在readmeFile指定的文件时，该文件将会被插入
+ *                      到最终的请求响应，以显示当前目录的ReadMe信息
+ * globalXsltFile       Tomcat支持通过XSL定制文件目录显示列表，该参数用于指定XSL文件（基于$CATALINA_BASE/conf/或$CATALINA_HOME/conf/的相对路径 ）
+ *                      因此XSL文件可以在所有Web应用中共享 。
+ * localXsltFile        使用与globalXsltFile相同，但是文件路径相对当前请求目录，因此该参数指定的文件只适用于当前请求目录，Tomcat优先
+ *                      使用该参数，其次为contextXsltFile，globalXsltFile的优先级最低。
+ * input                读资源文件时，输出缓冲大小，单位为字节，默认为2048
+ * output               写资源文件时，输出缓冲大小，单位为字节，默认为2048
+ * readonly             如果配置为true ,Tomcat将会拒绝由DefaultServlet处理PUT和DELETE请求。
+ * fileEncoding         读取资源文件时使用的文件编码 。
+ * sendfileSize         如果当前连接器支持sendFile, 该参数用于配置使用sendFile的最小文件大小，单位为KB,如果为负数，表示禁用sendfile
+ * useAcceptRanges      如果为true, 将添加Accept-Ranges 响应头。
+ * showServerInfo       如果为true , 将会在文件目录列表中输出服务器信息， 当前版本只适用于默认的格式输出的情况 。
  */
 public class DefaultServlet extends HttpServlet {
 

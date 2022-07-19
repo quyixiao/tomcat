@@ -28,6 +28,12 @@ import org.apache.tomcat.util.net.SocketWrapper;
 
 /**
  * Common interface for processors of all protocols.
+ * Processor :Coyote协议处理接口，负责构建Request和Response对象，并通过Adapter将其提交到Catalina容器处理，对应用层抽象，Processor是
+ * 单线程的，Tomcat在同一次链接中复用Processor，Tomcat按照协议的不同提供了3个实现类：Http11Processor(HTTP/1.1) ，AjpProcessor(AJP)
+ * StreamProcessor(HTTP/2.0)，除此之外，它还提供了两个用于升级协议处理的实现，UpgradeProcessorInternal和UpgradeProcessorExternal
+ * 前者用于处理内部支持的升级协议（如HTTP/2.0和WebSocket,至于UpgradeProcessorInternal是如何实现StreamProcessor配置完成HTTP/2.0 处理）
+ * 后者用于处理外部扩展升级协议支持
+ *
  */
 public interface Processor<S> {
     Executor getExecutor();

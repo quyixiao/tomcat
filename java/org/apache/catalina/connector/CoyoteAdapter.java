@@ -461,7 +461,10 @@ public class CoyoteAdapter implements Adapter {
                 request.setAsyncSupported(
                         connector.getService().getContainer().getPipeline().isAsyncSupported());
                 // Calling the container
-                // 调用容器进行处理, 直接调用的StandardEngineValve
+                // 调用容器进行处理, 直接调用的StandardEngineValve,在StandardWrapperValue中（由于Wrapper为最低一级的Container
+                // 且该Value处于职责链的未端，因此它始终最后执行），Tomcat 构造FilterChain实例完成javax.servlet.Filte责任链执行，并且
+                // 执行Servlet.service()方法将请求交由应用程序进行分发处理（如果采用了如Spring MVC 等WEB 框架的话，Servlet会进一步
+                // 根据应用程序内部的配置将请求交由对应的控制器处理）
                 connector.getService().getContainer().getPipeline().getFirst().invoke(
                         request, response);
 
