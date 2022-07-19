@@ -1618,7 +1618,7 @@ public class StandardContext extends ContainerBase
 
     /**
      * Returns true if the resources associated with this context are
-     * filesystem based.
+     * filesystem based
      */
     @Deprecated
     public boolean isFilesystemBased() {
