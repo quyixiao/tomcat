@@ -113,7 +113,7 @@
     <!-- You should set jvmRoute to support load-balancing via AJP ie :
     <Engine name="Catalina" defaultHost="localhost" jvmRoute="jvm1">
     -->
-    <Engine name="Catalina" defaultHost="localhost">
+    <Engine name="Catalina" defaultHost="localhost" >
 
       <!--For clustering, please take a look at documentation at:
           /docs/cluster-howto.html  (simple how to)
@@ -147,10 +147,16 @@
       </Host>-->
 
       <Host name="localhost"  appBase="webapps"
-            unpackWARs="true" autoDeploy="true">
+            unpackWARs="true" autoDeploy="true" >
 
-        <!-- SingleSignOn valve, share authentication between web applications
-             Documentation at: /docs/config/valve.html -->
+
+
+        <!--    其中 docBase为Web应用的根目录的文件路径，path为Web应用的根请求地址，如上，假如我们的Tomcat 地址为
+        http://127.0.0.1 ,那么，Web 应用的根请求地址为http://127.0.0.1:8080/myApp1-->
+           <Context docBase="myApp" path="/myApp1" reloadable="true"></Context>
+
+            <!-- SingleSignOn valve, share authentication between web applications
+                 Documentation at: /docs/config/valve.html -->
         <!--
         <Valve className="org.apache.catalina.authenticator.SingleSignOn" />
         -->
@@ -175,6 +181,10 @@
 <!--                  maxIdle="2"-->
 <!--                  maxWait="10000"/>-->
 <!--        </Context>-->
+
+        <Valve className="org.apache.catalina.valves.ErrorReportValve">
+
+        </Valve>
 
         <!-- Access log processes all example.
              Documentation at: /docs/config/valve.html

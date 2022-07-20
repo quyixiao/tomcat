@@ -46,6 +46,7 @@ import org.apache.tomcat.util.res.StringManager;
  * @author <a href="mailto:nicolaken@supereva.it">Nicola Ken Barozzi</a> Aisa
  * @author <a href="mailto:stefano@apache.org">Stefano Mazzocchi</a>
  * @author Yoav Shapira
+ *
  * 为Host 添加一个Value 实现ErrorReportValue （我们也可以通过修改Host 的errorReportValueClass 属性指定自己的错误处理Value）
  * 该类的主要用于服务器处理异常时输出的错误页面，如果我们没有在web.xml中添加错误处理页面，Tomcat 返回的异常栈页面便是ErrorReportValue生成的
  *
