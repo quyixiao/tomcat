@@ -35,16 +35,21 @@ public class StandardThreadExecutor extends LifecycleMBeanBase
     // ---------------------------------------------- Properties
     /**
      * Default thread priority
+     * 整数值，表示线程池中所有线程的线程优先级 。
      */
     protected int threadPriority = Thread.NORM_PRIORITY;
 
     /**
      * Run threads in daemon or non-daemon state
+     * 决定这一Executor的线程是否应该为后台线程， 如果JVM 中的所有其他的非后台线程都结束了，则后台线程结束，要获得有关的后台线程的
+     * 详细解释，参见 java.lang.Thread的Java 1.5 及更高版本，Javadoc 网页。
      */
     protected boolean daemon = true;
 
     /**
      * Default name prefix for the thread name
+     * 在JVM上，每个运行线程都可以有一个name, 字符串，这一属性为线程池中每个线程的name 字符串设置了一个前缀，Tomcat 将把线程号
+     * 追加到这一前缀的后面
      */
     protected String namePrefix = "tomcat-exec-";
 
@@ -68,6 +73,8 @@ public class StandardThreadExecutor extends LifecycleMBeanBase
 
     /**
      * idle time in milliseconds
+     * 在Tomcat关闭一个空闲线程之前，允许空闲线程60000（一分钟）持续的时间（以毫秒为单位），只有当前活跃的线程数大于minSpareThread的值
+     * ,才会关闭空闲线程
      */
     protected int maxIdleTime = 60000;
 
@@ -78,6 +85,7 @@ public class StandardThreadExecutor extends LifecycleMBeanBase
 
     /**
      * the name of this thread pool
+     * 共离线程池的名字，这是Connector为了共享线程池要引用的名字，该名字必须唯一
      */
     protected String name;
 

@@ -177,6 +177,7 @@ public class Connector extends LifecycleMBeanBase  {
     /**
      * Maximum size of a POST which will be automatically parsed by the
      * container. 2MB by default.
+     * POST 请求参数的最大值，将由容器自动分析
      */
     protected int maxPostSize = 2 * 1024 * 1024;
 
@@ -184,6 +185,7 @@ public class Connector extends LifecycleMBeanBase  {
     /**
      * Maximum size of a POST which will be saved by the container
      * during authentication. 4kB by default
+     * Post 请求参数的最大值，在认证过程中，将由容器保存
      */
     protected int maxSavePostSize = 4 * 1024;
 

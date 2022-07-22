@@ -147,13 +147,16 @@
       </Host>-->
 
       <Host name="localhost"  appBase="webapps"
-            unpackWARs="true" autoDeploy="true" >
+            unpackWARs="false" autoDeploy="false" deployOnStartup="false">
+ <!--       <Alias>examplexx.com</Alias>-->
 
 
+
+        <Context docBase="servelet-test-1.0.war" path="/my-test"></Context>
 
         <!--    其中 docBase为Web应用的根目录的文件路径，path为Web应用的根请求地址，如上，假如我们的Tomcat 地址为
         http://127.0.0.1 ,那么，Web 应用的根请求地址为http://127.0.0.1:8080/myApp1-->
-           <Context docBase="myApp" path="/myApp1" reloadable="true"></Context>
+<!--           <Context docBase="myApp" path="/myApp1" reloadable="true"></Context>-->
 
             <!-- SingleSignOn valve, share authentication between web applications
                  Documentation at: /docs/config/valve.html -->
@@ -162,9 +165,23 @@
         -->
 
 
+        <!--另外，如果您想把这个特殊的Web应用程序映射为服务器的root URI("/")，如通过访问http://localhost:8080
+          能看到你的应用程序，则需要执行一些特殊的步骤
+          1. 停止Tomcat
+          2. 确定不存在CATALINA_HOME/conf/[EngineName]/[Hostname]/ROOT.xml配置文件
+          3. 编辑server.xml文件，并使用<Host>和<Context>看起来如下所示 ，
+           -->
+  <!--    <Context path="" relaodable="false" docBase="servelet-test-1.0"/>-->
 
-<!--        <Context path="/HelloLuban" relaodable="false" docBase="/Users/renyong/IdeaProjects/HelloServlet/target/HelloServlet"/>-->
 
+    <!--
+
+
+        <Context path="/HelloLuban" relaodable="false" docBase="servelet-test-1.0"/>-->
+
+     <!-- 出于明显的安全防护因素考虑，取消下列Value的注释， 以限制访问localhost上的应用程序，你可以增加逗号分割主机列表，基于是常规的表达式
+        <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="localhost" ></Valve>
+     -->
 <!--        <Context path="/ServletDemoHello##1" docBase="D:\IdeaProjects\ServletDemo\target\classes" />-->
 <!--        <Context path="/ServletDemoHello##2" docBase="D:\IdeaProjects\ServletDemo\target\classes" />-->
 
@@ -182,9 +199,7 @@
 <!--                  maxWait="10000"/>-->
 <!--        </Context>-->
 
-        <Valve className="org.apache.catalina.valves.ErrorReportValve">
-
-        </Valve>
+        <Valve className="org.apache.catalina.valves.ErrorReportValve" showServerInfo ="false" />
 
         <!-- Access log processes all example.
              Documentation at: /docs/config/valve.html

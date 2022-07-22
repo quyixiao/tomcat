@@ -239,6 +239,9 @@ public abstract class AbstractHttp11Processor<S> extends AbstractProcessor<S> {
 
     /**
      * Regular expression that defines the user agents to not use gzip with
+     * 对Web服务器声明一些HTTP客户端，支持HTTP 1.1 GZIP 压缩，但不能正常工作，可以将该属性设置为以逗号分割的常规表达式列表，与阻碍
+     * HTTP 客户端的用户代理字符串相匹配，而且该连接器对与之相匹配的客户端不能使用GZIP压缩 。
+     *
      */
     protected Pattern noCompressionUserAgents = null;
 
@@ -246,6 +249,7 @@ public abstract class AbstractHttp11Processor<S> extends AbstractProcessor<S> {
      * List of MIMES which could be gzipped
      * Note: This is not spelled correctly but can't be changed without breaking
      *       compatibility
+     * 如果在Connector 上使用压缩技术，则在compression被设置为on时，可以将该属性设置为mime的一种类型
      */
     protected String[] compressableMimeTypes = { "text/html", "text/xml", "text/plain" };
 
