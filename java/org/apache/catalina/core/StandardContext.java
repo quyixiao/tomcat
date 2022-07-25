@@ -5632,7 +5632,7 @@ public class StandardContext extends ContainerBase
                  // war包
                     setResources(new WARDirContext());
                 } else {
-                 // 文件目录
+                 // 文件目录, WARDirContext处理不同的是 ，WARDirContext 需要对.war 包进行解压，然后才能获取对应的文件内容，而FileDir可以直接获取文件内容
                     setResources(new FileDirContext());
                 }
             } catch (IllegalArgumentException e) {
@@ -5690,6 +5690,7 @@ public class StandardContext extends ContainerBase
 
         if (ok && isUseNaming()) {
             if (getNamingContextListener() == null) {
+                // NamingContextListener 监听器在Context 容器启动时（startInternal()方法）时添加
                 NamingContextListener ncl = new NamingContextListener();
                 ncl.setName(getNamingContextName());
                 ncl.setExceptionOnFailedWrite(getJndiExceptionOnFailedWrite());
@@ -5846,6 +5847,7 @@ public class StandardContext extends ContainerBase
             for (Map.Entry<ServletContainerInitializer, Set<Class<?>>> entry :
                 initializers.entrySet()) {
                 try {
+                    // Context容器启动时就会分别调用每个ServletContainerInitializer的onStartup()方法，将感兴趣的类作为参数传入
                     entry.getKey().onStartup(entry.getValue(),
                             getServletContext());
                 } catch (ServletException e) {
@@ -6913,6 +6915,7 @@ public class StandardContext extends ContainerBase
         super.initInternal();
 
         if (processTlds) {
+            // TldConfig监听器则是在Context 容器初始化initInternal（）方法时添加
             this.addLifecycleListener(new TldConfig());
         }
 

@@ -1260,7 +1260,7 @@ public class StandardWrapper extends ContainerBase
 
             InstanceManager instanceManager = ((StandardContext)getParent()).getInstanceManager();
             try {
-                // 有了类加载器和腰加载的 Servlet 名字，就可以使用 loadServlet 方法来加载类 了。
+                // 有了类加载器和要加载的 Servlet 名字，就可以使用 loadServlet 方法来加载类 了。
                 // 1. 创建Servlet实例，如果添加了JNDI 注解，将进行依赖注入
                 servlet = (Servlet) instanceManager.newInstance(servletClass);
             } catch (ClassCastException e) {

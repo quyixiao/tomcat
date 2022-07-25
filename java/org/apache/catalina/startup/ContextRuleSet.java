@@ -108,13 +108,16 @@ public class ContextRuleSet extends RuleSetBase {
      */
     @Override
     public void addRuleInstances(Digester digester) {
-
         // prefix是Server/Service/Engine/Host/
         // Context 的解析会根据create属性的不同而有所区别，这主要是由于Context来源于多处， 通过server.xml 配置Context时，create为true
         // 因此需要创建Context 实例，而通过HostConfig自动创建Context 时，create为false， 此时仅需要解析子节点即可，Catalina提供了Context
         // 实现类为org.apache.catalina.core.StandardContext ,Catalina 在创建Context 实例的同时，还添加了一个生命周期监听器
         // ContextConfig ，用于详细配置Context ，如解析web.xml 等 。
         if (create) {
+            /*<Host>
+            <Context docBase="servelet-test-1.0.war" path="/my-test"></Context>
+            </Host> ContextConfig监听器可能在Digester框架解析server.xml文件生成Context对象时添加
+            */
             digester.addObjectCreate(prefix + "Context",
                     "org.apache.catalina.core.StandardContext", "className");
             digester.addSetProperties(prefix + "Context");
@@ -123,6 +126,8 @@ public class ContextRuleSet extends RuleSetBase {
         }
 
         if (create) {
+            // 1. ContextConfig监听器可能在Digester框架解析server.xml文件生成Context对象时添加
+            // 2. ContextConfig 监听器可能由HostConfig监听器添加
             digester.addRule(prefix + "Context",
                              new LifecycleListenerRule
                                  ("org.apache.catalina.startup.ContextConfig",

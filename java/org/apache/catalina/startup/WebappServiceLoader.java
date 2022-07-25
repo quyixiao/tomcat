@@ -157,6 +157,9 @@ public class WebappServiceLoader<T> {
         if (containerServicesFound.isEmpty()) {
             return Collections.emptyList();
         }
+        // 首先，通过ContextConfig 监听器遍历每个Jar 包或者Web 根目录的META-INF/services/javax.servlet.ServletContainerInitializer文件 。
+        // 根据读到的类路径实例化每个ServletContainerInitalizer ，然后，再分别将实例化ServletContainerInitializer 设置进Context 容器
+        // 中，最后，Context 容器启动时分别调用所有的ServletContainerInitializer对象onStartup方法 。
         return loadServices(serviceType, containerServicesFound);
     }
 

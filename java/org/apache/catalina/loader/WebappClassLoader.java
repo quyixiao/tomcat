@@ -28,7 +28,7 @@ import org.apache.catalina.LifecycleException;
  * -> CLASSPATH->/WEB-INF/classes -> /WEB-INF/lib -> $CATALINA_BASE/lib 和 CATALINA_HOME/lib
  * 2. 当委托标识delegate为true时，WebappClassLoader 类加载器首先尝试从本地缓存中查找加载该类，然后用System类加载器尝试加载类，接着由父类 加载器
  * （Common）尝试加载类，最后才由自己的尝试加载，所以此时它的搜索目录顺序为<JAVA_HOME>/jre/lib-><JAVA_HOME>/jre/lib/ext -> CLASSPATH
- * ->$CATALINA_BASE/lib 和￥CATALINA_HOME/lib -> /WEB-INF/classes->/WEB-INF/lib
+ * ->$CATALINA_BASE/lib 和$CATALINA_HOME/lib -> /WEB-INF/classes->/WEB-INF/lib
  *
  * 3. WebappClassLoader 和其他类加载器的关系结构图，可以看出，对于公共资源可以共享，而属于Web 应用的资源则通过类加载器进行隔离，对于重新加载的实现
  * 也比较清晰，只需要重新实例化一个WebappClassLoader 对象并把原来的WebappLoader中旧的转换掉即可完成重新加载的功能，转换掉被GC回收。

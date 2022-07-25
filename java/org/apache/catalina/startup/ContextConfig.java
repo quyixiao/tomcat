@@ -224,6 +224,10 @@ public class ContextConfig implements LifecycleListener {
         addJarsToSkip(Constants.PLUGGABILITY_JARS_TO_SKIP);
     }
 
+    public ContextConfig(){
+        System.out.println("初始化 ");
+    }
+
     private static void addJarsToSkip(String systemPropertyName) {
         String jarList = System.getProperty(systemPropertyName);
         if (jarList != null) {
@@ -237,6 +241,7 @@ public class ContextConfig implements LifecycleListener {
         }
 
     }
+
 
     /**
      * Deployment count.
@@ -611,6 +616,7 @@ public class ContextConfig implements LifecycleListener {
         fakeAttributes.put(StandardContext.class, contextAttrs);
         digester.setFakeAttributes(fakeAttributes);
         RuleSet contextRuleSet = new ContextRuleSet("", false);
+
         digester.addRuleSet(contextRuleSet);
         RuleSet namingRuleSet = new NamingRuleSet("Context/");
         digester.addRuleSet(namingRuleSet);
@@ -647,7 +653,7 @@ public class ContextConfig implements LifecycleListener {
             defaultContextXml = ((StandardContext)context).getDefaultContextXml();
         }
         // set the default if we don't have any overrides
-        // 如果Context节点上没有配置defaultContextXml属性的话，那么则取默认值conf/context.xml
+        // 如果Context节点上没有配置defaultContextXml属性的话，那么则取默认值 conf/context.xml
         if( defaultContextXml==null ) getDefaultContextXml();
 
         // 如果
@@ -819,6 +825,7 @@ public class ContextConfig implements LifecycleListener {
                     ((StandardContext) context).setOriginalDocBase(origDocBase);
                 }
             } else {
+                // 如果不需要解压，则验证war包
                 ExpandWar.validate(host, war, pathName);
             }
         } else {
@@ -862,7 +869,10 @@ public class ContextConfig implements LifecycleListener {
 
     }
 
-
+    // 根据配置属性做一些预防Jar包被锁定的工作，由于Windows系统可能会将某些Jar锁定，从而导致重加载失败，这是因为重加载需要把原来的Web应用
+    // 完全删除后，再把新的Web应用重新加载进来 ， 但假如某些Jar包被锁定了，就不能删除了，这非把整个Tomcat停止了，这里解决的思路是：将Web
+    // 应用项目根据部署次数重命名并复制到%CATALIN_HOME%/temp临时目录下（例如第一次部署就是1-myTomcat.war）,并把Context对象的docBase
+    // 指向临时目录下的Web项目，这样每次重新热部署都有一个新的应用名， 就算原来应用的某些Jar包被锁定也不会导致部署失败。
     protected void antiLocking() {
 
         if ((context instanceof StandardContext)
@@ -956,7 +966,12 @@ public class ContextConfig implements LifecycleListener {
      */
     protected void init() {
         // Called from StandardContext.init()
-
+        // 1. 创建Digester对象，指定解析规则，因为在HostConfig监听器中只是根据<Context>节点属性创建了一个Context对象，但其实<Context>
+        // 节点还有很多的子节点需要解析并设置到Context对象中，另外，Tomcat 中还有两个默认的Context配置文件需要设置到Context对象作为默认的
+        // 属性，一个为conf/context.xml文件，另一个为config/[EngineName]/[HostName]/context.xml.default文件，所以Digester的解析
+        // 工作分为两部分，一部分是解析默认配置文件，二部分为解析<Context>子节点，子节点包括InstanceListener,Listener,Loader，Manager
+        // ,Store,Parameter,Realm,Resources , ResourceLink， Value, WatchedResource , WrapperLifecycle,WrapperListener ,
+        // JarScanner,Ejb,Environment,LocalEjb,Resource ,ResourceEnvRef,ServiceRef,Transaction元素
         Digester contextDigester = createContextDigester();
         contextDigester.getParser();
 
@@ -966,6 +981,12 @@ public class ContextConfig implements LifecycleListener {
         ok = true;
 
         // 解析context.xml文件，注意，并不是<Context>节点，<Context>节点在解析Server.xml的时候就被解析了
+        // 2. 用第1步创建的Digester对象按顺序解析conf/context.xml , conf/[EngineName]/[HostName]/context.xml.default
+        // /META-INF/context.xml等文件，必须按这个顺序，先用全局配置设置默认属性，再用Host级别配置设置属性，最后用Context级别配置设置属性
+        // ,这种顺序保证了特定属性值可以覆盖默认属性值，例如对于相同的属性reloadable ，Context级别配置文件设为true,而全局配置文件设为
+        // false, 于是Context的reloadable属性最终的值为true.
+        // 3. 创建用于解析web.xml文件的Digester对象 。
+        // 4. 根据Context对象的docBase属性做一些调整工作，例如，默认把WAR包解压成相应目录形式，对于不解压的WAR包则要检验WAR包的合法性。
         contextConfig(contextDigester);
 
         // 创建解析web.xml文件的wDigester
@@ -999,6 +1020,9 @@ public class ContextConfig implements LifecycleListener {
      * Process a "contextConfig" event for this Context.
      * Context在启动节点之前，触发了CONFIGURE_START_EVENT事件，ContextConfig正是通过该事件解析Web.xml，创建Wrapper（Servlet）
      * Filter,ServletContextListener等一系列的Web容器相关的对象，完成Web容器的初始化。
+     *
+     * configureStart 主要的工作就是扫描Web应用部署描述文件web.xml , 并且使用规范将它们合并起来，定义范围比较大的配置会被范围比较小的
+     * 配置覆盖，例如，Web容器的全局配置文件web.xml会被Host级别或Web应用级别覆盖 。
      */
     protected synchronized void configureStart() {
         // Called from StandardContext.start()
@@ -1394,10 +1418,10 @@ public class ContextConfig implements LifecycleListener {
          *   scanned to check if they match.
          */
         Set<WebXml> defaults = new HashSet<WebXml>();
-        defaults.add(getDefaultWebXmlFragment());
         // 1. 解析默认的配置，生成WebXml对象（Tomcat使用该对象表示web.xml的解析结果），先解析容器级别的配置，然后再解析Host级别的配置。
         // 这样对于同名的配置，Host级别将覆盖容器级别，为了便于后续过程描述，我们暂且称为 "默认WebXml"，为了提升性能，ContextConfig
         // 对默认的WebXml进行了缓存，以避免重复解析
+        defaults.add(getDefaultWebXmlFragment());
         WebXml webXml = createWebXml();
 
         // Parse context level web.xml
@@ -1783,6 +1807,10 @@ public class ContextConfig implements LifecycleListener {
             WebappServiceLoader<ServletContainerInitializer> loader =
                     new WebappServiceLoader<ServletContainerInitializer>(
                             context);
+            // 1. Tomcat容器的ServletContainerInitializer机制，主要交由Context 容器和ContextConfig监听器共同实现， ContextConfig
+            // 监听器首先负责在容器启动时读取每个Web应用的WEB-INF/lib目录下包含的Jar包的META-INF/lib/javax.servlet.ServletContainerInitializer
+            // 2. 以及Web根目录下的META-INF/services/javax.servlet.ServletContainerInitializer ,通过反射完成这些ServletContainerInitializer
+            // 的实例化，然后再设置到Context 容器中
             detectedScis = loader.load(ServletContainerInitializer.class);
         } catch (IOException e) {
             log.error(sm.getString(
@@ -1802,7 +1830,7 @@ public class ContextConfig implements LifecycleListener {
             } catch (Exception e) {
                 if (log.isDebugEnabled()) {
                     log.info(sm.getString("contextConfig.sci.debug",
-                            sci.getClass().getName()),
+                                    sci.getClass().getName()),
                             e);
                 } else {
                     log.info(sm.getString("contextConfig.sci.info",
@@ -1813,6 +1841,21 @@ public class ContextConfig implements LifecycleListener {
             if (ht == null) {
                 continue;
             }
+            // 假如读出来的内容为com.seaboat.mytomcat.CustomServletContainerInitializer ，则通过反射实例化一个CustomServletContainerInitializer
+            // 这里涉及到一个@HandlerTypes 注解的处理，被它标明的类需要作为参数传入 onStartup 方法中， 如下所示
+            // @HandlesTypes({HttpServlet.class,Filter.class})
+            // public class CustomServletContainerInitializer implements ServletContainerInitializer{
+            //      public void onStartup(Set<Class<?>> classes, ServletContext servletContext) throws ServletException{
+            //          for(Class c : classes ){
+            //              System.out.println(c.getName());
+            //          }
+            //      }
+            // }
+            //  其中@HandlesTypes 标明的HttpServlet和Filter两个Class被注入onStartup方法中，所以这个注解也需要在 ContextConfig监听器
+            // 中处理，前面已经介绍了注解的实现原理，由于有了编译器的协助，因此我们可以方便的通过ServletContainerInitializer 的Class
+            // 对象获取到HandlesTypes对象，进而再获取到注解声明的类数组，下面就是代码的实现的地方
+            // 获取到HttpServlet和Filter的Class对象数组，后面的Context 容器调用了CustomServletContainerInitializer对象的onStartup
+            // 方法时作为参数传入，至此，即完成了Servlet规范的ServeltContainerInitializer 初始化smsm。
             Class<?>[] types = ht.value();
             if (types == null) {
                 continue;

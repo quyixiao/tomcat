@@ -366,6 +366,16 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
      * delegate to the parent only if the class or resource is not
      * found locally. Note that the default, <code>false</code>, is
      * the behavior called for by the servlet specification.
+     *
+     *
+     * 1. 当委托标识delegate 为false时，WebappClassLoader 类加载器首先尝试从本地缓存中查找加载该类，然后用System类加载器尝试加载类。
+     *  接着由自己的尝试加载类，最后才是由父类加载器（Common）器尝试加载，所以此时它搜索的目录顺序是<JAVA_HOME>/jre/lib -> <JAVA_HOME/jre/lib/ext
+     *  -> CLASSPATH->/WEB-INF/classes -> /WEB-INF/lib -> $CATALINA_BASE/lib 和 CATALINA_HOME/lib
+     * 2. 当委托标识delegate为true时，WebappClassLoader 类加载器首先尝试从本地缓存中查找加载该类，然后用System类加载器尝试加载类，接着由父类 加载器
+     *  （Common）尝试加载类，最后才由自己的尝试加载，所以此时它的搜索目录顺序为<JAVA_HOME>/jre/lib-><JAVA_HOME>/jre/lib/ext -> CLASSPATH
+     *  ->$CATALINA_BASE/lib 和$CATALINA_HOME/lib -> /WEB-INF/classes->/WEB-INF/lib
+     *
+     *
      */
     protected boolean delegate = false;
 

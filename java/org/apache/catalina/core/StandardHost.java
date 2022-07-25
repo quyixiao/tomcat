@@ -695,7 +695,8 @@ public class StandardHost extends ContainerBase implements Host {
         if (!(child instanceof Context))
             throw new IllegalArgumentException
                 (sm.getString("standardHost.notContext"));
-
+        // 4. MemoryLeakTrackingListener 监听器则是在HostConfig监听器调用addChild方法把Context 容器添加到Host容器时添加，每个监听器
+        // 负责详细的工作分别又有哪些？
         child.addLifecycleListener(new MemoryLeakTrackingListener());
 
         // Avoid NPE for case where Context is defined in server.xml with only a

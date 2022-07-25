@@ -290,6 +290,9 @@ public final class ApplicationFilterConfig implements FilterConfig, Serializable
                 context.getSwallowOutput()) {
             try {
                 SystemLogHandler.startCapture();
+                // ApplicationFilterConfig Servlet规范提供了一个FilterConfig 接口访问的Filter的名称 ，初始化参数，及Servlet上下文
+                // ApplicationFilterConfig 是FilterConfig接口的具体实现， 它的实现具体依赖Context接口， 而当初始化每个Filter时，
+                // ApplicationFilter对象都会作为Filter的init方法的参数，所以我们在自定义Filter时可以在初始化方法中直接使用FilterConfig
                 filter.init(this);
             } finally {
                 String capturedlog = SystemLogHandler.stopCapture();

@@ -1245,7 +1245,8 @@ public class HostConfig
                                 cn.getBaseName() + ".xml")).getAbsolutePath(),
                         Long.valueOf(0));
             }
-
+            // 1. ContextConfig监听器可能在Digester框架解析server.xml文件生成Context对象时添加
+            // 2. ContextConfig 监听器可能由HostConfig监听器添加
             Class<?> clazz = Class.forName(host.getConfigClass());
             LifecycleListener listener =
                 (LifecycleListener) clazz.newInstance();
@@ -1623,7 +1624,6 @@ public class HostConfig
                 // 文件中当前上一次修改时间不等于map中记录的上一次修改时间 并且 (host没有开启热部署 或者 文件中当前的上一次修改时间小于1秒前 或者 跳过文件修改检查为true)
                 // 其中需要注意的是，每次进行热部署时只会对一秒之前修改的资源文件进行检查，如果每次都是检查当前是否修改了，那么很有可能还没有修改完就被部署了
                 // 当然，如果skipFileModificationResolutionCheck为true，从而只要资源文件修改了就会进行检查
-                //
                 if (resource.lastModified() != lastModified && (!host.getAutoDeploy() ||
                         resource.lastModified() < currentTimeWithResolutionOffset ||
                         skipFileModificationResolutionCheck)) {
