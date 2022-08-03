@@ -48,6 +48,23 @@
               description="User database that can be updated and saved"
               factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
               pathname="conf/tomcat-users.xml" />
+
+
+
+      <Resource
+              name="jdbc/mysql"
+              auth="Container"
+              type="javax.sql.DataSource"
+              driverClassName="com.mysql.jdbc.Driver"
+              url="jdbc:mysql://172.16.157.238:3306/lz_test"
+              username="ldd_biz"
+              password="Hello1234"
+              maxActive="5"
+              maxIdle="2"
+              maxWait="10000"/>
+
+
+
   </GlobalNamingResources>
 
   <!-- A "Service" is a collection of one or more "Connectors" that share
@@ -147,7 +164,7 @@
       </Host>-->
 
       <Host name="localhost"  appBase="webapps"
-            unpackWARs="true" autoDeploy="false" >
+            unpackWARs="true" autoDeploy="true" >
  <!--       <Alias>examplexx.com</Alias>-->
        <!--   <Context docBase="servelet-test-1.0.war" path="/my-test"></Context>-->
 
@@ -185,19 +202,11 @@
 <!--        <Context path="/ServletDemoHello##1" docBase="D:\IdeaProjects\ServletDemo\target\classes" />-->
 <!--        <Context path="/ServletDemoHello##2" docBase="D:\IdeaProjects\ServletDemo\target\classes" />-->
 
-<!--        <Context path="/ServletDemo"  docBase="C:\Users\周瑜\IdeaProjects\ServletDemo\target\ServletDemoServerXml" >-->
-<!--          <Resource-->
-<!--                  name="jdbc/myDB"-->
-<!--                  auth="Container"-->
-<!--                  type="javax.sql.DataSource"-->
-<!--                  driverClassName="com.mysql.jdbc.Driver"-->
-<!--                  url="jdbc:mysql://192.168.99.100:33306/test"-->
-<!--                  username="root"-->
-<!--                  password="123456"-->
-<!--                  maxActive="5"-->
-<!--                  maxIdle="2"-->
-<!--                  maxWait="10000"/>-->
-<!--        </Context>-->
+        <Context path="/ServletDemo"  docBase="servelet-test-1.0" >
+            <ResourceLink global="jdbc/mysql" name="jdbc/mysql" type="javax.sql.DataSource" />
+
+        </Context>
+
 
         <Valve className="org.apache.catalina.valves.ErrorReportValve" showServerInfo ="false" />
 

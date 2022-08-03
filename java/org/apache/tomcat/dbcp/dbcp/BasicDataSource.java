@@ -1733,6 +1733,8 @@ public class BasicDataSource implements DataSource {
             connectionFactory.activateObject(conn);
             connectionFactory.validateConnection(conn);
             connectionFactory.passivateObject(conn);
+        }catch (Exception e){
+            e.printStackTrace();
         }
         finally {
             connectionFactory.destroyObject(conn);

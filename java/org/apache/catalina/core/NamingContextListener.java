@@ -279,8 +279,12 @@ public class NamingContextListener
                 } catch (NamingException e) {
                     // Never happens
                 }
-                ContextAccessController.setSecurityToken(getName(), container);
+                String name = getName();
+                System.out.println("====namingContext========" + name + " ,container=" + container);
+
+                ContextAccessController.setSecurityToken(name, container);
                 ContextAccessController.setSecurityToken(container, container);
+
                 ContextBindings.bindContext(container, namingContext, container);
                 if( log.isDebugEnabled() ) {
                     log.debug("Bound " + container );
@@ -720,9 +724,7 @@ public class NamingContextListener
      * Set the specified EJBs in the naming context.
      */
     public void addEjb(ContextEjb ejb) {
-
         Reference ref = lookForLookupRef(ejb);
-
         if (ref == null) {
             // Create a reference to the EJB.
             ref = new EjbRef(ejb.getType(), ejb.getHome(), ejb.getRemote(), ejb.getLink());

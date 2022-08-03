@@ -453,6 +453,8 @@ public class ContextConfig implements LifecycleListener {
         } else if (event.getType().equals(Lifecycle.AFTER_START_EVENT)) {
             // StandardContext启动之后触发
             // Restore docBase for management tools
+            // 1. 当AFTER_START_EVENT事件发生时处理的逻辑比较简单，只是把Context容器的docBase指向另外一个目录上， 为了解决重新部署导致的
+            // 锁问题， 而把项目复制到另外一个目录上，而docBase要指向它。
             if (originalDocBase != null) {
                 context.setDocBase(originalDocBase);
             }
@@ -463,7 +465,7 @@ public class ContextConfig implements LifecycleListener {
             // StandardContext初始化后触发，创建context.xml文件的解析器contextDigester，并解析context.xml文件，并且创建web.xml文件的解析器webDigester
             init();
         } else if (event.getType().equals(Lifecycle.AFTER_DESTROY_EVENT)) {
-            // StandardContext销毁后触发，删除workDir
+            // StandardContext销毁后触发，删除workDir ， destory方法主要用于删除工作目录
             destroy();
         }
 
@@ -1078,6 +1080,7 @@ public class ContextConfig implements LifecycleListener {
 
     /**
      * Process a "stop" event for this Context.
+     * configureStop主要的工作是在停止前将相关的属性从Context容器中移除掉，包括Servlet,Listener , Filter ，欢迎页，认证配置等
      */
     protected synchronized void configureStop() {
 
