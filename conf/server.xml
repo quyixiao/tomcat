@@ -63,7 +63,7 @@
               maxIdle="2"
               maxWait="10000"/>
 
-
+      <Resource lookupName="jdbc/mysql" name="myDB" type="javax.sql.DataSource" />
 
   </GlobalNamingResources>
 
@@ -203,7 +203,8 @@
 <!--        <Context path="/ServletDemoHello##2" docBase="D:\IdeaProjects\ServletDemo\target\classes" />-->
 
         <Context path="/ServletDemo"  docBase="servelet-test-1.0" >
-            <ResourceLink global="jdbc/mysql" name="jdbc/mysql" type="javax.sql.DataSource" />
+            <ResourceLink global="myDB" name="jdbc/mysql" type="javax.sql.DataSource"  />
+            <!--<ResourceLink global="jdbc/mysql" name="jdbc/mysql" type="javax.sql.DataSource" username="张三" password="123456" />-->
 
         </Context>
 

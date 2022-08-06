@@ -713,7 +713,6 @@ public class SelectorContext implements Context {
      */
     protected Context getBoundContext()
         throws NamingException {
-
         if (initialContext) {
             String ICName = IC_PREFIX;
             if (ContextBindings.isThreadBound()) {
@@ -723,6 +722,7 @@ public class SelectorContext implements Context {
             }
             Context initialContext = ContextBindings.getContext(ICName);
             if (initialContext == null) {
+                //return ContextBindings.getClassLoader();
                 // Allocating a new context and binding it to the appropriate
                 // name
                 initialContext = new NamingContext(env, ICName);
