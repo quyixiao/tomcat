@@ -1896,8 +1896,10 @@ public class ContextConfig implements LifecycleListener {
                 // Note: Ignore file URLs for now since only jar URLs will be accepted
                 if ("jar".equals(url.getProtocol())) {
                     jar = JarFactory.newInstance(url);
+                    System.out.println("+++++++++++++++++++++++++++++++++"+url.getPath() );
                     jar.nextEntry();
                     String entryName = jar.getEntryName();
+                    System.out.println("========processResourceJARs========"+entryName );
                     while (entryName != null) {
                         if (entryName.startsWith("META-INF/resources/")) {
                             context.addResourceJarUrl(url);

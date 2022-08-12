@@ -85,6 +85,9 @@ public class Resource {
      * @return binary content
      */
     public byte[] getContent() {
+            if(binaryContent !=null){
+                System.out.println("====binaryContent==" + new String(binaryContent));
+            }
         return binaryContent;
     }
 

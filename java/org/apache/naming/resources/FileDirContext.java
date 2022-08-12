@@ -204,6 +204,7 @@ public class FileDirContext extends BaseDirContext {
      */
     @Override
     protected Object doLookup(String name) {
+        //System.out.println("doLookup name = " + name);
         Object result = null;
         File file = file(name, true);
 

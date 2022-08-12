@@ -1526,6 +1526,7 @@ public class ProxyDirContext implements DirContext {
                 return (null);
             }
         }
+
         CacheEntry cacheEntry = cache.lookup(name);
         if (cacheEntry == null) {
             cacheEntry = new CacheEntry();

@@ -1688,6 +1688,7 @@ public class DefaultServlet extends HttpServlet {
         sb.append("</html>\r\n");
 
         // Return an input stream to the underlying bytes
+        System.out.println("返回的html:" + sb.toString());
         writer.write(sb.toString());
         writer.flush();
         return new ByteArrayInputStream(stream.toByteArray());

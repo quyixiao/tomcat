@@ -62,8 +62,10 @@
               maxActive="5"
               maxIdle="2"
               maxWait="10000"/>
+<!--
 
       <Resource lookupName="jdbc/mysql" name="myDB" type="javax.sql.DataSource" />
+-->
 
   </GlobalNamingResources>
 
@@ -164,7 +166,7 @@
       </Host>-->
 
       <Host name="localhost"  appBase="webapps"
-            unpackWARs="true" autoDeploy="true" >
+            unpackWARs="false" autoDeploy="true" >
  <!--       <Alias>examplexx.com</Alias>-->
        <!--   <Context docBase="servelet-test-1.0.war" path="/my-test"></Context>-->
 
@@ -201,12 +203,14 @@
      -->
 <!--        <Context path="/ServletDemoHello##1" docBase="D:\IdeaProjects\ServletDemo\target\classes" />-->
 <!--        <Context path="/ServletDemoHello##2" docBase="D:\IdeaProjects\ServletDemo\target\classes" />-->
+<!--
 
         <Context path="/ServletDemo"  docBase="servelet-test-1.0" >
             <ResourceLink global="myDB" name="jdbc/mysql" type="javax.sql.DataSource"  />
-            <!--<ResourceLink global="jdbc/mysql" name="jdbc/mysql" type="javax.sql.DataSource" username="张三" password="123456" />-->
+            &lt;!&ndash;<ResourceLink global="jdbc/mysql" name="jdbc/mysql" type="javax.sql.DataSource" username="张三" password="123456" />&ndash;&gt;
 
         </Context>
+-->
 
 
         <Valve className="org.apache.catalina.valves.ErrorReportValve" showServerInfo ="false" />

@@ -272,6 +272,7 @@ public class JspC extends Task implements Options {
     protected String args[];
 
     public static void main(String arg[]) {
+        System.out.println("jspc main 方法被调用 ");
         if (arg.length == 0) {
             System.out.println(Localizer.getMessage("jspc.usage"));
         } else {
@@ -1378,6 +1379,7 @@ public class JspC extends Task implements Options {
      * jsps are specified.
      */
     public void scanFiles( File base ) throws JasperException {
+        System.out.println(" start scan jsp  " + base.getName());
         Stack<String> dirs = new Stack<String>();
         dirs.push(base.toString());
 
@@ -1821,6 +1823,7 @@ public class JspC extends Task implements Options {
 
         @Override
         public Void call() throws Exception {
+            System.out.println("ProcessFile file " + file);
             processFile(file);
             return null;
         }

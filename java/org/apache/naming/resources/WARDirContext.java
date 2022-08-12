@@ -727,6 +727,7 @@ public class WARDirContext extends BaseDirContext {
                     parent.addChild(child);
 
             }
+            System.out.println("loadEntries 解析完成 ");
 
         } catch (Exception e) {
             // Ignore

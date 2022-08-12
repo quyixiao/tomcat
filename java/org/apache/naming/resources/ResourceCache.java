@@ -230,7 +230,7 @@ public class ResourceCache {
         toFree += (cacheMaxSize / 20);
 
         int size = notFoundCache.size();
-        if (size > spareNotFoundEntries) {
+        if (size > spareNotFoundEntries) { // spareNotFoundEntries = 500
             notFoundCache.clear();
             cacheSize -= size;
             toFree -= size;
@@ -243,9 +243,9 @@ public class ResourceCache {
         int attempts = 0;
         int entriesFound = 0;
         long totalSpace = 0;
-        int[] toRemove = new int[maxAllocateIterations];
+        int[] toRemove = new int[maxAllocateIterations]; // maxAllocateIterations = 20
         while (toFree > 0) {
-            if (attempts == maxAllocateIterations) {
+            if (attempts == maxAllocateIterations) { // maxAllocateIterations = 20
                 // Give up, no changes are made to the current cache
                 return false;
             }
@@ -264,7 +264,7 @@ public class ResourceCache {
             }
             long entryAccessRatio =
                 ((cache[entryPos].accessCount * 100) / accessCount);
-            if (entryAccessRatio < desiredEntryAccessRatio) {
+            if (entryAccessRatio < desiredEntryAccessRatio) { // desiredEntryAccessRatio = 3
                 toRemove[entriesFound] = entryPos;
                 totalSpace += cache[entryPos].size;
                 toFree -= cache[entryPos].size;

@@ -109,13 +109,14 @@
         </init-param>
         <init-param>
             <param-name>listings</param-name>
-            <param-value>false</param-value>
+            <!--<param-value>false</param-value>      -->
+            <param-value>true</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
 
-  <!-- The JSP page compiler and execution servlet, which is the mechanism  -->
+<!-- The JSP page compiler and execution servlet, which is the mechanism  -->
   <!-- used by Tomcat to support JSP pages.  Traditionally, this servlet    -->
   <!-- is mapped to the URL pattern "*.jsp".  This servlet supports the     -->
   <!-- following initialization parameters (default values are in square    -->
