@@ -181,4 +181,10 @@ public interface ELParserConstants {
     "<ILLEGAL_CHARACTER>",
   };
 
+  public static void main(String[] args) {
+      for(int i = 0 ;i < tokenImage.length ;i ++){
+        System.out.println(i + " " + tokenImage[i]);
+      }
+  }
+
 }

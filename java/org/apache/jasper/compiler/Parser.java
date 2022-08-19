@@ -1770,7 +1770,7 @@ class Parser implements TagConstants {
                 // Comment
                 reader.skipUntil("--%>");
             } else if (reader.matches("%@")) {
-                parseDirective(parent);
+                                parseDirective(parent);
             } else if (reader.matches("jsp:directive.")) {
                 parseXMLDirective(parent);
             } else if (reader.matches("%!")) {
