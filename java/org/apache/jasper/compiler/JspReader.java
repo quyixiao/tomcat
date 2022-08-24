@@ -17,6 +17,12 @@
 
 package org.apache.jasper.compiler;
 
+import org.apache.jasper.JasperException;
+import org.apache.jasper.JspCompilationContext;
+import org.apache.jasper.runtime.ExceptionUtils;
+import org.apache.juli.logging.Log;
+import org.apache.juli.logging.LogFactory;
+
 import java.io.CharArrayWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,12 +30,6 @@ import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Vector;
 import java.util.jar.JarFile;
-
-import org.apache.jasper.JasperException;
-import org.apache.jasper.JspCompilationContext;
-import org.apache.jasper.runtime.ExceptionUtils;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
 
 /**
  * JspReader is an input buffer for the JSP parser. It should allow
@@ -227,28 +227,27 @@ class JspReader {
     private Boolean indexOf(char c, Mark mark) throws JasperException {
         if (!hasMoreInput())
             return null;
-
         int end = current.stream.length;
         int ch;
         int line = current.line;
         int col = current.col;
         int i = current.cursor;
-        for(; i < end; i ++) {
-           ch = current.stream[i];
-
-           if (ch == c) {
-               mark.update(i, line, col);
-           }
-           if (ch == '\n') {
+        for (; i < end; i++) {
+            ch = current.stream[i];
+            System.out.println(" i = " + line + " , j = " + col + " ,ASCII=" + ch + ", ch=" + (char) ch);
+            if (ch == c) {
+                mark.update(i, line, col);
+            }
+            if (ch == '\n') {
                 line++;
                 col = 0;
             } else {
                 col++;
             }
-           if (ch == c) {
-               current.update(i+1, line, col);
-               return Boolean.TRUE;
-           }
+            if (ch == c) {
+                current.update(i + 1, line, col);
+                return Boolean.TRUE;
+            }
         }
         current.update(i, line, col);
         return Boolean.FALSE;

@@ -121,10 +121,10 @@ class Parser implements TagConstants {
                 jarResource);
 
         Node.Root root = new Node.Root(reader.mark(), parent, false);
-        root.setPageEncoding(pageEnc);
+        root.setPageEncoding(pageEnc); // UTF-8
         root.setJspConfigPageEncoding(jspConfigPageEnc);
         root.setIsDefaultPageEncoding(isDefaultPageEncoding);
-        root.setIsBomPresent(isBomPresent);
+        root.setIsBomPresent(isBomPresent);// false
 
         // For the Top level page, add include-prelude and include-coda
         PageInfo pageInfo = pc.getCompiler().getPageInfo();
