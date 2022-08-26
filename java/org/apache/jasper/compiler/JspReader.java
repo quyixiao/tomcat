@@ -234,7 +234,7 @@ class JspReader {
         int i = current.cursor;
         for (; i < end; i++) {
             ch = current.stream[i];
-            System.out.println(" i = " + line + " , j = " + col + " ,ASCII=" + ch + ", ch=" + (char) ch);
+            //System.out.println(" i = " + line + " , j = " + col + " ,ASCII=" + ch + ", ch=" + (char) ch);
             if (ch == c) {
                 mark.update(i, line, col);
             }
