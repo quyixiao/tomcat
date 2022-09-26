@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.luban.ClassReaderUtils;
 import org.apache.jasper.JasperException;
 import org.apache.jasper.JspCompilationContext;
 
@@ -196,6 +197,7 @@ public class SmapUtil {
 
         static void install(File classFile, byte[] smap) throws IOException {
             File tmpFile = new File(classFile.getPath() + "tmp");
+
             new SDEInstaller(classFile, smap, tmpFile);
             if (!classFile.delete()) {
                 throw new IOException(Localizer.getMessage("jsp.error.unable.deleteClassFile",
@@ -213,9 +215,20 @@ public class SmapUtil {
                 throw new FileNotFoundException("no such file: " + inClassFile);
             }
 
+            System.out.println(inClassFile.getAbsolutePath());
+            byte [] origin = ClassReaderUtils.readClass(inClassFile.getAbsolutePath());
+            ClassReaderUtils. writeBytesToFile(origin,"/Users/quyixiao/gitlab/tomcat/output/origin.class");
+
+
+
+            System.out.println(outClassFile.getAbsolutePath());
+
             this.sdeAttr = sdeAttr;
             // get the bytes
             orig = readWhole(inClassFile);
+
+
+
             gen = new byte[orig.length + sdeAttr.length + 100];
 
             // do it
@@ -224,17 +237,31 @@ public class SmapUtil {
             // write result
             FileOutputStream outStream = null;
             try {
+
+
+
                 outStream = new FileOutputStream(outClassFile);
                 outStream.write(gen, 0, genPos);
+
+
+
             } finally {
                 if (outStream != null) {
                     try {
                         outStream.close();
+
+                        System.out.println("==========================================");
+
+                        byte [] out = ClassReaderUtils.readClass(outClassFile.getAbsolutePath());
+                        ClassReaderUtils. writeBytesToFile(out,"/Users/quyixiao/gitlab/tomcat/output/out.class");
+
                     } catch (Exception e) {
                     }
                 }
             }
         }
+
+
 
         static byte[] readWhole(File input) throws IOException {
             int len = (int)input.length();

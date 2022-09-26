@@ -918,7 +918,7 @@ public class StandardWrapper extends ContainerBase
      *  上面的代码使用了一个while循环等待直到nInstances的数目少于或等待countAllocated (应该是多余或等于把)，在循环里，allocate方法检查nInstance
      *  的值，如果低于maxInstances的值，调用loadServlet 的值等于或大于 maxInstances 的值，它调用实例池堆栈的wait方法，知道一个实例被返回 。
      *
-     *  StandardWrapper 实现了Wrapper 接口的load方法，load方法调用loadServlet 方法来加载一个servlet类，并调用该servlet的init方法，传递
+     *  StandardWrapper 实现了Wrapper 接口的load方法，load方法调用 loadServlet 方法来加载一个servlet类，并调用该servlet的init方法，传递
      *  一个javax.servlet.ServiceConfig 实例，这里就是loadServlet是如何工作的， 方法loadServlet 首先检查StandardWrapper 是否表示
      *  一个STM servlet ，如果不是并且该实例不是null ,即之前已经加载过， 直接返回该实例。
      *

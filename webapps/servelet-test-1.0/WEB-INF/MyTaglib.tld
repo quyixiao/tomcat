@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+        version="2.0">
+
+    <description>学习如何使用 Tag 接口</description>
+    <tlib-version>1.0</tlib-version>
+    <!--该属性是设置该标签库下所有标签的前缀-->
+    <short-name>tools</short-name>
+    <!--该属性是设置该标签库的唯一 url-->
+    <uri>/learnTag</uri>
+
+
+
+    <!--为标签库添加 标签-->
+    <tag>
+        <description>基于 Tag 接口的自定义标签</description>
+        <!--为本标签设置所在标签库下唯一标签名-->
+        <name>showTime</name>
+        <!--指明标签处理类的位置-->
+        <tag-class>com.luban.MyTaglib</tag-class>
+        <!--因为没有标签体所以设为 empty-->
+        <body-content>empty</body-content>
+    </tag>
+</taglib>

@@ -15,43 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.jasper.compiler;
-
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.StringTokenizer;
+package com.luban;
 
 import org.apache.jasper.JasperException;
+import org.apache.jasper.compiler.JavacErrorDetail;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.eclipse.jdt.core.compiler.IProblem;
-import org.eclipse.jdt.internal.compiler.ClassFile;
-import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.Compiler;
-import org.eclipse.jdt.internal.compiler.DefaultErrorHandlingPolicies;
-import org.eclipse.jdt.internal.compiler.ICompilerRequestor;
-import org.eclipse.jdt.internal.compiler.IErrorHandlingPolicy;
-import org.eclipse.jdt.internal.compiler.IProblemFactory;
+import org.eclipse.jdt.internal.compiler.*;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
+
+import java.io.*;
+import java.lang.reflect.Field;
+import java.util.*;
 
 /**
  * JDT class compiler. This compiler will load source dependencies from the
@@ -61,7 +43,7 @@ import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
  * @author Cocoon2
  * @author Remy Maucherat
  */
-public class JDTCompiler extends org.apache.jasper.compiler.Compiler {
+public class MyJDTCompiler {
 
     private static final String JDT_JAVA_9_VERSION;
 
@@ -81,7 +63,6 @@ public class JDTCompiler extends org.apache.jasper.compiler.Compiler {
                 break;
             }
         }
-
         if (jdtJava9Version == null) {
             // 4.6 and earlier: CompilerOptions.VERSION_1_9
             jdtJava9Version = "1.9";
@@ -90,13 +71,13 @@ public class JDTCompiler extends org.apache.jasper.compiler.Compiler {
         JDT_JAVA_9_VERSION = jdtJava9Version;
     }
 
-    private final Log log = LogFactory.getLog(JDTCompiler.class); // must not be static
+    private final Log log = LogFactory.getLog(MyJDTCompiler.class); // must not be static
 
     /**
      * Compile the servlet from .java file to .class file
      */
-    @Override
-    protected void generateClass(String[] smap)
+    public void generateClass( final String sourceFile ,final String outputDir,  String packageName
+    , String outclassName ,  final ClassLoader classLoader  )
         throws FileNotFoundException, JasperException, Exception {
 
         long t1 = 0;
@@ -104,21 +85,13 @@ public class JDTCompiler extends org.apache.jasper.compiler.Compiler {
             t1 = System.currentTimeMillis();
         }
 
-        final String sourceFile = ctxt.getServletJavaFileName();
-        System.out.println("sourceFile = " + sourceFile);
 
-        final String outputDir = ctxt.getOptions().getScratchDir().getAbsolutePath();
-        System.out.println("outputDir = " + outputDir);
-        String packageName = ctxt.getServletPackageName();
-        System.out.println(" packageName 包名 = " + packageName);
         final String targetClassName =
             ((packageName.length() != 0) ? (packageName + ".") : "")
-
-                    + ctxt.getServletClassName();
-        System.out.println("targetClassName = " + targetClassName);
-        final ClassLoader classLoader = ctxt.getJspLoader();
+                    + outclassName;
         String[] fileNames = new String[] {sourceFile};
         String[] classNames = new String[] {targetClassName};
+
         final ArrayList<JavacErrorDetail> problemList =
             new ArrayList<JavacErrorDetail>();
 
@@ -145,8 +118,7 @@ public class JDTCompiler extends org.apache.jasper.compiler.Compiler {
                 Reader reader = null;
                 try {
                     is = new FileInputStream(sourceFile);
-                    isr = new InputStreamReader(is,
-                            ctxt.getOptions().getJavaEncoding());
+                    isr = new InputStreamReader(is,                            "UTF-8");
                     reader = new BufferedReader(isr);
                     char[] chars = new char[8192];
                     StringBuilder buf = new StringBuilder();
@@ -341,153 +313,20 @@ public class JDTCompiler extends org.apache.jasper.compiler.Compiler {
                      CompilerOptions.GENERATE);
         settings.put(CompilerOptions.OPTION_ReportDeprecation,
                      CompilerOptions.IGNORE);
-        if (ctxt.getOptions().getJavaEncoding() != null) {
-            settings.put(CompilerOptions.OPTION_Encoding,
-                    ctxt.getOptions().getJavaEncoding());
-        }
-        if (ctxt.getOptions().getClassDebugInfo()) {
-            settings.put(CompilerOptions.OPTION_LocalVariableAttribute,
-                         CompilerOptions.GENERATE);
-        }
 
-        // Source JVM
-        if(ctxt.getOptions().getCompilerSourceVM() != null) {
-            String opt = ctxt.getOptions().getCompilerSourceVM();
-            if(opt.equals("1.1")) {
-                settings.put(CompilerOptions.OPTION_Source,
-                             CompilerOptions.VERSION_1_1);
-            } else if(opt.equals("1.2")) {
-                settings.put(CompilerOptions.OPTION_Source,
-                             CompilerOptions.VERSION_1_2);
-            } else if(opt.equals("1.3")) {
-                settings.put(CompilerOptions.OPTION_Source,
-                             CompilerOptions.VERSION_1_3);
-            } else if(opt.equals("1.4")) {
-                settings.put(CompilerOptions.OPTION_Source,
-                             CompilerOptions.VERSION_1_4);
-            } else if(opt.equals("1.5")) {
-                settings.put(CompilerOptions.OPTION_Source,
-                             CompilerOptions.VERSION_1_5);
-            } else if(opt.equals("1.6")) {
-                settings.put(CompilerOptions.OPTION_Source,
-                             CompilerOptions.VERSION_1_6);
-            } else if(opt.equals("1.7")) {
-                settings.put(CompilerOptions.OPTION_Source,
-                             CompilerOptions.VERSION_1_7);
-            } else if(opt.equals("1.8")) {
-                settings.put(CompilerOptions.OPTION_Source,
-                             CompilerOptions.VERSION_1_8);
-            // Support old format that was used in EA implementation as well
-            } else if(opt.equals("9") || opt.equals("1.9")) {
-                settings.put(CompilerOptions.OPTION_Source,
-                             JDT_JAVA_9_VERSION);
-            } else if(opt.equals("10")) {
-                // Constant not available in latest ECJ version that runs on
-                // Java 6.
-                // This is checked against the actual version below.
-                settings.put(CompilerOptions.OPTION_Source, "10");
-            } else if(opt.equals("11")) {
-                // Constant not available in latest ECJ version that runs on
-                // Java 6.
-                // This is checked against the actual version below.
-                settings.put(CompilerOptions.OPTION_Source, "11");
-            } else if(opt.equals("12")) {
-                // Constant not available in latest available ECJ version.
-                // May be supported in a snapshot build.
-                // This is checked against the actual version below.
-                settings.put(CompilerOptions.OPTION_Source, "12");
-            } else if(opt.equals("13")) {
-                // Constant not available in latest available ECJ version.
-                // May be supported in a snapshot build.
-                // This is checked against the actual version below.
-                settings.put(CompilerOptions.OPTION_Source, "13");
-            } else {
-                log.warn(Localizer.getMessage("jsp.warning.unknown.sourceVM", opt));
-                settings.put(CompilerOptions.OPTION_Source,
-                        CompilerOptions.VERSION_1_6);
-            }
-        } else {
-            // Default to 1.6
-            settings.put(CompilerOptions.OPTION_Source,
-                    CompilerOptions.VERSION_1_6);
-        }
+        settings.put(CompilerOptions.OPTION_Encoding, "UTF-8");
 
-        // Target JVM
-        if(ctxt.getOptions().getCompilerTargetVM() != null) {
-            String opt = ctxt.getOptions().getCompilerTargetVM();
-            if(opt.equals("1.1")) {
-                settings.put(CompilerOptions.OPTION_TargetPlatform,
-                             CompilerOptions.VERSION_1_1);
-            } else if(opt.equals("1.2")) {
-                settings.put(CompilerOptions.OPTION_TargetPlatform,
-                             CompilerOptions.VERSION_1_2);
-            } else if(opt.equals("1.3")) {
-                settings.put(CompilerOptions.OPTION_TargetPlatform,
-                             CompilerOptions.VERSION_1_3);
-            } else if(opt.equals("1.4")) {
-                settings.put(CompilerOptions.OPTION_TargetPlatform,
-                             CompilerOptions.VERSION_1_4);
-            } else if(opt.equals("1.5")) {
-                settings.put(CompilerOptions.OPTION_TargetPlatform,
-                             CompilerOptions.VERSION_1_5);
-                settings.put(CompilerOptions.OPTION_Compliance,
-                        CompilerOptions.VERSION_1_5);
-            } else if(opt.equals("1.6")) {
-                settings.put(CompilerOptions.OPTION_TargetPlatform,
-                             CompilerOptions.VERSION_1_6);
-                settings.put(CompilerOptions.OPTION_Compliance,
-                        CompilerOptions.VERSION_1_6);
-            } else if(opt.equals("1.7")) {
-                settings.put(CompilerOptions.OPTION_TargetPlatform,
-                             CompilerOptions.VERSION_1_7);
-                settings.put(CompilerOptions.OPTION_Compliance,
-                        CompilerOptions.VERSION_1_7);
-            } else if(opt.equals("1.8")) {
-                settings.put(CompilerOptions.OPTION_TargetPlatform,
-                             CompilerOptions.VERSION_1_8);
-                settings.put(CompilerOptions.OPTION_Compliance,
-                        CompilerOptions.VERSION_1_8);
-            } else if(opt.equals("9") || opt.equals("1.9")) {
-                settings.put(CompilerOptions.OPTION_TargetPlatform,
-                             JDT_JAVA_9_VERSION);
-                settings.put(CompilerOptions.OPTION_Compliance,
-                             JDT_JAVA_9_VERSION);
-            } else if(opt.equals("10")) {
-                // Constant not available in latest ECJ version that runs on
-                // Java 6.
-                // This is checked against the actual version below.
-                settings.put(CompilerOptions.OPTION_TargetPlatform, "10");
-                settings.put(CompilerOptions.OPTION_Compliance, "10");
-            } else if(opt.equals("11")) {
-                // Constant not available in latest ECJ version that runs on
-                // Java 6.
-                // This is checked against the actual version below.
-                settings.put(CompilerOptions.OPTION_TargetPlatform, "11");
-                settings.put(CompilerOptions.OPTION_Compliance, "11");
-            } else if(opt.equals("12")) {
-                // Constant not available in latest available ECJ version.
-                // May be supported in a snapshot build.
-                // This is checked against the actual version below.
-                settings.put(CompilerOptions.OPTION_TargetPlatform, "12");
-                settings.put(CompilerOptions.OPTION_Compliance, "12");
-            } else if(opt.equals("13")) {
-                // Constant not available in latest available ECJ version.
-                // May be supported in a snapshot build.
-                // This is checked against the actual version below.
-                settings.put(CompilerOptions.OPTION_TargetPlatform, "13");
-                settings.put(CompilerOptions.OPTION_Compliance, "13");
-            } else {
-                log.warn(Localizer.getMessage("jsp.warning.unknown.targetVM", opt));
-                settings.put(CompilerOptions.OPTION_TargetPlatform,
-                        CompilerOptions.VERSION_1_6);
-            }
-        } else {
-            // Default to 1.6
-            settings.put(CompilerOptions.OPTION_TargetPlatform,
-                    CompilerOptions.VERSION_1_6);
-            settings.put(CompilerOptions.OPTION_Compliance,
-                    CompilerOptions.VERSION_1_6);
-        }
+        settings.put(CompilerOptions.OPTION_LocalVariableAttribute,
+                CompilerOptions.GENERATE);
+
+        settings.put(CompilerOptions.OPTION_Source,
+                CompilerOptions.VERSION_1_8);
+
+        settings.put(CompilerOptions.OPTION_TargetPlatform,
+                CompilerOptions.VERSION_1_8);
+        settings.put(CompilerOptions.OPTION_Compliance,
+                CompilerOptions.VERSION_1_8);
+
 
         final IProblemFactory problemFactory =
             new DefaultProblemFactory(Locale.getDefault());
@@ -504,10 +343,8 @@ public class JDTCompiler extends org.apache.jasper.compiler.Compiler {
                                     String name =
                                         new String(problems[i].getOriginatingFileName());
                                     try {
-                                        problemList.add(ErrorDispatcher.createJavacError
-                                                (name, pageNodes, new StringBuilder(problem.getMessage()),
-                                                        problem.getSourceLineNumber(), ctxt));
-                                    } catch (JasperException e) {
+                                        problemList.add(null);
+                                    } catch (Exception e) {
                                         log.error("Error visiting node", e);
                                     }
                                 }
@@ -559,23 +396,6 @@ public class JDTCompiler extends org.apache.jasper.compiler.Compiler {
         }
         CompilerOptions cOptions = new CompilerOptions(settings);
 
-        // Check source/target JDK versions as the newest versions are allowed
-        // in Tomcat configuration but may not be supported by the ECJ version
-        // being used.
-        String requestedSource = ctxt.getOptions().getCompilerSourceVM();
-        if (requestedSource != null) {
-            String actualSource = CompilerOptions.versionFromJdkLevel(cOptions.sourceLevel);
-            if (!requestedSource.equals(actualSource)) {
-                log.warn(Localizer.getMessage("jsp.warning.unsupported.sourceVM", requestedSource, actualSource));
-            }
-        }
-        String requestedTarget = ctxt.getOptions().getCompilerTargetVM();
-        if (requestedTarget != null) {
-            String actualTarget = CompilerOptions.versionFromJdkLevel(cOptions.targetJDK);
-            if (!requestedTarget.equals(actualTarget)) {
-                log.warn(Localizer.getMessage("jsp.warning.unsupported.targetVM", requestedTarget, actualTarget));
-            }
-        }
 
         cOptions.parseLiteralExpressionsAsConstants = true;
         Compiler compiler = new Compiler(env,
@@ -583,33 +403,10 @@ public class JDTCompiler extends org.apache.jasper.compiler.Compiler {
                                          cOptions,
                                          requestor,
                                          problemFactory);
+
+
         compiler.compile(compilationUnits);
 
-        if (!ctxt.keepGenerated()) {
-            File javaFile = new File(ctxt.getServletJavaFileName());
-            javaFile.delete();
-        }
-
-        if (!problemList.isEmpty()) {
-            JavacErrorDetail[] jeds =
-                problemList.toArray(new JavacErrorDetail[0]);
-            errDispatcher.javacError(jeds);
-        }
-
-        if( log.isDebugEnabled() ) {
-            long t2=System.currentTimeMillis();
-            log.debug("Compiled " + ctxt.getServletJavaFileName() + " "
-                      + (t2-t1) + "ms");
-        }
-
-        if (ctxt.isPrototypeMode()) {
-            return;
-        }
-
-        // JSR45 Support
-        if (! options.isSmapSuppressed()) {
-            SmapUtil.installSmap(smap);
-        }
 
     }
 

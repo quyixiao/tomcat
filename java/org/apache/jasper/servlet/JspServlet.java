@@ -122,6 +122,7 @@ public class JspServlet extends HttpServlet implements PeriodicEventListener {
 
         // Initialize the JSP Runtime Context
         // Check for a custom Options implementation
+        // 允许指定的类来配置 Jasper。如果没有指定，则使用默认的 Servlet 内置参数(EmbeddedServletOptions)。
         String engineOptionsName = config.getInitParameter("engineOptionsClass");
         if (Constants.IS_SECURITY_ENABLED && engineOptionsName != null) {
             log.info(Localizer.getMessage(

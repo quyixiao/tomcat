@@ -106,7 +106,6 @@ class Validator {
 
         @Override
         public void visit(Node.PageDirective n) throws JasperException {
-
             JspUtil.checkAttributes("Page directive", n, pageDirectiveAttrs,
                     err);
 

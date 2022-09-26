@@ -48,22 +48,22 @@ public final class EmbeddedServletOptions implements Options {
     private Properties settings = new Properties();
 
     /**
-     * Is Jasper being used in development mode?
+     * 是否让 Jasper 用于开发模式？如果是，检查 JSPs 修改的频率，将通过设置 modificationTestInterval 参数来完成。
      */
     private boolean development = true;
 
     /**
-     * Should Ant fork its java compiles of JSP pages.
+     * 是否让 Ant 派生出 JSP 页面多个编译，它们将运行在一个独立于 Tomcat 的 JVM 上。true 或者 false, 缺省为 true.
      */
     public boolean fork = true;
 
     /**
-     * Do you want to keep the generated Java files around?
+     * 是否保存每个页面生成的 java 源代码，而不删除。true 或 false，缺省为 true。
      */
     private boolean keepGenerated = true;
 
     /**
-     * Should template text that consists entirely of whitespace be removed?
+     * 是否去掉模板文本中行为和指令之间的空格。缺省为 false。
      */
     private boolean trimSpaces = false;
 
@@ -73,19 +73,18 @@ public final class EmbeddedServletOptions implements Options {
     private boolean isPoolingEnabled = true;
 
     /**
-     * Do you want support for "mapped" files? This will generate
-     * servlet that has a print statement per line of the JSP file.
-     * This seems like a really nice feature to have for debugging.
+     * 是否对每个输入行都用一条 print 语句来生成静态内容，以方便调试。true 或 false，缺省为 true。
      */
     private boolean mappedFile = true;
 
     /**
      * Do we want to include debugging information in the class file?
+     * 类文件在编译时是否显示调试(debugging)信息？ true 或 false，缺省为 true。
      */
     private boolean classDebugInfo = true;
 
     /**
-     * Background compile thread check interval in seconds.
+     * 如果“development”属性为 false 且“checkInterval”大于 0，则使用后台编译。“checkInterval”是查看 JSP 页面(包括其附属文件)
      */
     private int checkInterval = 0;
 
@@ -104,6 +103,7 @@ public final class EmbeddedServletOptions implements Options {
      */
     private boolean genStringAsCharArray = false;
 
+    // 在一个 useBean action 中，当类属性的值不是一个合法的 bean class 时，Jasper 是否抛出异常？true
     private boolean errorOnUseBeanInvalidClassAttribute = true;
 
     /**
@@ -121,11 +121,13 @@ public final class EmbeddedServletOptions implements Options {
 
     /**
      * What classpath should I use while compiling generated servlets?
+     * 编译 servlet 时要使用的类路径，当 ServletContext 属性 org.apache.jasper.Constants.SERVLET_CLASSPATH 未设置的情况下，
      */
     private String classpath = null;
 
     /**
      * Compiler to use.
+     * – Ant 将要使用的 JSP 页面编译器，请查阅 Ant 文档获取更多信息。如果该参数未设置，那么默认的 Eclipse JDT Java 编译器将被用
      */
     private String compiler = null;
 
@@ -177,12 +179,14 @@ public final class EmbeddedServletOptions implements Options {
 
     /**
      * Is generation of X-Powered-By response header enabled/disabled?
+     * 确定生成的 Servlet 是否加上 X-Powered-By 响应头？true 或 false，缺省为 false。
      */
     private boolean xpoweredBy;
 
     /**
      * Should we include a source fragment in exception messages, which could be displayed
      * to the developer ?
+     * 异常信息中是否包含出错的源代码片段？true 或 false，缺省为 true。
      */
     private boolean displaySourceFragment = true;
 
@@ -484,7 +488,7 @@ public final class EmbeddedServletOptions implements Options {
             }
         }
 
-
+        // 是否去掉模板文本中行为和指令间的空格，缺省为false
         String trimsp = config.getInitParameter("trimSpaces");
         if (trimsp != null) {
             if (trimsp.equalsIgnoreCase("true")) {
@@ -499,8 +503,8 @@ public final class EmbeddedServletOptions implements Options {
         }
 
         this.isPoolingEnabled = true;
-        String poolingEnabledParam
-        = config.getInitParameter("enablePooling");
+        //  确定是否共享标签处理器，true 或 false，缺省为 true。
+        String poolingEnabledParam = config.getInitParameter("enablePooling");
         if (poolingEnabledParam != null
                 && !poolingEnabledParam.equalsIgnoreCase("true")) {
             if (poolingEnabledParam.equalsIgnoreCase("false")) {
@@ -511,7 +515,7 @@ public final class EmbeddedServletOptions implements Options {
                 }
             }
         }
-
+        // 是否对每个输入行都用一条 print 语句来生成静态内容，以方便调试。true 或 false，缺省为 true。
         String mapFile = config.getInitParameter("mappedfile");
         if (mapFile != null) {
             if (mapFile.equalsIgnoreCase("true")) {
@@ -525,6 +529,7 @@ public final class EmbeddedServletOptions implements Options {
             }
         }
 
+        // 类文件在编译时是否显示调试(debugging)信息？ true 或 false，缺省为 true。
         String debugInfo = config.getInitParameter("classdebuginfo");
         if (debugInfo != null) {
             if (debugInfo.equalsIgnoreCase("true")) {
@@ -538,6 +543,7 @@ public final class EmbeddedServletOptions implements Options {
             }
         }
 
+        // 如果“development”属性为 false 且“checkInterval”大于 0，则使用后台编译。“checkInterval”是查看 JSP 页面(包括其附属文件)
         String checkInterval = config.getInitParameter("checkInterval");
         if (checkInterval != null) {
             try {
@@ -572,6 +578,7 @@ public final class EmbeddedServletOptions implements Options {
                 }
             }
         }
+        // 是否让 Jasper 用于开发模式？如果是，检查 JSPs 修改的频率，将通过设置 modificationTestInterval 参数来完成。 true 或 false， 缺省为 true。
         String development = config.getInitParameter("development");
         if (development != null) {
             if (development.equalsIgnoreCase("true")) {
@@ -585,6 +592,7 @@ public final class EmbeddedServletOptions implements Options {
             }
         }
 
+        //  是否禁止 JSR45 调试时生成 SMAP 信息？true 或 false，缺省为 false。
         String suppressSmap = config.getInitParameter("suppressSmap");
         if (suppressSmap != null) {
             if (suppressSmap.equalsIgnoreCase("true")) {
@@ -597,7 +605,7 @@ public final class EmbeddedServletOptions implements Options {
                 }
             }
         }
-
+        //  JSR45 调试的 SMAP 信息是否转存到文件？true 或 false，缺省为 false。当 suppressSmap 为 true 时，该参数为 false。
         String dumpSmap = config.getInitParameter("dumpSmap");
         if (dumpSmap != null) {
             if (dumpSmap.equalsIgnoreCase("true")) {
@@ -623,7 +631,7 @@ public final class EmbeddedServletOptions implements Options {
                 }
             }
         }
-
+        // 在一个 useBean action 中，当类属性的值不是一个合法的 bean class 时，Jasper 是否抛出异常？true
         String errBeanClass =
             config.getInitParameter("errorOnUseBeanInvalidClassAttribute");
         if (errBeanClass != null) {
@@ -637,7 +645,7 @@ public final class EmbeddedServletOptions implements Options {
                 }
             }
         }
-
+        // 当使用标签时，发送给 Internet Explorer 的 class-id 的值。缺省为：8AD9C840-044E-11D1-B3E9-00805F499D93。
         String ieClassId = config.getInitParameter("ieClassId");
         if (ieClassId != null)
             this.ieClassId = ieClassId;
@@ -647,7 +655,7 @@ public final class EmbeddedServletOptions implements Options {
             this.classpath = classpath;
 
         /*
-         * scratchdir
+         * scratchdir  当编译 JSP 页面时使用的 scratch 目录。缺省为当前 WEB 应用的工作目录。
          */
         String dir = config.getInitParameter("scratchdir");
         if (dir != null && Constants.IS_SECURITY_ENABLED) {
@@ -712,6 +720,7 @@ public final class EmbeddedServletOptions implements Options {
             }
         }
 
+        // 确定生成的 Servlet 是否加上 X-Powered-By 响应头？true 或 false，缺省为 false。
         String xpoweredBy = config.getInitParameter("xpoweredBy");
         if (xpoweredBy != null) {
             if (xpoweredBy.equalsIgnoreCase("true")) {
@@ -725,6 +734,7 @@ public final class EmbeddedServletOptions implements Options {
             }
         }
 
+        // 异常信息中是否包含出错的源代码片段？true 或 false，缺省为 true。
         String displaySourceFragment = config.getInitParameter("displaySourceFragment");
         if (displaySourceFragment != null) {
             if (displaySourceFragment.equalsIgnoreCase("true")) {

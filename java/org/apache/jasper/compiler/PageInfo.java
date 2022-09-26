@@ -75,7 +75,7 @@ class PageInfo {
 
     // JSP 2.1
     private String deferredSyntaxAllowedAsLiteralValue;
-    private boolean deferredSyntaxAllowedAsLiteral = false;
+    private boolean deferredSyntaxAllowedAsLiteral = false; //该属性指示在JSP页面的模板文本中是否允许出现字符序列#{。如果该属性的值为false（默认值），当模板文本中出现字符序列#{时，将引发页面转换错误。
     private ExpressionFactory expressionFactory =
         ExpressionFactory.newInstance();
     private String trimDirectiveWhitespacesValue;

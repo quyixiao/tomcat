@@ -16,6 +16,8 @@
  */
 package org.apache.jasper.compiler;
 
+import com.sun.javafx.scene.control.behavior.SpinnerBehavior;
+
 import java.io.PrintWriter;
 
 /**
@@ -27,6 +29,7 @@ import java.io.PrintWriter;
 public class ServletWriter {
     public static final int TAB_WIDTH = 2;
     public static final String SPACES = "                              ";
+    public static final String SPACEB = "                               ";
 
     // Current indent level:
     private int indent = 0;

@@ -136,23 +136,25 @@ public class JspConfig {
                     element = list.next();
                     String tname = element.getName();
 
-                    if ("url-pattern".equals(tname))
+                    if ("url-pattern".equals(tname))                        // 设定值所影响的范围，如：/CH2或/*.jsp；
                         urlPatterns.addElement( element.getBody() );
-                    else if ("page-encoding".equals(tname))
+                    else if ("page-encoding".equals(tname))                 //设定JSP网页的编码；
                         pageEncoding = element.getBody();
                     else if ("is-xml".equals(tname))
                         isXml = element.getBody();
-                    else if ("el-ignored".equals(tname))
+                    else if ("el-ignored".equals(tname))                    // 若为true，表示不支持EL语法；
                         elIgnored = element.getBody();
-                    else if ("scripting-invalid".equals(tname))
+                    else if ("scripting-invalid".equals(tname))             //若为true，表示不支持<%scripting%>语法；
                         scriptingInvalid = element.getBody();
-                    else if ("include-prelude".equals(tname))
+                    else if ("include-prelude".equals(tname))               //设置JSP网页的抬头；
                         includePrelude.addElement(element.getBody());
-                    else if ("include-coda".equals(tname))
+                    else if ("include-coda".equals(tname))                  //设置JSP网页的结尾。
                         includeCoda.addElement(element.getBody());
-                    else if ("deferred-syntax-allowed-as-literal".equals(tname))
+                    //注意，该属性是在JSP 2.1规范中引入的，JSP 2.1规范对JSP 2.0和Java Server Faces 1.1中的表达式语言进行了统一。在JSP 2.1中，字符序列#{被保留给表达式语言使用，你不能在模板本中使用字符序列#{。
+                        // 如果JSP页面运行在JSP 2.1之前版本的容器中，则没有这个限制。对于JSP 2.1的容器，如果在模板文本中需要出现字符序列#{，那么可以将该属性设置为true。
+                    else if ("deferred-syntax-allowed-as-literal".equals(tname))    //该属性指示在JSP页面的模板文本中是否允许出现字符序列#{。如果该属性的值为false（默认值），当模板文本中出现字符序列#{时，将引发页面转换错误。
                         deferredSyntaxAllowedAsLiteral = element.getBody();
-                    else if ("trim-directive-whitespaces".equals(tname))
+                    else if ("trim-directive-whitespaces".equals(tname))    //删除页面多余的空白
                         trimDirectiveWhitespaces = element.getBody();
                     else if ("default-content-type".equals(tname))
                         defaultContentType = element.getBody();

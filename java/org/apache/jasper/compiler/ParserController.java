@@ -227,6 +227,7 @@ class ParserController implements TagConstants {
                     isBomPresent);
         } else {
             // Standard syntax
+
             InputStreamReader inStreamReader = null;
             try {
                 inStreamReader = JspUtil.getReader(absFileName, sourceEnc,
