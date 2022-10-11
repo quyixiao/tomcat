@@ -3425,7 +3425,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
                 // Note : Not getting an exception here means the resource was
                 // found
                 // 如果没有抛异常，就表示要加载的类存在
-
+                //System.out.println("fullPath="+fullPath);
                 ResourceAttributes attributes =
                     (ResourceAttributes) resources.getAttributes(fullPath);
                 contentLength = (int) attributes.getContentLength();

@@ -58,6 +58,11 @@ public abstract class LifecycleBase implements Lifecycle {
      */
     @Override
     public void addLifecycleListener(LifecycleListener listener) {
+        if("org.apache.catalina.connector.MapperListener".equals(listener.getClass().getName())){
+          //  System.out.println("StandardHost = ");
+            //System.out.println("addLifecycleListener="+this.getClass().getName() + ", listener = " + listener);
+        }
+
         lifecycle.addLifecycleListener(listener);
     }
 

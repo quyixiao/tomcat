@@ -33,6 +33,7 @@ import java.util.Iterator;
 
 import javax.servlet.ServletContext;
 
+import com.luban.LoggerUtils;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.LifecycleState;
@@ -386,6 +387,9 @@ public class StandardManager extends ManagerBase {
         ObjectOutputStream oos = null;
         boolean error = false;
         try {
+
+            LoggerUtils.info("=doUnload====" + file.getAbsolutePath(),10);
+
             fos = new FileOutputStream(file.getAbsolutePath());
             bos = new BufferedOutputStream(fos);
             oos = new ObjectOutputStream(bos);

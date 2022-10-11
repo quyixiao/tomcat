@@ -2203,7 +2203,7 @@ public class StandardContext extends ContainerBase
 
     @Override
     public void setDocBase(String docBase) {
-
+        log.info(this.getClass().getName() + ", docBase = " + docBase);
         this.docBase = docBase;
 
     }

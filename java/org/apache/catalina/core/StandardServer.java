@@ -811,7 +811,7 @@ public final class StandardServer extends LifecycleMBeanBase implements Server {
         onameStringCache = register(new StringCache(), "type=StringCache");
 
         // Register the MBeanFactory
-        // MBeanFactory是JMX中用来管理Server的一个对象，通过MBeanFactory可以创建、移除Connector、Host等待
+        // MBeanFactory是JMX中用来管理Server的一个对象，通过MBeanFactory可以创建、移除Connector、Host等
         MBeanFactory factory = new MBeanFactory();
         factory.setContainer(this);
         onameMBeanFactory = register(factory, "type=MBeanFactory");

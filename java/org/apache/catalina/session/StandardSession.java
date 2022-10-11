@@ -643,6 +643,10 @@ public class StandardSession implements HttpSession, Session, Serializable {
         if (maxInactiveInterval > 0) {
             long timeNow = System.currentTimeMillis();
             int timeIdle;
+            // 查看上面的代码，主要就是通过对比当前时间和上次访问的时间差是否大于了最大的非活动时间间隔，如果大于就会调用expire(true)方法对session进行超期处理。
+            // 这里需要注意一点，默认情况下LAST_ACCESS_AT_START为false，读者也可以通过设置系统属性的方式进行修改，而如果采用LAST_ACCESS_AT_START的时候，
+            // 那么请求本身的处理时间将不算在内。
+            // 比如一个请求处理开始的时候是10:00,请求处理花了1分钟，那么如果LAST_ACCESS_AT_START为true，则算是否超期的时候，是从10:00算起，而不是10:01。
             if (LAST_ACCESS_AT_START) {
                 timeIdle = (int) ((timeNow - lastAccessedTime) / 1000L);
             } else {

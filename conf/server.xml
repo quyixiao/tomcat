@@ -166,7 +166,7 @@
       </Host>-->
 
       <Host name="localhost"  appBase="webapps"
-            unpackWARs="true" autoDeploy="true" >
+            unpackWARs="true" autoDeploy="true" copyXML="true" >
  <!--       <Alias>examplexx.com</Alias>-->
        <!--   <Context docBase="servelet-test-1.0.war" path="/my-test"></Context>-->
 

@@ -43,6 +43,7 @@ import javax.management.ObjectName;
 import javax.naming.directory.DirContext;
 import javax.servlet.ServletException;
 
+import com.luban.LoggerUtils;
 import org.apache.catalina.AccessLog;
 import org.apache.catalina.Cluster;
 import org.apache.catalina.Container;
@@ -1299,6 +1300,8 @@ public abstract class ContainerBase extends LifecycleMBeanBase
         // 停止background线程
         threadStop();
 
+        log.info("===========threadStop==========after============");
+
         setState(LifecycleState.STOPPING);
 
         // Stop the Valves in our pipeline (including the basic), if any
@@ -1621,7 +1624,7 @@ public abstract class ContainerBase extends LifecycleMBeanBase
         if (thread != null)
             return;
 
-//        System.out.println(this.getInfo() + "的backgroundProcessorDelay等于=" + backgroundProcessorDelay);
+        //System.out.println(this.getInfo() + "的backgroundProcessorDelay等于=" + backgroundProcessorDelay);
         // 默认情况下只有Engine的backgroundProcessorDelay大于0，为10，
         // 也就是说，虽然每个容器在启动的时候都会走到当前方法，但是只有Engine能继续往下面去执行
         // 但是其他容器是可以配置backgroundProcessorDelay属性的，只要配置了大于0，那么这个容器也会单独开启一个backgroundProcessor线程
@@ -1656,6 +1659,7 @@ public abstract class ContainerBase extends LifecycleMBeanBase
             return;
 
         threadDone = true;
+        log.info("==========threadStop=========" );
         thread.interrupt();
         try {
             thread.join();
@@ -1768,6 +1772,7 @@ public abstract class ContainerBase extends LifecycleMBeanBase
         private Container child;
 
         public StopChild(Container child) {
+            LoggerUtils.info("========StopChild=======",10);
             this.child = child;
         }
 
