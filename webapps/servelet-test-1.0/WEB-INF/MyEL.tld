@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+        version="2.0">
+
+    <!-- 定义标签库信息 -->
+    <description>A tag library exercising SimpleTag handlers.</description>
+    <tlib-version>1.0</tlib-version>
+    <short-name>MyEL</short-name><!-- 标签库名称，一般定义成和文件名一样 -->
+    <uri>http://tomcat.apache.org/jsp2-example-taglib</uri>
+
+    <!--  注册函数 -->
+    <function>
+        <name>getTestDto</name>
+        <function-class>com.example.servelettest.MyEL</function-class><!-- 方法得类 -->
+        <function-signature>com.example.servelettest.TestDto getTestDto()</function-signature><!-- 方法签名 ：需要返回值以及方法名、参数-->
+    </function>
+</taglib>

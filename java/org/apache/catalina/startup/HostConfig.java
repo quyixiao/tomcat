@@ -142,7 +142,7 @@ public class HostConfig
     /**
      * The Java class name of the Context implementation we should use.
      */
-    protected String contextClass = "org.apache.catalina.core.StandardContext";
+    protected String contextClass = "";
 
 
     /**
@@ -570,14 +570,14 @@ public class HostConfig
         String[] filteredAppPaths = filterAppPaths(appBase.list());
         // Deploy XML descriptors from configBase
         // 描述符部署
-
+        // configBase= /Users/quyixiao/gitlab/tomcat/conf/Catalina/localhost
         deployDescriptors(configBase, configBase.list());
         // Deploy WARs
         // war包部署
-        deployWARs(appBase, filteredAppPaths);
+        deployWARs(appBase, filteredAppPaths);  // appBase = /Users/quyixiao/gitlab/tomcat/webapps
         // Deploy expanded folders
         // 文件夹部署
-        deployDirectories(appBase, filteredAppPaths);
+        deployDirectories(appBase, filteredAppPaths);       // appBase = /Users/quyixiao/gitlab/tomcat/webapps
 
     }
 
@@ -687,6 +687,7 @@ public class HostConfig
      * @param cn
      *
      * 扫描Host 配置文件的部署过程如下 ，具体可
+     *
      * 1. 扫描Host 配置文件基础目录 ， 即$CATALINA_BASE/config/<Engine名称>/<Host名称>, 对该目录下的每个配置文件，由于线程池完成解析部署。。
      * 2. 对于每个文件的部署线程，进行如下操作。
      *  使用Digester解析配置文件，创建Context实例。
@@ -734,8 +735,7 @@ public class HostConfig
             }
 
             Class<?> clazz = Class.forName(host.getConfigClass());  // ContextConfig
-            LifecycleListener listener =
-                (LifecycleListener) clazz.newInstance();
+            LifecycleListener listener = (LifecycleListener) clazz.newInstance();
             context.addLifecycleListener(listener);
 
             context.setConfigFile(contextXml.toURI().toURL());
@@ -840,7 +840,9 @@ public class HostConfig
             }
             // Add the global redeploy resources (which are never deleted) at
             // the end so they don't interfere with the deletion process
+
             addGlobalRedeployResources(deployedApp);
+            System.out.println(   deployedApp.redeployResources);
         }
 
         if (host.findChild(context.getName()) != null) {
@@ -904,6 +906,7 @@ public class HostConfig
                 if (isServiced(cn.getName())) {
                     continue;
                 }
+
                 if (deploymentExists(cn.getName())) {
                     DeployedApplication app = deployed.get(cn.getName());
                     boolean unpackWAR = unpackWARs;
@@ -1454,6 +1457,7 @@ public class HostConfig
             // Add the global redeploy resources (which are never deleted) at
             // the end so they don't interfere with the deletion process
             addGlobalRedeployResources(deployedApp);
+            System.out.println( deployedApp.redeployResources);
         }
         deployed.put(cn.getName(), deployedApp);
 
@@ -1559,8 +1563,8 @@ public class HostConfig
      */
     protected synchronized void checkResources(DeployedApplication app,
             boolean skipFileModificationResolutionCheck) {
-        String[] resources =
-            app.redeployResources.keySet().toArray(new String[0]);
+        log.info("checkResources DeployedApplication name = "  + app.name);
+        String[] resources = app.redeployResources.keySet().toArray(new String[0]);
         // Offset the current time by the resolution of File.lastModified()
         long currentTimeWithResolutionOffset = System.currentTimeMillis() - FILE_MODIFICATION_RESOLUTION_MS;
         for (int i = 0; i < resources.length; i++) {
@@ -1693,6 +1697,7 @@ public class HostConfig
     private void reload(DeployedApplication app, File fileToRemove, String newDocBase) {
         if(log.isInfoEnabled())
             log.info(sm.getString("hostConfig.reload", app.name));
+
         Context context = (Context) host.findChild(app.name);
         if (context.getState().isAvailable()) {
             if (fileToRemove != null && newDocBase != null) {
@@ -2081,6 +2086,7 @@ public class HostConfig
      */
     protected static class DeployedApplication {
         public DeployedApplication(String name, boolean hasDescriptor) {
+            log.info("DeployedApplication name = " + name + "， hasDescriptor = " + hasDescriptor);
             this.name = name;
             this.hasDescriptor = hasDescriptor;
         }

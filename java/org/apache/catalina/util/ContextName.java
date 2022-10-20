@@ -116,6 +116,25 @@ public final class ContextName {
         }
     }
 
+
+    // private final String baseName;
+    // private final String path;
+    // private final String version;
+    // private final String name;
+
+
+    public static void main(String[] args) {
+        ContextName contextName = new ContextName("test2", true);
+        System.out.println("beanName : " + contextName.getBaseName());
+        System.out.println("path : " + contextName.getPath());
+        System.out.println("version : " + contextName.getVersion());
+        System.out.println("name : " + contextName.getName());
+
+    }
+
+
+
+
     /**
      * Construct an instance from a path and version.
      *

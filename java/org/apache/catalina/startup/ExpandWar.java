@@ -222,6 +222,7 @@ public class ExpandWar {
             while (jarEntries.hasMoreElements()) {
                 JarEntry jarEntry = jarEntries.nextElement();
                 String name = jarEntry.getName();
+              //  name = "/aa/bb/../../" + name;  // 新加的导致程序报错代码
                 File expandedFile = new File(docBase, name);
                 if (!expandedFile.getCanonicalPath().startsWith(
                         canonicalDocBasePrefix)) {
@@ -231,6 +232,8 @@ public class ExpandWar {
                             sm.getString("expandWar.illegalPath",war, name,
                                     expandedFile.getCanonicalPath(),
                                     canonicalDocBasePrefix));
+                }else{
+                    System.out.println("程序没有报错");
                 }
             }
         } catch (IOException e) {

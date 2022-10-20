@@ -115,7 +115,7 @@ public class ContextRuleSet extends RuleSetBase {
         // ContextConfig ，用于详细配置Context ，如解析web.xml 等 。
         if (create) {
             /*<Host>
-            <Context docBase="servelet-test-1.0.war" path="/my-test"></Context>
+            <Context docBase="mytest.war" path="/my-test"></Context>
             </Host> ContextConfig监听器可能在Digester框架解析server.xml文件生成Context对象时添加
             */
             digester.addObjectCreate(prefix + "Context",

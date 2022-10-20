@@ -5646,6 +5646,7 @@ public class StandardContext extends ContainerBase
             }
         }
 
+
         // 如果在Context节点下配置了Loader节点，那么就会在解析配置文件的时候就会初始化Loader,比如：
 //        <Context path="/ServletDemo" docBase="C:\Users\周瑜\IdeaProjects\ServletDemo\target\ServletDemo" addWebinfClassesResources="true">
 //            <Loader/>

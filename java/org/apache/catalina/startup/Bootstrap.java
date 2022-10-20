@@ -572,11 +572,13 @@ public final class Bootstrap {
                 return;
             }
             daemon = bootstrap;
+            log.info("bootstrap.init() 调用 ");
         } else {
             // When running as a service the call to stop will be on a new
             // thread so make sure the correct class loader is used to prevent
             // a range of class not found exceptions.
             Thread.currentThread().setContextClassLoader(daemon.catalinaLoader);
+            log.info("bootstrap.main() 设置 daemon.catalinaLoader ");
         }
 
         try {

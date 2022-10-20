@@ -684,6 +684,7 @@ public class WARDirContext extends BaseDirContext {
     protected void loadEntries() {
 
         try {
+            System.out.println("loadEntries 开始解析 ");
 
             Enumeration<? extends ZipEntry> entryList = base.entries();
             entries = new Entry("/", new ZipEntry("/"));

@@ -11,7 +11,7 @@ public class ZipTest {
 
     public static void main(String[] args) throws Exception {
 
-        ZipFile     base = new ZipFile("/Users/quyixiao/gitlab/tomcat/webapps/servelet-test-1.0.war");
+        ZipFile     base = new ZipFile("/Users/quyixiao/gitlab/tomcat/webapps/mytest.war");
         Enumeration<? extends ZipEntry> entryList = base.entries();
         while (entryList.hasMoreElements()) {
             ZipEntry entry = entryList.nextElement();

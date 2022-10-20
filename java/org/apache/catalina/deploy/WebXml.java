@@ -56,7 +56,7 @@ import org.apache.tomcat.util.res.StringManager;
  */
 public class WebXml {
 
-    protected static final String ORDER_OTHERS =
+    public static final String ORDER_OTHERS =
         "org.apache.catalina.order.others";
 
     private static final StringManager sm =

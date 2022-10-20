@@ -21,12 +21,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.JarURLConnection;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import javax.servlet.ServletContext;
 import javax.servlet.descriptor.TaglibDescriptor;

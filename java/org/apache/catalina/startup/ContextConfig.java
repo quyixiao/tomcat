@@ -658,7 +658,6 @@ public class ContextConfig implements LifecycleListener {
         // 如果Context节点上没有配置defaultContextXml属性的话，那么则取默认值 conf/context.xml
         if( defaultContextXml==null ) getDefaultContextXml();
 
-        // 如果
         if (!context.getOverride()) {
             File defaultContextFile = new File(defaultContextXml);
             // defaultContextXml如果是相对于路径，那么则相对于getBaseDir()

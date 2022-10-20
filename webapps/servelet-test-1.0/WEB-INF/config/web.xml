@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee"
+         version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee">
+
+    <servlet>
+        <servlet-name>my</servlet-name>
+        <servlet-class>com.example.servelettest.HelloServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>my</servlet-name>
+        <url-pattern>/MyServlet</url-pattern>
+    </servlet-mapping>
+
+
+    <env-entry>
+        <env-entry-name>sql_type</env-entry-name>
+        <env-entry-value>mysql</env-entry-value>
+        <env-entry-type>java.lang.String</env-entry-type>
+    </env-entry>
+
+
+    <ejb-local-ref>
+        <ejb-ref-name>LocalUserBean</ejb-ref-name>
+        <ejb-ref-type>Session</ejb-ref-type>
+        <local-home>com.example.servelettest.UserLocalHome</local-home>
+        <local>com.example.servelettest.UserLocal</local>
+    </ejb-local-ref>
+
+</web-app>
+
+
+
+
