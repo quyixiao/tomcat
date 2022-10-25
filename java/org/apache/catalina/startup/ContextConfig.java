@@ -1519,7 +1519,7 @@ public class ContextConfig implements LifecycleListener {
         sContext.setAttribute(
                org.apache.tomcat.util.scan.Constants.MERGED_WEB_XML,
                mergedWebXml);
-        if (context.getLogEffectiveWebXml()) {
+        if (false || context.getLogEffectiveWebXml()) {
             log.info("web.xml:\n" + mergedWebXml);
         }
 
@@ -2203,6 +2203,10 @@ public class ContextConfig implements LifecycleListener {
             // no impact on distributable
             annotations.setDistributable(true);
             URL url = fragment.getURL();
+            if(url.getPath().contains("web-fragment-test-2.0-SNAPSHOT.jar")){
+                System.out.println("============path="+url.getPath());
+            }
+
             processAnnotationsUrl(url, annotations,
                     (handlesTypesOnly || fragment.isMetadataComplete()));
             Set<WebXml> set = new HashSet<WebXml>();
@@ -2478,6 +2482,7 @@ public class ContextConfig implements LifecycleListener {
                     }
                     classes.add(clazz);
                 }
+                System.out.println(initializerClassMap);
             }
         }
 
@@ -2488,6 +2493,7 @@ public class ContextConfig implements LifecycleListener {
                     AnnotationEntry[] annotationEntries = javaClass.getAnnotationEntries();
                     if (annotationEntries != null) {
                         for (AnnotationEntry annotationEntry : annotationEntries) {
+
                             if (entry.getKey().getName().equals(
                                     getClassName(annotationEntry.getAnnotationType()))) {
                                 if (clazz == null) {
@@ -2500,6 +2506,9 @@ public class ContextConfig implements LifecycleListener {
                                     }
                                 }
                                 for (ServletContainerInitializer sci : entry.getValue()) {
+                                    if("com.example.servelettest.AnnoContainerInitializerImpl".equals(javaClass.getClassName())){
+                                        System.out.println("============="+javaClass.getClassName());
+                                    }
                                     initializerClassMap.get(sci).add(clazz);
                                 }
                                 break;
@@ -2508,6 +2517,7 @@ public class ContextConfig implements LifecycleListener {
                     }
                 }
             }
+
         }
     }
 
@@ -2986,6 +2996,7 @@ public class ContextConfig implements LifecycleListener {
                     InputSource source = new InputSource(
                             "jar:" + resourceURL.toString() + "!/" +
                             FRAGMENT_LOCATION);
+                    System.out.println("==============" + resourceURL.toString());
                     source.setByteStream(is);
                     parseWebXml(source, fragment, true);
                 }

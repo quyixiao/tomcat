@@ -1,0 +1,50 @@
+package com.luban;
+
+import javax.annotation.Resource;
+import javax.naming.Context;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+
+public class DataSourceMethodListener implements ServletContextListener {
+
+    private DataSource dataSource;
+
+    @Resource(lookup = "java:comp/env/jdbc/mysql")
+    public void setDataSource( DataSource dataSource){
+        this.dataSource =  dataSource;
+    }
+
+    @Override
+    public void contextInitialized(ServletContextEvent sce) {
+        System.out.println("……监听开始222222……");
+        Context ctx = null;
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            System.out.println(dataSource);
+            System.out.println("bbb============================" + dataSource);
+            con = dataSource.getConnection();
+            System.out.println("==con=====" + con);
+            stmt = con.createStatement();
+            System.out.println("==stmt=====" + stmt);
+            rs = stmt.executeQuery("select * from lt_company ");
+            while(rs.next()) {
+                System.out.println( rs.getInt("id") + " " + rs.getInt("is_delete") + " " + rs.getString("company_name") + " ");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {
+
+    }
+}

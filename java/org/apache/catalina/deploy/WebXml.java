@@ -2154,13 +2154,13 @@ public class WebXml {
             dest.setServletClass(src.getServletClass());
             dest.setJspFile(src.getJspFile());
         } else if (failOnConflict) {
-            if (src.getServletClass() != null &&
-                    (dest.getJspFile() != null ||
+            if (src.getServletClass() != null &&             // src.getJspFile() == null
+                    (dest.getJspFile() != null ||            // dest.getServletClass()  == null
                             !src.getServletClass().equals(dest.getServletClass()))) {
                 return false;
             }
-            if (src.getJspFile() != null &&
-                    (dest.getServletClass() != null ||
+            if (src.getJspFile() != null &&                // src.getServletClass() == null
+                    (dest.getServletClass() != null ||     // dest.getJspFile() == null
                             !src.getJspFile().equals(dest.getJspFile()))) {
                 return false;
             }
