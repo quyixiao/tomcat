@@ -59,7 +59,7 @@ import org.xml.sax.SAXException;
  * 1. 在web.xml中声明TLD文件的路径。
  * 2. 直接扫描WEB-INF 目录下的JAR 包里的META-INF 目录下的TLD 文件 。
  * 3. 扫描classpath 下的Jar包下的META-INF 目录下的TLD文件 。
- * 4. TldConfig 紧箍咒主要的工作职责就是寻找可能存在的TLD文件位置 ， 并解析找到 TLD文件，以一定的结构保存到内存中。
+ * 4. TldConfig 监听器主要的工作职责就是寻找可能存在的TLD文件位置 ， 并解析找到 TLD文件，以一定的结构保存到内存中。
  *
  */
 public final class TldConfig  implements LifecycleListener {
@@ -417,6 +417,7 @@ public final class TldConfig  implements LifecycleListener {
                     }
                     InputStream stream = ctxt.getResourceAsStream(path);
                     try {
+                        //System.out.println("tldScanResourcePaths path = " + path);
                         XmlErrorHandler handler = tldScanStream(stream);
                         handler.logFindings(log, path);
                     } catch (IOException ioe) {

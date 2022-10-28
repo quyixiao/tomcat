@@ -6,13 +6,22 @@
     <servlet>
         <servlet-name>my</servlet-name>
         <servlet-class>com.example.servelettest.HelloServlet</servlet-class>
+
+
     </servlet>
+
+
+    <context-param>
+        <param-name>aaa</param-name>
+        <param-value>bbb</param-value>
+    </context-param>
+
+
 
     <servlet-mapping>
         <servlet-name>my</servlet-name>
         <url-pattern>/MyServlet</url-pattern>
     </servlet-mapping>
-
 
     <servlet>
         <servlet-name>AServlet</servlet-name>
@@ -23,8 +32,20 @@
     <listener>
         <listener-class>com.luban.DataSourceMethodListener</listener-class>
         <listener-class>com.luban.DataSourceFiledListener</listener-class>
+
     </listener>
 
+
+
+    <jsp-config>
+        <!--配置taglib-->
+        <taglib>
+            <!--设置标签库唯一 url ；这里的 url 必须与 tld 文件中的 url 一致-->
+            <taglib-uri>/learnTag</taglib-uri>
+            <!--指明 tld 标签库描述文件的位置-->
+            <taglib-location>/WEB-INF/tags/MyTaglib.tld</taglib-location>
+        </taglib>
+    </jsp-config>
 
     <servlet-mapping>
         <servlet-name>AServlet</servlet-name>

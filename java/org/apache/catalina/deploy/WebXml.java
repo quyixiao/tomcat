@@ -1333,6 +1333,7 @@ public class WebXml {
         for (Entry<String, String> entry : contextParams.entrySet()) {
             context.addParameter(entry.getKey(), entry.getValue());
         }
+
         context.setDisplayName(displayName);
         context.setDistributable(distributable);
         for (ContextLocalEjb ejbLocalRef : ejbLocalRefs.values()) {

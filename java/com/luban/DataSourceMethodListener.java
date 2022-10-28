@@ -1,5 +1,6 @@
 package com.luban;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.naming.Context;
 import javax.servlet.ServletContextEvent;
@@ -14,6 +15,14 @@ import java.sql.Statement;
 public class DataSourceMethodListener implements ServletContextListener {
 
     private DataSource dataSource;
+
+
+
+    @PostConstruct
+    public void postConstructTest(){
+        System.out.println("===========postConstructTest========");
+    }
+
 
     @Resource(lookup = "java:comp/env/jdbc/mysql")
     public void setDataSource( DataSource dataSource){

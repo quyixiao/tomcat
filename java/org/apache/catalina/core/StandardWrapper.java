@@ -1930,7 +1930,6 @@ public class StandardWrapper extends ContainerBase
                                 sequenceNumber++);
             broadcaster.sendNotification(notification);
         }
-
     }
 
 

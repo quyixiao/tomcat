@@ -31,5 +31,6 @@
     <!--
     <Valve className="org.apache.catalina.valves.CometConnectionManagerValve" />
     -->
+    <Parameter name="xxx" description="yyy" value="test"></Parameter>
 
 </Context>

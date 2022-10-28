@@ -1072,6 +1072,16 @@ public class WebappLoader extends LifecycleMBeanBase
                 loaderRepositories.add( filename );
             }
         }
+
+
+        System.out.println(classLoader.jarPath);
+        System.out.println(classLoader.files);
+        System.out.println(classLoader.paths);
+        System.out.println(classLoader.jarNames);
+        System.out.println(classLoader.jarRealFiles);
+        System.out.println(repositories);
+        System.out.println(loaderRepositories);
+
     }
 
 

@@ -5585,6 +5585,12 @@ public class StandardContext extends ContainerBase
 
     }
 
+    @Override
+    public void setParentClassLoader(ClassLoader parent) {
+        super.setParentClassLoader(parent);
+    }
+
+
 
     /**
      * Start this component and implement the requirements

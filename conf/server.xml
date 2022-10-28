@@ -168,8 +168,11 @@
       <Host name="localhost"  appBase="webapps"
             unpackWARs="true" autoDeploy="true" copyXML="true" deployIgnore="[1][3-9][0-9]{9}">
 
-        <Context path="/servelet-test-1.0"  docBase="servelet-test-1.0" >
+        <Context path="/servelet-test-1.0"  docBase="servelet-test-1.0"  >
           <ResourceLink global="jdbc/mysql" name="jdbc/mysql" type="javax.sql.DataSource" />
+
+          <Parameter name="111" description="222" value="333"></Parameter>
+
         </Context>
 
 
