@@ -461,6 +461,7 @@ public class StandardService extends LifecycleMBeanBase implements Service {
                 container.start();
             }
         }
+        System.out.println("StandardService container start finished ");
 
         synchronized (executors) {
             for (Executor executor: executors) {

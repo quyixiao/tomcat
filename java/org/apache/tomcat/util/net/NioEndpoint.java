@@ -525,6 +525,7 @@ public class NioEndpoint extends AbstractEndpoint<NioChannel> {
 
         if (oomParachute>0) reclaimParachute(true);
         selectorPool.open();
+
     }
 
     public KeyManager[] wrap(KeyManager[] managers) {

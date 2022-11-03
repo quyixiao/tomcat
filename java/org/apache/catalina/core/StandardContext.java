@@ -5268,6 +5268,7 @@ public class StandardContext extends ContainerBase
         for (Object eventListener: getApplicationEventListeners()) {
             eventListeners.add(eventListener);
         }
+
         setApplicationEventListeners(eventListeners.toArray());
         for (Object lifecycleListener: getApplicationLifecycleListeners()) {
             lifecycleListeners.add(lifecycleListener);
@@ -5601,6 +5602,8 @@ public class StandardContext extends ContainerBase
      */
     @Override
     protected synchronized void startInternal() throws LifecycleException {
+
+
 
         if(log.isDebugEnabled())
             log.debug("Starting " + getBaseName());

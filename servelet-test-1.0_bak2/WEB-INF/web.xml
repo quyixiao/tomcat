@@ -30,9 +30,9 @@
     </servlet>
 
     <listener>
-        <listener-class>com.luban.DataSourceMethodListener</listener-class>
-        <listener-class>com.luban.DataSourceFiledListener</listener-class>
-
+<!--        <listener-class>com.luban.DataSourceMethodListener</listener-class>
+        <listener-class>com.luban.DataSourceFiledListener</listener-class>-->
+        <listener-class>com.luban.DataSourceClassListener</listener-class>
     </listener>
 
 

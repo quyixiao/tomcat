@@ -20,6 +20,7 @@ public class DataSourceMethodListener implements ServletContextListener {
 
     @PostConstruct
     public void postConstructTest(){
+
         System.out.println("===========postConstructTest========");
     }
 
