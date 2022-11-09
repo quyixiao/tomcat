@@ -135,6 +135,7 @@ public class StandardWrapper extends ContainerBase
         pipeline.setBasic(swValve);  //
         // 广播
         broadcaster = new NotificationBroadcasterSupport();
+        System.out.println("====StandardWrapper类加载器=========" + this.getClass().getClassLoader().toString());
 
     }
 

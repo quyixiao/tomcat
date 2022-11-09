@@ -3395,9 +3395,12 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
 
         int contentLength = -1;
         InputStream binaryStream = null;
+        // 如果以.class文件结尾
         boolean isClassResource = path.endsWith(CLASS_FILE_SUFFIX);
         boolean isCacheable = isClassResource;
+        // 如果不是以.class文件结尾
         if (!isCacheable) {
+             // 并且在/META-INF/services/路径下
              isCacheable = path.startsWith(SERVICES_PREFIX);
         }
 
@@ -4018,4 +4021,6 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             return false;
         }
     }
+
+
 }

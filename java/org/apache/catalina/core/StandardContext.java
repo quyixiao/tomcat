@@ -261,6 +261,8 @@ public class StandardContext extends ContainerBase
             // to be checked against welcome files
             resourceOnlyServlets.add("jsp");
         }
+
+        System.out.println("====StandardContext类加载器=========" + this.getClass().getClassLoader().toString());
     }
 
 

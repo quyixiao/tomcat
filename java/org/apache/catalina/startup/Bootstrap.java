@@ -16,6 +16,13 @@
  */
 package org.apache.catalina.startup;
 
+import org.apache.catalina.Globals;
+import org.apache.catalina.security.SecurityClassLoad;
+import org.apache.catalina.startup.ClassLoaderFactory.Repository;
+import org.apache.catalina.startup.ClassLoaderFactory.RepositoryType;
+import org.apache.juli.logging.Log;
+import org.apache.juli.logging.LogFactory;
+
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -24,13 +31,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
-
-import org.apache.catalina.Globals;
-import org.apache.catalina.security.SecurityClassLoad;
-import org.apache.catalina.startup.ClassLoaderFactory.Repository;
-import org.apache.catalina.startup.ClassLoaderFactory.RepositoryType;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
 
 /**
  * Bootstrap loader for Catalina.  This application constructs a class loader
@@ -209,13 +209,14 @@ public final class Bootstrap {
         try {
             // CommonClassLoader是一个公共的类加载器,默认加载${catalina.base}/lib,${catalina.base}/lib/*.jar,${catalina.home}/lib,${catalina.home}/lib/*.jar下的class
             commonLoader = createClassLoader("common", null); // 虽然这个地方parent是null，实际上是appclassloader
-//            System.out.println("commonLoader的父类加载器===="+commonLoader.getParent());
+           System.out.println("commonLoader的父类加载器===="+commonLoader.getParent());
             if( commonLoader == null ) {
                 // no config file, default to this loader - we might be in a 'single' env.
                 commonLoader=this.getClass().getClassLoader();
             }
             // 下面这个两个类加载器默认情况下就是commonLoader
             catalinaLoader = createClassLoader("server", commonLoader);
+            System.out.println("catalinaLoader类加载器===="+catalinaLoader);
             sharedLoader = createClassLoader("shared", commonLoader);
         } catch (Throwable t) {
             handleThrowable(t);
@@ -263,14 +264,12 @@ public final class Bootstrap {
             if (repository.length() == 0) {
                 continue;
             }
-
             // Check for a JAR URL repository
             try {
                 // 从URL上获取Jar包资源
                 @SuppressWarnings("unused")
                 URL url = new URL(repository);
-                repositories.add(
-                        new Repository(repository, RepositoryType.URL));
+                repositories.add(new Repository(repository, RepositoryType.URL));
                 continue;
             } catch (MalformedURLException e) {
                 // Ignore
@@ -278,22 +277,17 @@ public final class Bootstrap {
 
             // Local repository
             if (repository.endsWith("*.jar")) {
-                // 表示目录下所有的jar包资源
-                repository = repository.substring
-                    (0, repository.length() - "*.jar".length());
-                repositories.add(
-                        new Repository(repository, RepositoryType.GLOB));
+                // GLOB: 表示整个目录下所有的Jar包资源，仅仅是.jar后缀资源
+                repository = repository.substring(0, repository.length() - "*.jar".length());
+                repositories.add(new Repository(repository, RepositoryType.GLOB));
             } else if (repository.endsWith(".jar")) {
-                // 表示目录下当个的jar包资源
-                repositories.add(
-                        new Repository(repository, RepositoryType.JAR));
+                // 表示目录下单个的jar包资源
+                repositories.add(new Repository(repository, RepositoryType.JAR));
             } else {
                 // 表示目录下所有资源，包括jar包、class文件、其他类型资源
-                repositories.add(
-                        new Repository(repository, RepositoryType.DIR));
+                repositories.add(new Repository(repository, RepositoryType.DIR));
             }
         }
-
         // 基于类仓库类创建一个ClassLoader
         return ClassLoaderFactory.createClassLoader(repositories, parent);
     }
@@ -372,9 +366,9 @@ public final class Bootstrap {
         // 加载Catalina类，并生成instance
         if (log.isDebugEnabled())
             log.debug("Loading startup class");
-        Class<?> startupClass =
-            catalinaLoader.loadClass
-            ("org.apache.catalina.startup.Catalina");
+        System.out.println("=========catalinaLoader========" + catalinaLoader);
+
+        Class<?> startupClass = catalinaLoader.loadClass("org.apache.catalina.startup.Catalina");
         Object startupInstance = startupClass.newInstance();
 
         // Set the shared extensions class loader
@@ -386,11 +380,16 @@ public final class Bootstrap {
         paramTypes[0] = Class.forName("java.lang.ClassLoader");
         Object paramValues[] = new Object[1];
         paramValues[0] = sharedLoader;
-        Method method =
-            startupInstance.getClass().getMethod(methodName, paramTypes);
+        Method method = startupInstance.getClass().getMethod(methodName, paramTypes);
         method.invoke(startupInstance, paramValues);
-
         catalinaDaemon = startupInstance;
+
+        //     Catalina catalina = new Catalina();
+        //     catalina.setParentClassLoader(sharedLoader);
+  //     catalinaDaemon = catalina;
+
+
+
 
     }
 

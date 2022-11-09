@@ -88,6 +88,8 @@ public final class StandardServer extends LifecycleMBeanBase implements Server {
             addLifecycleListener(namingContextListener);
         }
 
+
+        System.out.println("====StandardServer的类加载器=========" + this.getClass().getClassLoader().toString());
     }
 
 

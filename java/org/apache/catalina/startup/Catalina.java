@@ -151,6 +151,11 @@ public class Catalina {
     // ----------------------------------------------------------- Constructors
 
     public Catalina() {
+
+        System.out.println("====Catalina类加载器=========" + this.getClass().getClassLoader().toString());
+        System.out.println("====Catalina类的父类加载器=========" + this.getClass().getClassLoader().getParent().toString());
+
+
         setSecurityProtection();
         ExceptionUtils.preload();
     }
@@ -194,6 +199,8 @@ public class Catalina {
      */
     public void setParentClassLoader(ClassLoader parentClassLoader) {
         this.parentClassLoader = parentClassLoader;
+        System.out.println("===setParentClassLoader之后=Catalina类的父类加载器=========" + parentClassLoader);
+
     }
 
     public ClassLoader getParentClassLoader() {

@@ -696,6 +696,10 @@ public class NioEndpoint extends AbstractEndpoint<NioChannel> {
             NioChannel channel = nioChannels.poll(); // 拿出对头的NioChannel
             if ( channel == null ) {
                 // SSL setup
+                // 在封装非阻塞通道对象时使用一项优化值得我们深入学习，如图6.25所示，NioChannel属于频繁生成与消除对象，因为每个客户端连接都需要一个通道与之相
+                // 对应，频繁的生成和消除在性能上的损耗上也不得不多加考虑，我们需要一种手段规则此处可能带来性能上的问题， 其思想就是，当某个客户端使用完NioChannel对象后，
+                // 不对其进行回收，而是将它缓存起来，当新客户端访问到来时， 只须要替换其中SocketChannel对象即可， NioChannel对象包含的其他属性只须要重置操作
+                // 即可，如此一来就不必须频繁的生成与消除NioChannel对象，具体做法是使用一个队列。
                 if (sslContext != null) {
                     SSLEngine engine = createSSLEngine();
                     int appbufsize = engine.getSession().getApplicationBufferSize();

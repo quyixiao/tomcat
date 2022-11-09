@@ -78,6 +78,8 @@ public class StandardEngine extends ContainerBase implements Engine {
         // By default, the engine will hold the reloading thread
         backgroundProcessorDelay = 10;
 
+        System.out.println("====StandardEngine类加载器=========" + this.getClass().getClassLoader().toString());
+
     }
 
 

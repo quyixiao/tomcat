@@ -22,7 +22,7 @@ public class TomcatClassLoader extends ClassLoader {
         byte [] data = null;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            is = new FileInputStream(new File("/Users/quyixiao/github/pitpat-server/pitpat-admin/target/classes/com/test/xxx/Test.class"));
+            is = new FileInputStream(new File("/Users/quyixiao/gitlab/tomcat/output/production/tomcat/com/luban/classloadtest/Test.class"));
             int c = 0 ;
             while ( -1 != (c = is.read())){
                 baos.write(c);
@@ -46,7 +46,7 @@ public class TomcatClassLoader extends ClassLoader {
         TomcatClassLoader loader = new TomcatClassLoader(TomcatClassLoader.class.getClassLoader() , "TomcatClassLoader");
         Class clazz ;
         try {
-            clazz = loader.loadClass("com.test.xxx.Test");
+            clazz = loader.loadClass("com.luban.classloadtest.Test");
             Object object =clazz.newInstance();
 
         }catch (Exception e){

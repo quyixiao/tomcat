@@ -25,7 +25,7 @@ public class TomcatClassLoaderN extends ClassLoader {
         try {
             clazz = system.loadClass(name);
         } catch (Exception e) {
-            e.printStackTrace();
+
         }
         if (clazz != null) {
             return clazz;
@@ -41,14 +41,14 @@ public class TomcatClassLoaderN extends ClassLoader {
         byte[] data = null;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            is = new FileInputStream(new File("/Users/quyixiao/github/pitpat-server/pitpat-admin/target/classes/com/test/xxx/Test.class"));
+            is = new FileInputStream(new File("/Users/quyixiao/github/servelet-test/target/classes/com/example/servelettest/Test.class"));
             int c = 0;
             while (-1 != (c = is.read())) {
                 baos.write(c);
             }
             data = baos.toByteArray();
         } catch (Exception e) {
-            e.printStackTrace();
+
         } finally {
             try {
                 is.close();
@@ -62,10 +62,12 @@ public class TomcatClassLoaderN extends ClassLoader {
 
     public static void main(String[] args) {
         TomcatClassLoaderN loader = new TomcatClassLoaderN(TomcatClassLoaderN.class.getClassLoader(), "TomcatLoaderN");
+
         Class clazz;
         try {
-            clazz = loader.loadClass("com.luban.classloadtest.Test");
+            clazz = loader.loadClass("com.example.servelettest.Test");
             Object o = clazz.newInstance();
+            System.out.println(o);
         } catch (Exception e) {
             e.printStackTrace();
         }
