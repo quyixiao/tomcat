@@ -6,13 +6,13 @@ public class TestMain {
 
         TestClearFilter clearFilter = new TestClearFilter();
         TestUpperFilter upperFilter = new TestUpperFilter();
-        inputBuffer.addActiveFilter(clearFilter);
-        inputBuffer.addActiveFilter(upperFilter);
+        inputBuffer.addFilter(clearFilter);
+        inputBuffer.addFilter(upperFilter);
 
         byte[] chunk = new byte[4];
         int i = 0;
         while (i != -1) {
-            i = inputBuffer.doRead(chunk);
+            i = inputBuffer.doFilter(chunk);
             if (i == -1) {
                 break;
             }

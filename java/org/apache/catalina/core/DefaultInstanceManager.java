@@ -16,6 +16,25 @@
  */
 package org.apache.catalina.core;
 
+import org.apache.catalina.ContainerServlet;
+import org.apache.catalina.Globals;
+import org.apache.catalina.security.SecurityUtil;
+import org.apache.catalina.util.Introspection;
+import org.apache.juli.logging.Log;
+import org.apache.tomcat.InstanceManager;
+import org.apache.tomcat.util.ExceptionUtils;
+import org.apache.tomcat.util.collections.ManagedConcurrentWeakHashMap;
+import org.apache.tomcat.util.res.StringManager;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.naming.Context;
+import javax.naming.NamingException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceUnit;
+import javax.xml.ws.WebServiceRef;
 import java.beans.Introspector;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,34 +46,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-import javax.ejb.EJB;
-import javax.naming.Context;
-import javax.naming.NamingException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceUnit;
-import javax.xml.ws.WebServiceRef;
-
-import org.apache.catalina.ContainerServlet;
-import org.apache.catalina.Globals;
-import org.apache.catalina.security.SecurityUtil;
-import org.apache.catalina.util.Introspection;
-import org.apache.juli.logging.Log;
-import org.apache.tomcat.InstanceManager;
-import org.apache.tomcat.util.ExceptionUtils;
-import org.apache.tomcat.util.collections.ManagedConcurrentWeakHashMap;
-import org.apache.tomcat.util.res.StringManager;
+import java.util.*;
 
 public class DefaultInstanceManager implements InstanceManager {
 
@@ -132,6 +124,8 @@ public class DefaultInstanceManager implements InstanceManager {
         this.injectionMap = injectionMap;
         this.postConstructMethods = catalinaContext.findPostConstructMethods();
         this.preDestroyMethods = catalinaContext.findPreDestroyMethods();
+
+        System.out.println("DefaultInstanceManager的类加载器=" + this.getClass().getClassLoader().toString());
     }
 
     @Override

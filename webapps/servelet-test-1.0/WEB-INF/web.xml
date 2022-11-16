@@ -10,28 +10,116 @@
 
     <servlet-mapping>
         <servlet-name>my</servlet-name>
-        <url-pattern>/MyServlet</url-pattern>
+        <url-pattern>/my/*</url-pattern>
     </servlet-mapping>
 
 
+
+    <servlet>
+        <servlet-name>myTest</servlet-name>
+        <servlet-class>com.example.servelettest.HelloServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>myTest</servlet-name>
+        <url-pattern>/my/a/*</url-pattern>
+    </servlet-mapping>
+<!--
+
+
+    <login-config>
+        <auth-method>FORM</auth-method>
+    </login-config>
+-->
+
+    <jsp-config>
+      <!--<jsp-property-group>
+            <description>
+                Special property group for JSP Configuration JSP
+                example.
+            </description>
+            <display-name>JSPConfiguration</display-name>
+            <url-pattern>*.html</url-pattern>
+            <el-ignored>true</el-ignored>
+            <page-encoding>UTF-8</page-encoding>
+            <scripting-invalid>false</scripting-invalid>
+            <include-prelude></include-prelude>
+            <include-coda></include-coda>
+        </jsp-property-group>
+-->
+
+        <jsp-property-group>
+            　　　　　　　　
+            <description>
+                Special property group for JSP Configuration JSP
+                example.
+            </description>
+            <display-name>JSPConfiguration</display-name>
+            <url-pattern>/my/a/b/*</url-pattern>
+            <el-ignored>true</el-ignored>
+
+            <page-encoding>UTF-8</page-encoding>
+            <scripting-invalid>false</scripting-invalid>
+            <include-prelude></include-prelude>
+            <include-coda></include-coda>
+        </jsp-property-group>
+    </jsp-config>
+
+
+
+    <servlet>
+        <servlet-name>jsp</servlet-name>
+        <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+        <init-param>
+            <param-name>fork</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <init-param>
+            <param-name>xpoweredBy</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <init-param>
+            <param-name>trimSpaces</param-name>
+            <param-value>false</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>jspFile</param-name>
+            <param-value>aservlet.jsp</param-value>
+        </init-param>
+
+        <load-on-startup>3</load-on-startup>
+
+
+    </servlet>
+
+
+    <servlet-mapping>
+        <servlet-name>jsp</servlet-name>
+        <url-pattern>*.jsp</url-pattern>
+        <url-pattern>*.jspx</url-pattern>
+    </servlet-mapping>
+
+<!--
     <servlet>
         <servlet-name>AServlet</servlet-name>
         <servlet-class>com.example.servelettest.AAAServlet</servlet-class>
         <jsp-file>/aservlet.jsp</jsp-file>
-    </servlet>
-<!--
+    </servlet>-->
 
-    <listener>
-        <listener-class>com.luban.DataSourceMethodListener</listener-class>
+
+  <!--  <listener>
+        <listener-class>com.example.servelettest.DataSourceMethodListener</listener-class>
         <listener-class>com.luban.DataSourceFiledListener</listener-class>
     </listener>
 -->
-
+<!--
 
     <servlet-mapping>
         <servlet-name>AServlet</servlet-name>
-        <url-pattern>/AServlet</url-pattern>
+        <url-pattern>*.jsp</url-pattern>
     </servlet-mapping>
+-->
 
 
     <env-entry>

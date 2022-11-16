@@ -10,7 +10,7 @@ public class TestInternalInputBuffer implements TestInputBuffer {
     protected TestInputFilter[] activeFilters = new TestInputFilter[2];
     TestInputBuffer inputBuffer =  new TestInputStreamInputBuffer();
 
-    public void addActiveFilter(TestInputFilter filter) {
+    public void addFilter(TestInputFilter filter) {
         if (lastAciveFilter == -1) {
             filter.setBuffer(inputBuffer);
         } else {
@@ -25,17 +25,17 @@ public class TestInternalInputBuffer implements TestInputBuffer {
     }
 
     @Override
-    public int doRead(byte[] chunk) throws IOException {
+    public int doFilter(byte[] chunk) throws IOException {
         if (lastAciveFilter == -1) {
-            return inputBuffer.doRead(chunk);
+            return inputBuffer.doFilter(chunk);
         } else {
-            return activeFilters[lastAciveFilter].doRead(chunk);
+            return activeFilters[lastAciveFilter].doFilter(chunk);
         }
     }
 
 
     protected class TestInputStreamInputBuffer implements TestInputBuffer {
-        public int doRead(byte[] chunk) throws IOException {
+        public int doFilter(byte[] chunk) throws IOException {
             if (isEnd == false) {
                 buf[0] = 'a';
                 buf[1] = 'b';

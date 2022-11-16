@@ -160,7 +160,7 @@ public class StandardService extends LifecycleMBeanBase implements Service {
             }
         }
 
-        // Report this property change to interested listeners
+        // Report this property change to interested listeners8
         support.firePropertyChange("container", oldContainer, this.container);
 
     }

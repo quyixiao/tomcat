@@ -13,8 +13,10 @@ import java.sql.Statement;
 
 public class DataSourceFiledListener implements ServletContextListener {
 
+/*
     @Resource(lookup = "java:comp/env/jdbc/mysql")
     private DataSource dataSource;
+*/
 
 
     @Override
@@ -25,7 +27,12 @@ public class DataSourceFiledListener implements ServletContextListener {
         Statement stmt = null;
         ResultSet rs = null;
 
-        try {
+
+        System.out.println("DataSourceFiledListener类加载器=" + this.getClass().getClassLoader().toString());
+
+      /*  try {
+
+
             System.out.println(dataSource);
             System.out.println("bbb============================" + dataSource);
             con = dataSource.getConnection();
@@ -33,12 +40,12 @@ public class DataSourceFiledListener implements ServletContextListener {
             stmt = con.createStatement();
             System.out.println("==stmt=====" + stmt);
             rs = stmt.executeQuery("select * from lt_company ");
-            while(rs.next()) {
-                System.out.println( rs.getInt("id") + " " + rs.getInt("is_delete") + " " + rs.getString("company_name") + " ");
+            while (rs.next()) {
+                System.out.println(rs.getInt("id") + " " + rs.getInt("is_delete") + " " + rs.getString("company_name") + " ");
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        }
+        }*/
 
     }
 

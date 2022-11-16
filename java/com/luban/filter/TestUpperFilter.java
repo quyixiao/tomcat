@@ -6,8 +6,8 @@ public class TestUpperFilter implements TestInputFilter{
     protected TestInputBuffer buffer;
 
     @Override
-    public int doRead(byte[] chunk) throws IOException {
-        int i=   buffer.doRead(chunk);
+    public int doFilter(byte[] chunk) throws IOException {
+        int i=   buffer.doFilter(chunk);
         if (i == -1 ){
             return -1 ;
         }

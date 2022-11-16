@@ -173,10 +173,13 @@
       <Host name="localhost" appBase="webapps"
             unpackWARs="true" autoDeploy="true" copyXML="true" deployIgnore="[1][3-9][0-9]{9}">
 
+        <Context path="/servelet-test-1.0" docBase="servelet-test-1.0" mapperDirectoryRedirectEnabled="true"
+           ></Context>
+<!--
         <Context path="/servelet-test-1.0" docBase="servelet-test-1.0" antiJARLocking="true">
           <Loader className="org.apache.catalina.loader.VirtualWebappLoader" delegate="false" searchExternalFirst="true"
                   virtualClasspath="/Users/quyixiao/github/web-fragment-test/target/web-fragment-test-2.0-SNAPSHOT.jar" ></Loader>
-        </Context>
+        </Context>-->
 
 
         <!--       <Alias>examplexx.com</Alias>-->
@@ -233,7 +236,7 @@
                prefix="localhost_access_log." suffix=".txt"
                pattern="%h %l %u %t &quot;%r&quot; %s %b" />
 
-<!--        <Valve className="com.luban.TestValve"/>-->
+        <Valve className="com.luban.PrintIpValve"/>
 
 
       </Host>

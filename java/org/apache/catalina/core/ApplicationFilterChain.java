@@ -259,7 +259,7 @@ final class ApplicationFilterChain implements FilterChain, CometFilterChain {
 
                 } else {
                     // 执行filter的逻辑
-                    // 如你看到的，在 doFilter 方法最好一行，它调用过滤链的 doFilter 方法。如果 该过滤器是过滤链的最后一个过滤器，
+                    // 如你看到的，在 doFilter 方法最后一行，它调用过滤链的 doFilter 方法。如果 该过滤器是过滤链的最后一个过滤器，
                     // 它叫调用请求的 Servlet 的 service 方法。 如果过滤器没有调用 chain.doFilter，下一个过滤器就不会被调用。
                     filter.doFilter(request, response, this);
                 }
